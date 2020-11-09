@@ -7,8 +7,11 @@
 # Last Modified Date: 21.03.2020
 # Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
 
+import itertools
 from pymongo import UpdateOne
+from bson import ObjectId
 from typing import Dict, List, Any
+from ampel.type import StockId
 from ampel.util.mappings import unflatten_dict
 from ampel.ztf.ingest.ZiT0PhotoPointShaper import ZiT0PhotoPointShaper
 from ampel.ztf.ingest.ZiT0UpperLimitShaper import ZiT0UpperLimitShaper
@@ -17,6 +20,12 @@ from ampel.alert.PhotoAlert import PhotoAlert
 from ampel.abstract.AbsT0Unit import AbsT0Unit
 from ampel.abstract.ingest.AbsAlertContentIngester import AbsAlertContentIngester
 
+
+class ConcurrentUpdateError(Exception):
+	"""
+	Raised when the t0 collection was updated during ingestion
+	"""
+	...
 
 class ZiAlertContentIngester(AbsAlertContentIngester[PhotoAlert, DataPoint]):
 	"""
@@ -46,9 +55,6 @@ class ZiAlertContentIngester(AbsAlertContentIngester[PhotoAlert, DataPoint]):
 	pp_shaper: AbsT0Unit = ZiT0PhotoPointShaper()
 	ul_shaper: AbsT0Unit = ZiT0UpperLimitShaper()
 
-	# JD2017 is used to defined upper limits primary IDs
-	JD2017: float = 2457754.5
-
 	# Standard projection used when checking DB for existing PPS/ULS
 	projection: Dict[str, int] = {
 		'_id': 1, 'tag': 1, 'excl': 1,
@@ -60,6 +66,7 @@ class ZiAlertContentIngester(AbsAlertContentIngester[PhotoAlert, DataPoint]):
 
 		# used to check potentially already inserted pps
 		self._photo_col = self.context.db.get_collection("t0")
+		self._photo_client = self._photo_col.database.client
 
 		self.stat_pps_reprocs = 0
 		self.stat_pps_inserts = 0
@@ -67,16 +74,13 @@ class ZiAlertContentIngester(AbsAlertContentIngester[PhotoAlert, DataPoint]):
 
 		self._projection_spec = unflatten_dict(self.projection)
 
-	def project(self, doc: Dict[str, Any]) -> Dict[str, Any]:
+
+	def project(self, doc: DataPoint) -> DataPoint:
 		return self._project(doc, self._projection_spec)
 
-	def _project(
-		self,
-		doc: Dict[str, Any],
-		projection: Dict[str, Any]
-	) -> Dict[str, Any]:
-	
-		out = {}
+
+	def _project(self, doc, projection):
+		out : Dict[str, Any] = {}
 		for key, spec in projection.items():
 			if not key in doc:
 				continue
@@ -91,6 +95,157 @@ class ZiAlertContentIngester(AbsAlertContentIngester[PhotoAlert, DataPoint]):
 				out[key] = doc[key]
 		return out
 
+
+	def _try_ingest(self, stock_id: StockId, dps: List[DataPoint]) -> List[DataPoint]:
+		"""
+		Attempt to insert ingest pps and uls into the t0 collection, marking
+		superseded points.
+		"""
+
+		# Part 1: gather info from DB and alert
+		#######################################
+
+		# New pps/uls lists for db loaded datapoints
+		dps_db: List[DataPoint] = list(self._photo_col.find({'stock': stock_id}, self.projection))
+
+		ops = []
+		if self.check_reprocessing:
+			add_update = lambda op: ops.append(op)
+		else:
+			add_update = self.updates_buffer.add_t0_update
+
+		# Create set with pp ids from alert
+		ids_dps_alert = {el['_id'] for el in dps}
+
+		# python set of ids of photopoints from DB
+		ids_dps_db = {el['_id'] for el in dps_db}
+
+		# uniquify photopoints by jd, rcid. for duplicate points, choose the
+		# one with the larger _id
+		ids_dps_superseded = dict()
+		unique_dps = dict()
+		for dp in sorted(itertools.chain(dps, dps_db), key=lambda dp: dp['_id']):
+			# jd alone is actually enough for matching pps reproc, but an upper
+			# limit can be associated with multiple stocks at the same jd. here,
+			# match also by rcid
+			key = (dp['body']['jd'], dp['body']['rcid'])
+
+			if not key in unique_dps:
+				unique_dps[key] = dp['_id']
+			elif dp['_id'] > unique_dps[key]:
+				ids_dps_superseded[unique_dps[key]] = dp['_id']
+				unique_dps[key] = dp['_id']
+			elif dp['_id'] < unique_dps[key]:
+				ids_dps_superseded[dp['_id']] = unique_dps[key]
+
+		# Part 2: Insert new data points
+		################################
+
+		# Difference between candids from the alert and candids present in DB
+		ids_dps_to_insert = ids_dps_alert - ids_dps_db
+
+		for dp in dps:
+			if dp['_id'] in ids_dps_to_insert:
+				base = {k: v for k,v in dp.items() if not k in {'tag', 'stock'}}
+				sets : Dict[str,Any] = {
+					'stock': stock_id,
+					'tag': {'$each': dp['tag']}
+				}
+				# If alerts were received out of order, this point may already
+				# be superseded.
+				if (
+					self.check_reprocessing
+					and dp['_id'] in ids_dps_superseded
+					and not 'SUPERSEDED' in dp['tag']
+				):
+					# NB: here we modify the point in place, so the SUPERSEDED
+					# tag remains in place if there is a second pass
+					dp['tag'] = list(dp['tag']) + ['SUPERSEDED']
+					sets['tag']['$each'] = dp['tag']
+					sets['newId'] = ids_dps_superseded[dp['_id']]
+					self.logd['logs'].append(
+						f'Marking datapoint {dp["_id"]} '
+						f'as superseded by {ids_dps_superseded[dp["_id"]]}'
+					)
+					self.stat_pps_reprocs += 1
+				# Unconditionally update the doc
+				add_update(
+					UpdateOne(
+						{'_id': dp['_id']},
+						{
+							'$setOnInsert': base,
+							'$addToSet': sets
+						},
+						upsert=True
+					)
+				)
+				if dp['_id'] > 0:
+					self.stat_pps_inserts += 1
+				else:
+					self.stat_uls_inserts += 1
+
+		# Part 3: Update data points that were superseded
+		#################################################
+
+		for dp in (dps_db if self.check_reprocessing else []):
+			if (
+				dp['_id'] in ids_dps_superseded
+				and not 'SUPERSEDED' in dp['tag']
+			):
+				dp['tag'] = list(dp['tag']) + ['SUPERSEDED']
+				sets = {
+					'tag': {'$each': dp['tag']},
+					'newId': ids_dps_superseded[dp['_id']]
+				}
+				add_update(
+					UpdateOne(
+						{'_id': dp['_id']},
+						{
+							'$addToSet': sets
+						},
+						upsert=False
+					)
+				)
+				self.stat_pps_reprocs += 1
+
+		# If no photopoint exists in the DB, then this is a new transient.
+		if not ids_dps_db:
+			self.logd['extra']['new'] = True
+
+		# Part 4: commit ops and check for conflicts
+		############################################
+		if self.check_reprocessing:
+			# Commit ops
+			if ops:
+				self._photo_col.bulk_write(ops)
+			# If another query returns docs not present in the first query, the
+			# set of superseded photopoints may be incomplete.
+			if concurrent_updates := (
+				{
+					doc['_id']
+					for doc in self._photo_col.find({'stock': stock_id}, {'_id': 1})
+				}
+				- (ids_dps_db | ids_dps_alert)
+			):
+				raise ConcurrentUpdateError(f"t0 collection contains {len(concurrent_updates)} extra photopoints: {concurrent_updates}")
+
+		# Photo data that will be part of the compound. Points are projected
+		# the same way whether they were drawn from the db or from the alert.
+		datapoints = [
+			el for el in (
+			dps_db + [
+				self.project(dp)
+				for dp in dps if dp['_id'] in ids_dps_to_insert
+			]
+			)
+			# Only return datapoints that were in the alert itself
+			# https://github.com/AmpelProject/Ampel-ZTF/issues/6
+			if el['_id'] in ids_dps_alert
+		]
+
+		return sorted(datapoints, key=lambda k: k['body']['jd'], reverse=True)
+
+
 	def ingest(self, alert: PhotoAlert) -> List[DataPoint]:
 		"""
 		This method is called by the AlertProcessor for alerts passing at least one T0 channel filter.
@@ -98,209 +253,19 @@ class ZiAlertContentIngester(AbsAlertContentIngester[PhotoAlert, DataPoint]):
 		Note: Some dict instances referenced in pps_alert and uls_alert might be modified by this method.
 		"""
 
-		# Part 1: gather info from DB and alert
-		#######################################
+		# Attention: ampelize *modifies* dict instances loaded by fastavro
+		dps = self.pp_shaper.ampelize(alert.pps) + (self.ul_shaper.ampelize(alert.uls) if alert.uls else [])
 
-		# New pps/uls lists for db loaded datapoints
-		pps_db: List[DataPoint] = []
-		uls_db: List[DataPoint] = []
-
-		add_update = self.updates_buffer.add_t0_update
-
-		# Load existing photopoint and upper limits from DB (if any)
-		# Note: a 'stock' ID should be specific to one instrument
-		for el in self._photo_col.find({'stock': alert.stock_id}, self.projection):
-			if el['_id'] > 0:
-				pps_db.append(el) # Photopoint
-			else:
-				uls_db.append(el) # Upper limit
-
-		# New lists of datapoints to insert (filling occurs later)
-		pps_to_insert: List[DataPoint] = []
-		uls_to_insert: List[DataPoint] = []
-
-		# Create set with pp ids from alert
-		ids_pps_alert = {el['candid'] for el in alert.pps}
-
-		# python set of ids of photopoints from DB
-		ids_pps_db = {el['_id'] for el in pps_db}
-
-		# Set of uls ids from alert
-		ids_uls_alert = set()
-
-		# Create unique ids for the upper limits from alert
-		# Concrete example:
-		# {
-		#   'diffmaglim': 19.024799346923828,
-		#   'fid': 2,
-		#   'jd': 2458089.7405324,
-		#   'pdiffimfilename': '/ztf/archive/sci/2017/1202/240532/ \
-		#                      ztf_20171202240532_000566_zr_c08_o_q1_scimrefdiffimg.fits.fz',
-		#   'pid': 335240532815,
-		#   'programid': 0
-		# }
-		# -> generated ID: -3352405322819025
-
-		# Loop through upper limits from alert
-		if alert.uls:
-			setitem = dict.__setitem__
-			for uld in alert.uls:
-
-				# extract quadrant number from pid (not avail as dedicate key/val)
-				rcid = str(uld['pid'])[8:10]
-				setitem(uld, 'rcid', int(rcid))
-
-				# Update dict created by fastavro
-				setitem(uld, '_id', int(
-					'%i%s%i' % (
-						# Convert jd float into int by multiplying it by 10**6, we thereby
-						# drop the last digit (milisecond) which is pointless for our purpose
-						(self.JD2017 - uld['jd']) * 1000000,
-						# cut of mag float after 3 digits after coma
-						rcid, round(uld['diffmaglim'] * 1000)
-					)
-				))
-
-				ids_uls_alert.add(uld['_id'])
-
-		# python set of ids of upper limits from DB
-		ids_uls_db = {el['_id'] for el in uls_db}
-
-
-
-		# Part 2: Determine which datapoint is new
-		##########################################
-
-		# Difference between candids from the alert and candids present in DB
-		ids_pps_to_insert = ids_pps_alert - ids_pps_db
-		ids_uls_to_insert = ids_uls_alert - ids_uls_db
-
-		# If the photopoints already exist in DB
-
-		# PHOTO POINTS
-		if ids_pps_to_insert:
-
-			# ForEach photopoint not existing in DB: rename candid into _id, add tags
-			# Attention: ampelize *modifies* dict instances loaded by fastavro
-			pps_to_insert = self.pp_shaper.ampelize(
-				(pp for pp in alert.pps if pp['candid'] in ids_pps_to_insert)
-			)
-			self.stat_pps_inserts += len(pps_to_insert)
-
-			for pp in pps_to_insert:
-				add_update(
-					UpdateOne(
-						{'_id': pp['_id']},
-						{
-							'$setOnInsert': pp,
-							'$addToSet': {'stock': alert.stock_id}
-						},
-						upsert=True
-					)
-				)
-
-		# UPPER LIMITS
-		if ids_uls_to_insert:
-
-			# For each upper limit not existing in DB: remove dict key with None values
-			# Attention: ampelize *modifies* dict instances loaded by fastavro
-			uls_to_insert = self.ul_shaper.ampelize(
-				(ul for ul in alert.uls if ul['_id'] in ids_uls_to_insert) # type: ignore[union-attr]
-			)
-			self.stat_uls_inserts += len(uls_to_insert)
-
-			# Insert new upper limit into DB
-			for ul in uls_to_insert:
-				add_update(
-					UpdateOne(
-						{'_id': ul['_id']},
-						{
-							'$setOnInsert': ul,
-							'$addToSet': {'stock': alert.stock_id}
-						},
-						upsert=True
-					)
-				)
-
-
-
-		# Part 3: check for reprocessed photopoints
-		###########################################
-
-		# NOTE: this procedure will *update* selected the dict instances
-		# loaded from DB (from the lists: pps_db and uls_db)
-
-		# Difference between candids from db and candids from alert
-		ids_in_db_not_in_alert = (ids_pps_db | ids_uls_db) - (ids_pps_alert | ids_uls_alert)
-
-		# If the set is not empty, either some transient info is older that alert_history_length days
-		# or some photopoints were reprocessed
-		if self.check_reprocessing and ids_in_db_not_in_alert:
-
-			# Ignore ppts in db older than alert_history_length days
-			min_jd = alert.pps[0]['jd'] - self.alert_history_length
-			ids_in_db_older_than_xx_days = {el['_id'] for el in pps_db + uls_db if el['body']['jd'] < min_jd}
-			ids_superseded = ids_in_db_not_in_alert - ids_in_db_older_than_xx_days
-
-			# pps/uls reprocessing occured at IPAC
-			if ids_superseded:
-
-				# loop through superseded photopoint
-				for photod_db_superseded in filter(
-					lambda x: x['_id'] in ids_superseded, pps_db + uls_db
-				):
-
-					# Match these with new alert data (already 'shaped' by the ampelize method)
-					for new_meas in filter(lambda x:
-						# jd alone is actually enough for matching pps reproc
-						x['body']['jd'] == photod_db_superseded['body']['jd'] and
-						x['body']['rcid'] == photod_db_superseded['body']['rcid'],
-						pps_to_insert + uls_to_insert
-					):
-
-						self.logd['logs'].append(
-							f'Marking photodata {photod_db_superseded["_id"]} '
-							f'as superseded by {new_meas["_id"]}'
-						)
-
-						# Update tags in dict loaded by fastavro
-						# (required for t2 & compounds doc creation)
-						if 'SUPERSEDED' not in photod_db_superseded['tag']:
-							# Mypy ignore note: tag is declared as Sequence but we have a List for sure
-							photod_db_superseded['tag'].append('SUPERSEDED') # type: ignore
-
-						# Create and append pymongo update operation
-						self.stat_pps_reprocs += 1
-						add_update(
-							UpdateOne(
-								{'_id': photod_db_superseded['_id']},
-								{
-									'$addToSet': {
-										'newId': new_meas['_id'],
-										'tag': ['SUPERSEDED']
-									}
-								}
-							)
-						)
-			else:
-				self.logd['logs'].append('Transient data older than 30 days exist in DB')
-
-
-		# If no photopoint exists in the DB, then this is a new transient
-		if not ids_pps_db:
-			self.logd['extra']['new'] = True
-
-		# Photo data that will be part of the compound
-		datapoints = [
-			el for el in (
-			pps_db + list(map(self.project, pps_to_insert)) +
-			uls_db + list(map(self.project, uls_to_insert))
-			)
-			# https://github.com/AmpelProject/Ampel-ZTF/issues/6
-			if el['body']['jd'] <= alert.pps[0]['jd']
-		]
-
-		return sorted(datapoints, key=lambda k: k['body']['jd'], reverse=True)
+		# IPAC occasionally issues multiple subtraction candidates for the same
+		# exposure and source, and these may be received in parallel by two
+		# AlertProcessors. 
+		for _ in range(10):
+			try:
+				return self._try_ingest(alert.stock_id, dps)
+			except ConcurrentUpdateError:
+				continue
+		else:
+			raise ConcurrentUpdateError(f"More than 10 iterations ingesting alert {dps[0]['_id']}")
 
 
 	# Mandatory implementation

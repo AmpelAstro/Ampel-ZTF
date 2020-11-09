@@ -44,10 +44,6 @@ db:
       - field: channel
         args:
           sparse: true
-      args:
-        storageEngine:
-          wiredTiger:
-            configString: block_compressor=zlib
     - name: events
       indexes: null
     - name: beacon
@@ -58,6 +54,8 @@ db:
       r: logger
       w: logger
   prefix: AmpelTest
+  mongo_options:
+    serverSelectionTimeoutMS: 1
 unit:
   controller: {}
   admin: {}
