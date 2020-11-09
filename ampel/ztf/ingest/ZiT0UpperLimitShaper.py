@@ -23,6 +23,8 @@ class ZiT0UpperLimitShaper(AbsT0Unit):
 	# override
 	logger: Optional[AmpelLogger] # type: ignore[assignment]
 
+	# JD2017 is used to defined upper limits primary IDs
+	JD2017: float = 2457754.5
 
 	# Mandatory implementation
 	def ampelize(self, arg: Iterable[Dict[str, Any]]) -> List[DataPoint]:
@@ -33,12 +35,12 @@ class ZiT0UpperLimitShaper(AbsT0Unit):
 
 		return [
 			{
-				'_id': photo_dict['_id'],
+				'_id': self.identity(photo_dict),
 				'tag': tags[photo_dict['programid']][photo_dict['fid']],
 				'body': {
 					'jd': photo_dict['jd'],
 					'diffmaglim': photo_dict['diffmaglim'],
-					'rcid': photo_dict['rcid'],
+					'rcid': (photo_dict['pid'] % 10000) // 100,
 					'fid': photo_dict['fid']
 					#'pdiffimfilename': fname
 					#'pid': photo_dict['pid'],
@@ -48,3 +50,28 @@ class ZiT0UpperLimitShaper(AbsT0Unit):
 			}
 			for photo_dict in arg
 		]
+
+	def identity(self, uld: Dict[str, Any]) -> int:
+		"""
+		Calculate a unique ID for an upper limit from:
+		  - jd, floored to the millisecond
+		  - readout quadrant number (extracted from pid)
+		  - diffmaglim, rounded to 1e-3
+		 Example::
+		
+			>>> ZiT0UpperLimitShaper().identity(
+			{
+			  'diffmaglim': 19.024799346923828,
+			  'fid': 2,
+			  'jd': 2458089.7405324,
+			  'pdiffimfilename': '/ztf/archive/sci/2017/1202/240532/ztf_20171202240532_000566_zr_c08_o_q1_scimrefdiffimg.fits.fz',
+			  'pid': 335240532815,
+			  'programid': 0
+			})
+			-3352405322819025
+		"""
+		return (
+			(int((self.JD2017 - uld['jd']) * 1000000) * 10000000)
+			- (((uld["pid"] % 10000)//100) * 100000)
+			- round(uld['diffmaglim'] * 1000)
+		)
