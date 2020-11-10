@@ -42,6 +42,7 @@ class FritzReport(SkyPortalClient, AbsT3DataAppender):
                     for k, v in record["data"].items()
                     if not k in {"thumbnails", "annotations", "groups", "internal_key"}
                 }
+        return None
 
     def complement(self, records: Iterable[AmpelBuffer]) -> None:
         for record in records:

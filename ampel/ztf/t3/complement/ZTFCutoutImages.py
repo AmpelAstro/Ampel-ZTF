@@ -44,9 +44,7 @@ class ZTFCutoutImages(AbsT3DataAppender):
             )
             if not pps:
                 return
-            if record.get("extra") is None:
-                record["extra"] = {}
-            assert "cutouts" not in record["extra"]
+
             if self.eligible == "last":
                 candids = [pps[-1]["_id"]]
             elif self.eligible == "first":
@@ -55,6 +53,9 @@ class ZTFCutoutImages(AbsT3DataAppender):
                 candids = [min(pps, key=lambda pp: pp["body"]["magpsf"])["_id"]]
             elif self.eligible == "all":
                 candids = [pp["_id"] for pp in pps]
-            record["extra"][self.__class__.__name__] = {
-                candid: self.archive.get_cutout(candid) for candid in candids
-            }
+            cutouts = {candid: self.archive.get_cutout(candid) for candid in candids}
+
+            if "extra" not in record or record["extra"] is None:
+                record["extra"] = {self.__class__.__name__: cutouts}
+            else:
+                record["extra"][self.__class__.__name__] = cutouts
