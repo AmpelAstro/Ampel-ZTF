@@ -32,6 +32,7 @@ setup(
 	extras_require = {
 		"testing": [
 			"pytest",
+			"pytest-timeout",
 			"mongomock",
 			"sqlalchemy-stubs",
 		]
