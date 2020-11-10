@@ -29,6 +29,13 @@ setup(
 		"psycopg2-binary",
 		"sqlalchemy",
 	],
+	extras_require = {
+		"testing": [
+			"pytest",
+			"mongomock",
+			"sqlalchemy-stubs",
+		]
+	},
 	entry_points = {
 		'console_scripts': {
 			'ampel-ztf-alertprocessor = ampel.ztf.t0.run:run_alertprocessor',
