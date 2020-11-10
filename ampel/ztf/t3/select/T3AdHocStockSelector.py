@@ -7,7 +7,7 @@
 # Last Modified Date: 17.09.2020
 # Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
 
-from typing import Optional, Sequence
+from typing import Optional, List
 
 from pymongo.cursor import Cursor
 
@@ -23,7 +23,7 @@ class T3AdHocStockSelector(AbsT3Selector):
     """
 
     logger: AmpelLogger
-    name: Sequence[str]
+    name: List[str]
 
     def __init__(self, **kwargs):
 
