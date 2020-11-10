@@ -30,12 +30,19 @@ def patch_mongo(monkeypatch):
 @pytest.fixture
 def dev_context():
     config = AmpelConfig.load(
-        Path(__file__).parent / "test-data" / "testing-config.yaml"
+        Path(__file__).parent / "test-data" / "testing-config.yaml",
     )
+    custom_conf = {}
+    if "MONGO_HOSTNAME" in os.environ:
+        custom_conf[
+            "resource.mongo"
+        ] = f"mongodb://{os.environ['MONGO_HOSTNAME']}:{os.environ.get('MONGO_PORT', 27017)}"
     try:
-        return DevAmpelContext.new(config=config, purge_db=True)
+        return DevAmpelContext.new(
+            config=config, purge_db=True, custom_conf=custom_conf
+        )
     except pymongo.errors.ServerSelectionTimeoutError:
-        raise pytest.skip(f"No mongod listening on {config.get('resource.mongo')}")
+        raise pytest.skip(f"No mongod listening on {(custom_conf or config).get('resource.mongo')}")
 
 
 @pytest.fixture
