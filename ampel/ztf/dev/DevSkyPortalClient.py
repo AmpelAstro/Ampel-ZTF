@@ -10,12 +10,11 @@ import gzip
 import io
 from collections import defaultdict
 from datetime import datetime
-from typing import Sequence
+from typing import Sequence, Dict, Any, Generator
 
 import numpy as np
 import requests
 from ampel.alert.PhotoAlert import PhotoAlert
-from ampel.content.DataPoint import DataPoint
 from astropy.io import fits
 from astropy.time import Time
 from matplotlib.colors import Normalize
@@ -150,7 +149,7 @@ class DevSkyPortalClient:
                 content[k].append(v)
         return {**base, **content}
 
-    def _transform_datapoints(self, dps: Sequence[DataPoint], after=-float("inf")):
+    def _transform_datapoints(self, dps: Sequence[Dict[str,Any]], after=-float("inf")) -> Generator[Dict[str,Any],None,None]:
         ztf_filters = {1: "ztfg", 2: "ztfr", 3: "ztfi"}
         for dp in dps:
             if dp["jd"] <= after:
