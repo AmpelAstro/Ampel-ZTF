@@ -54,8 +54,7 @@ def test_merge_processes(config):
         "template": "ztf_uw_public",
         "t0_filter": {"unit": "NoFilter"}
     }) for name in ("foo", "bar")]
-    controller = make_controller(config, processes)
-    assert len(controller.processes) == 1
+    len(ZTFAlertStreamController.merge_processes(processes).processor.config['directives']) == 2
 
     # incompatible processor configs
     processes[0].processor.config["iter_max"] = 100

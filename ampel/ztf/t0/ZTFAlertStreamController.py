@@ -147,15 +147,17 @@ class ZTFAlertStreamController(AbsProcessController):
 
         def strip(config):
             """Remove AlertProcessor config keys will be changed or merged"""
-            return {k: v for k, v in config.items() if k not in {"process_name", "publish_stats", "directives"}}
+            return {k: v for k, v in config.items() if k not in {"process_name", "publish_stats", "directives"}} if config else {}
 
         for pm in processes[1:]:
             # ensure that trailing AlertProcessor configs are compatible
             assert pm.active
             assert process.controller.config == pm.controller.config
+            assert process.controller.override == pm.controller.override
             assert isinstance(pm.processor.config, dict)
             assert process.processor.unit == pm.processor.unit, "All processes are AlertProcessors"
             assert strip(process.processor.config) == strip(pm.processor.config), "AlertProcessor configs are compatible"
+            assert strip(process.processor.override) == strip(pm.processor.override), "AlertProcessor overrides are compatible"
             process.processor.config["directives"] += pm.processor.config["directives"]
 
         return process
