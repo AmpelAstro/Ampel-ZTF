@@ -107,17 +107,17 @@ def to_ztf_id(ampel_id: StockId) -> str:
 	...
 
 @overload
-def to_ztf_id(ampel_id: Iterable[StockId]) -> List[str]:
+def to_ztf_id(ampel_id: StrictIterable[StockId]) -> List[str]:
 	...
 
-def to_ztf_id(ampel_id: Union[StockId, Iterable[StockId]]) -> Union[str, List[str]]:
+def to_ztf_id(ampel_id: Union[StockId, StrictIterable[StockId]]) -> Union[str, List[str]]:
 	"""
 	%timeit to_ztf_id(274878346346)
 	1.54 µs ± 77.9 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)
 	"""
 	# Handle sequences
 	if isinstance(ampel_id, Iterable) and not isinstance(ampel_id, str):
-		[to_ztf_id(l) for l in ampel_id]
+		return [to_ztf_id(l) for l in ampel_id]
 	elif isinstance(ampel_id, int):
 
 		# int('00001111', 2) bitmask equals 15
