@@ -27,7 +27,7 @@ install_requires = \
 ['SQLAlchemy>=1.3,<1.4',
  'aiohttp>=3.7.3,<4.0.0',
  'ampel-alerts>=0.7.1-alpha.0,<0.8.0',
- 'ampel-core>=0.7.1-alpha.4,<0.8.0',
+ 'ampel-core',
  'ampel-interface',
  'ampel-photometry>=0.7.1-alpha.0,<0.8.0',
  'astropy>=4.2,<5.0',
@@ -42,7 +42,7 @@ install_requires = \
 
 setup_kwargs = {
     'name': 'ampel-ztf',
-    'version': '0.7.1a7',
+    'version': '0.7.1a8',
     'description': 'Zwicky Transient Facility support for the Ampel system',
     'long_description': '\n\n<img align="left" src="https://desycloud.desy.de/index.php/s/6gJs9bYBG3tWFDz/preview" width="150" height="150"/>  \n<br>\n\n# ZTF support for AMPEL\n\n<br><br>\nZTF-specific implementations for Ampel such as:\n\n- An _AlertSupplier_ compatible with IPAC generated alerts\n- Shaper classes for ingestion\n- Encoding utilities for ZTF names (AMPEL requires integer ids)\n- Classes for archiving alerts\n',
     'author': 'Valery Brinnel',
