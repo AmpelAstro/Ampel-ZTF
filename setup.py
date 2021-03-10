@@ -8,6 +8,7 @@ packages = \
  'ampel.ztf',
  'ampel.ztf.alert',
  'ampel.ztf.archive',
+ 'ampel.ztf.base',
  'ampel.ztf.dev',
  'ampel.ztf.ingest',
  'ampel.ztf.t0',
