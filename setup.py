@@ -7,7 +7,6 @@ packages = \
  'ampel.util',
  'ampel.ztf',
  'ampel.ztf.alert',
- 'ampel.ztf.archive',
  'ampel.ztf.base',
  'ampel.ztf.dev',
  'ampel.ztf.ingest',
@@ -24,8 +23,7 @@ package_data = \
 {'': ['*']}
 
 install_requires = \
-['SQLAlchemy>=1.3,<1.4',
- 'aiohttp>=3.7.3,<4.0.0',
+['aiohttp>=3.7.3,<4.0.0',
  'ampel-alerts>=0.7.1-alpha.0,<0.8.0',
  'ampel-core',
  'ampel-interface',
@@ -36,9 +34,10 @@ install_requires = \
  'fastavro>=1.3.2,<2.0.0',
  'matplotlib>=3.3.4,<4.0.0',
  'nest-asyncio>=1.5.1,<2.0.0',
- 'psycopg2-binary>=2.8.6,<3.0.0',
- 'requests>=2.25.1,<3.0.0',
- 'sqlalchemy-stubs>=0.4,<0.5']
+ 'requests>=2.25.1,<3.0.0']
+
+extras_require = \
+{'archive': ['ampel-ztf-archive>=0.7.0-alpha.0,<0.8.0']}
 
 setup_kwargs = {
     'name': 'ampel-ztf',
@@ -53,6 +52,7 @@ setup_kwargs = {
     'packages': packages,
     'package_data': package_data,
     'install_requires': install_requires,
+    'extras_require': extras_require,
     'python_requires': '>=3.8,<4.0',
 }
 
