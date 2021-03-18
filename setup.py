@@ -34,6 +34,7 @@ install_requires = \
  'fastavro>=1.3.2,<2.0.0',
  'matplotlib>=3.3.4,<4.0.0',
  'nest-asyncio>=1.5.1,<2.0.0',
+ 'requests-toolbelt>=0.9.1,<0.10.0',
  'requests>=2.25.1,<3.0.0']
 
 extras_require = \
@@ -41,7 +42,7 @@ extras_require = \
 
 setup_kwargs = {
     'name': 'ampel-ztf',
-    'version': '0.7.1a8',
+    'version': '0.7.1a9',
     'description': 'Zwicky Transient Facility support for the Ampel system',
     'long_description': '\n\n<img align="left" src="https://desycloud.desy.de/index.php/s/6gJs9bYBG3tWFDz/preview" width="150" height="150"/>  \n<br>\n\n# ZTF support for AMPEL\n\n<br><br>\nZTF-specific implementations for Ampel such as:\n\n- An _AlertSupplier_ compatible with IPAC generated alerts\n- Shaper classes for ingestion\n- Encoding utilities for ZTF names (AMPEL requires integer ids)\n- Classes for archiving alerts\n',
     'author': 'Valery Brinnel',
