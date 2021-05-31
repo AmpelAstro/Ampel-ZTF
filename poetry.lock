@@ -19,19 +19,19 @@ speedups = ["aiodns", "brotlipy", "cchardet"]
 
 [[package]]
 name = "ampel-alerts"
-version = "0.7.1"
+version = "0.7.2"
 description = "Alert support for the Ampel system"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
-ampel-core = ">=0.7.1,<0.8.0"
+ampel-core = ">=0.7.2,<0.8.0"
 ampel-interface = ">=0.7.1,<0.8.0"
 ampel-photometry = ">=0.7.1,<0.8.0"
 
 [package.extras]
-docs = ["Sphinx (>=3.5.1,<4.0.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "tomlkit (>=0.7.0,<0.8.0)"]
+docs = ["Sphinx (>=3.5.1,<5.0.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "tomlkit (>=0.7.0,<0.8.0)"]
 
 [[package]]
 name = "ampel-core"
@@ -806,8 +806,8 @@ aiohttp = [
     {file = "aiohttp-3.7.4.post0.tar.gz", hash = "sha256:493d3299ebe5f5a7c66b9819eacdcfbbaaf1a8e84911ddffcdc48888497afecf"},
 ]
 ampel-alerts = [
-    {file = "ampel-alerts-0.7.1.tar.gz", hash = "sha256:4f0d596b745e2dc1e41d9c1fe9148a37c9f4c9501c426dd8baf981173bfb208a"},
-    {file = "ampel_alerts-0.7.1-py3-none-any.whl", hash = "sha256:8c98ff3719ee535e52db74d2e18480031b4640f288523886c56702ed33b5dc76"},
+    {file = "ampel-alerts-0.7.2.tar.gz", hash = "sha256:62b78f9cae76a1fbbdad09523145f470012990b3dbd91bfb41c4a78bf425416a"},
+    {file = "ampel_alerts-0.7.2-py3-none-any.whl", hash = "sha256:27e1c448451d1d7b536f31f5645a012c3f90e68b731acb5c3bebac9d647d3fc6"},
 ]
 ampel-core = [
     {file = "ampel-core-0.7.2.tar.gz", hash = "sha256:e812f38e01907ec6cec111afe0c1ef8ce363922bf09c38a11b13bdfdf8e08c30"},
@@ -1194,6 +1194,7 @@ pillow = [
     {file = "Pillow-8.2.0-pp37-pypy37_pp73-manylinux2010_i686.whl", hash = "sha256:aac00e4bc94d1b7813fe882c28990c1bc2f9d0e1aa765a5f2b516e8a6a16a9e4"},
     {file = "Pillow-8.2.0-pp37-pypy37_pp73-manylinux2010_x86_64.whl", hash = "sha256:22fd0f42ad15dfdde6c581347eaa4adb9a6fc4b865f90b23378aa7914895e120"},
     {file = "Pillow-8.2.0-pp37-pypy37_pp73-win32.whl", hash = "sha256:e98eca29a05913e82177b3ba3d198b1728e164869c613d76d0de4bde6768a50e"},
+    {file = "Pillow-8.2.0-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:8b56553c0345ad6dcb2e9b433ae47d67f95fc23fe28a0bde15a120f25257e291"},
     {file = "Pillow-8.2.0.tar.gz", hash = "sha256:a787ab10d7bb5494e5f76536ac460741788f1fbce851068d73a87ca7c35fc3e1"},
 ]
 pluggy = [
