@@ -276,7 +276,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "light-curve-python"
-version = "0.2.5"
+version = "0.2.6"
 description = "Feature extractor from noisy time series"
 category = "main"
 optional = false
@@ -1014,26 +1014,15 @@ kiwisolver = [
     {file = "kiwisolver-1.3.1.tar.gz", hash = "sha256:950a199911a8d94683a6b10321f9345d5a3a8433ec58b217ace979e18f16e248"},
 ]
 light-curve-python = [
-    {file = "light_curve_python-0.2.5-cp36-cp36m-macosx_10_7_x86_64.whl", hash = "sha256:1d0ac479ff2f73f2beb0a321751c4e2fbf153d5a8100eae5a6fc27cf92f7f289"},
-    {file = "light_curve_python-0.2.5-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:98cbd87dbb6280fc3bdcd3d6b712f90bc1310c41c842f2bd774c8783740bfd43"},
-    {file = "light_curve_python-0.2.5-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:1d7a3dab4be7c9180937ed57024458ac932d6701dcc2001c828af1d02e826d8c"},
-    {file = "light_curve_python-0.2.5-cp36-cp36m-manylinux2014_aarch64.whl", hash = "sha256:0e01b65e900863d2caa057930ec49420c2c1e92bdc031a3e029fcc20835f09b3"},
-    {file = "light_curve_python-0.2.5-cp36-cp36m-manylinux2014_ppc64le.whl", hash = "sha256:c92260c2469d63b21dd48d3c44bf8369dd09999acda84a9a64cbbbf67292a3c5"},
-    {file = "light_curve_python-0.2.5-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:eab6a26f26128a4b84d570d0672fe9640d556213ac0fc008bb4f71a7dade461d"},
-    {file = "light_curve_python-0.2.5-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:aa7d2f997368588d28ecb656fdf644afb35398dda5a0651a9abfa0da313ea631"},
-    {file = "light_curve_python-0.2.5-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:62919ecce72332f7580e670fc6e92763c62cdd625f9a65b2f58fbc1d08bf67c6"},
-    {file = "light_curve_python-0.2.5-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:2c8ca030f7a272a8b725a739a3075931522a7f4e21d779b80f5e7a367c13c319"},
-    {file = "light_curve_python-0.2.5-cp37-cp37m-manylinux2014_ppc64le.whl", hash = "sha256:a9b1a174b23061b345eb90f764659665bd6a26fddb0e05f66e1c57bb7f7d3963"},
-    {file = "light_curve_python-0.2.5-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:1c3b2e4293cf890560be01233afd0c9c289753318f8e4ebb78bebe74745904b6"},
-    {file = "light_curve_python-0.2.5-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:536a3b481365034f77e01fd879e0b65d01cf553a6c2dddcba5220f25eba1c49a"},
-    {file = "light_curve_python-0.2.5-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:559775664d709856cd9e7855fb0f91db3f4422b71620b4978a217c45ee5f1a3e"},
-    {file = "light_curve_python-0.2.5-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:b7f3596e67380514cb00637620ecde589926deb8c55546db985f30203ccbc7cf"},
-    {file = "light_curve_python-0.2.5-cp38-cp38-manylinux2014_ppc64le.whl", hash = "sha256:5c63e42ab12125ae1c9715481e624215d89c3a1ac0f353fc3c54d45d027d30db"},
-    {file = "light_curve_python-0.2.5-cp39-cp39-macosx_10_7_x86_64.whl", hash = "sha256:97ffbbf09b9a9830e111112f07b48556288e42a890b6c1a016d4d329a6b27650"},
-    {file = "light_curve_python-0.2.5-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:04071617924e7845d15b1d49cc2c6559fd9fdd5d5129845d60b4e2f50ebc0011"},
-    {file = "light_curve_python-0.2.5-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:d6ccddd5a0820a234499f76b953b8c621f1fb64c79d0f3645cae2cd964d74e1a"},
-    {file = "light_curve_python-0.2.5-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:abfcf5fc5e6a4f768d3c510327b377428c3a452d9281d2f904cc647391dcbff1"},
-    {file = "light_curve_python-0.2.5.tar.gz", hash = "sha256:907f3bcf332d4b397c6328b0521c948b34f8a46b9bcff9ac3de438221655436e"},
+    {file = "light_curve_python-0.2.6-cp36-cp36m-macosx_10_7_x86_64.whl", hash = "sha256:41c93c2690c63ad14b4015d8bc5b1cc436fd5282e98530b083f0b2367502e0fb"},
+    {file = "light_curve_python-0.2.6-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:e9b92568cb71096afb4e7141d6bbf174794b16527746ac06a3b6ba9555ec979b"},
+    {file = "light_curve_python-0.2.6-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:225b5020098009b69fdfd9c04bf3581b69915e79647de04e019b4ff1e23b92f4"},
+    {file = "light_curve_python-0.2.6-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:8b734cc7845b0f6fbd186c9c24fb4f00a51a6039a1405d7a703cb53927455872"},
+    {file = "light_curve_python-0.2.6-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:37d55cd32e41d320c0de4f5bcdb467c25ebf954823c09233d56d4d222ec1f02a"},
+    {file = "light_curve_python-0.2.6-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:184ab8f49c78bb1c5ac4ec21c28f8f3abcba8967b4637bad0eba04796608d8cf"},
+    {file = "light_curve_python-0.2.6-cp39-cp39-macosx_10_7_x86_64.whl", hash = "sha256:03b7389fffdb34d39e1e227ab94e8b5cc271c71911ce67fb1bf79ba76f4e6618"},
+    {file = "light_curve_python-0.2.6-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:0423696e9e4bdf567ce8d4857251bf33fd51a01900cf13cd3bb0855245331543"},
+    {file = "light_curve_python-0.2.6.tar.gz", hash = "sha256:33451bcb15432fb3dfa324abe16263e8a8f25a5fb2a9d8dacfb9c81cc7a4e5f3"},
 ]
 matplotlib = [
     {file = "matplotlib-3.4.2-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:c541ee5a3287efe066bbe358320853cf4916bc14c00c38f8f3d8d75275a405a9"},
