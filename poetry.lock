@@ -692,7 +692,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "types-requests"
-version = "0.1.8"
+version = "2.25.0"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -762,7 +762,7 @@ archive = ["ampel-ztf-archive"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "7a6d1941ffc3e98d1a2ed228dcf838065eca2884b9716d10ee99b166a1212493"
+content-hash = "44c034837d4a0ba7d210ba8d50c07a793d995433ef3082e396e5f87d695a33ee"
 
 [metadata.files]
 aiohttp = [
@@ -1509,7 +1509,8 @@ toml = [
     {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
 ]
 types-requests = [
-    {file = "types_requests-0.1.8-py2.py3-none-any.whl", hash = "sha256:174b54ec7920ea1505fa5007b52d3587f96c2366062ab0a04bb10eb32d18c970"},
+    {file = "types-requests-2.25.0.tar.gz", hash = "sha256:ee0d0c507210141b7d5b8639cc43eaa726084178775db2a5fb06fbf85c185808"},
+    {file = "types_requests-2.25.0-py3-none-any.whl", hash = "sha256:fa5c1e5e832ff6193507d8da7e1159281383908ee193a2f4b37bc08140b51844"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.10.0.0-py2-none-any.whl", hash = "sha256:0ac0f89795dd19de6b97debb0c6af1c70987fd80a2d62d1958f7e56fcc31b497"},
