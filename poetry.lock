@@ -118,7 +118,7 @@ test = ["coverage", "flake8", "pexpect", "wheel"]
 
 [[package]]
 name = "astropy"
-version = "4.2.1"
+version = "4.3"
 description = "Astronomy and astrophysics core library"
 category = "main"
 optional = false
@@ -126,12 +126,12 @@ python-versions = ">=3.7"
 
 [package.dependencies]
 numpy = ">=1.17"
-pyerfa = "*"
+pyerfa = ">=1.7.3"
 
 [package.extras]
-all = ["scipy (>=1.1)", "dask", "h5py", "beautifulsoup4", "html5lib", "bleach", "PyYAML (>=3.13)", "pandas", "sortedcontainers", "pytz", "jplephem", "matplotlib (>=3.0)", "mpmath", "asdf (>=2.6)", "bottleneck", "ipython", "pytest"]
-docs = ["sphinx", "sphinx-astropy (>=1.3)", "pytest", "PyYAML (>=3.13)", "scipy (>=1.1)", "matplotlib (>=3.1)"]
-test = ["pytest-astropy (>=0.8)", "pytest-xdist", "objgraph", "ipython", "coverage", "skyfield (>=1.20)", "sgp4 (>=2.3)"]
+all = ["scipy (>=1.1)", "certifi", "dask", "h5py", "beautifulsoup4", "html5lib", "bleach", "PyYAML (>=3.13)", "pandas", "sortedcontainers", "pytz", "jplephem", "matplotlib (>=3.0,!=3.4.0)", "mpmath", "asdf (>=2.6)", "bottleneck", "ipython (>=4.2)", "pytest"]
+docs = ["sphinx (<4)", "sphinx-astropy (>=1.3)", "pytest", "PyYAML (>=3.13)", "scipy (>=1.1)", "matplotlib (>=3.1,!=3.4.0)", "sphinx-changelog (>=1.1.0)", "packaging"]
+test = ["pytest-astropy (>=0.8)", "pytest-xdist", "objgraph", "ipython (>=4.2)", "coverage", "skyfield (>=1.20)", "sgp4 (>=2.3)", "packaging"]
 
 [[package]]
 name = "async-timeout"
@@ -840,22 +840,22 @@ argcomplete = [
     {file = "argcomplete-1.12.3.tar.gz", hash = "sha256:2c7dbffd8c045ea534921e63b0be6fe65e88599990d8dc408ac8c542b72a5445"},
 ]
 astropy = [
-    {file = "astropy-4.2.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:db694c10eb3cc10068859ba1eab30b38b7e821dbfff142960c5a99c4af059747"},
-    {file = "astropy-4.2.1-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:2ff194e15b03afd575f278e2187b71d7ee9d85f302356050b2257b6c4788f1cc"},
-    {file = "astropy-4.2.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:12c76c119f7a0a8fcf0e72269be9faa88319f12e4ba346180d910e58fda36bf2"},
-    {file = "astropy-4.2.1-cp37-cp37m-win32.whl", hash = "sha256:6d8c8bc1eef048ad873395d2a620b9b5f308bef9a508f542e6dc3b33fbfbe66d"},
-    {file = "astropy-4.2.1-cp37-cp37m-win_amd64.whl", hash = "sha256:3d5516ba20e6cbc208250dd8f414243839cc40e957616e3f336a517967ee34d0"},
-    {file = "astropy-4.2.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:c327cfdede8d5fce1224153b8d3a060226161ddc2e1b2170f076aaddb4953965"},
-    {file = "astropy-4.2.1-cp38-cp38-manylinux1_i686.whl", hash = "sha256:03428ca1baa4fba99e37d3767c12c038c456a27176bcb8f407f9b2b0743ef8ee"},
-    {file = "astropy-4.2.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:a6164013de3732a67a5a1a2743565f5aaef0d895ce33d5aef482d88b05318893"},
-    {file = "astropy-4.2.1-cp38-cp38-win32.whl", hash = "sha256:a1f707283822c2f7df97d9de151c29d49ed9cc0bf3ae952f91012d7a4c5872a7"},
-    {file = "astropy-4.2.1-cp38-cp38-win_amd64.whl", hash = "sha256:2035ca521d86c88ea6d8da07f977a9727f0d7d8f85b5c287558c1891f885e548"},
-    {file = "astropy-4.2.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:5be2f01d1b35202c0989f4502d25fe850ae5e891acbd3be107eaf6eeab81826d"},
-    {file = "astropy-4.2.1-cp39-cp39-manylinux1_i686.whl", hash = "sha256:009a26f795adad1f0b26ba3a434e5be9cfa82cb629ba87c0547b567bad6e1695"},
-    {file = "astropy-4.2.1-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:2d4d328892c7b09a23361f44182cf89be3dadaec60a270bd4fe754f3829052a4"},
-    {file = "astropy-4.2.1-cp39-cp39-win32.whl", hash = "sha256:09965d5e8ffd7e96e7fcc596b631f366cf729df75efb792918cb6637acf1ad4e"},
-    {file = "astropy-4.2.1-cp39-cp39-win_amd64.whl", hash = "sha256:223610cc612aaddac890fefd9e20dc6a39c92ef01692354e2bcb273c79fb8842"},
-    {file = "astropy-4.2.1.tar.gz", hash = "sha256:ed483e472241153daec45f4b0c318c2c63d9f47305b78e6e63d32fc388c18427"},
+    {file = "astropy-4.3-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:cdf785c4479eec741df612ab05681c8eb0ed99d5e915e3376ff874cccba1e35e"},
+    {file = "astropy-4.3-cp37-cp37m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:819bfaec7a9d0f3968006d0528d9c3af5affd6d36644b7ff2b0c0b0435c19cfe"},
+    {file = "astropy-4.3-cp37-cp37m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:979ea0469eaebc55be444f47be73dbbe7cc1d60679bc066a860ce796840c2e98"},
+    {file = "astropy-4.3-cp37-cp37m-win32.whl", hash = "sha256:7f09d43326a3d8cb3098aad61fe6353497d6583abf5d1abe34076180c28b00a0"},
+    {file = "astropy-4.3-cp37-cp37m-win_amd64.whl", hash = "sha256:a9d0d202e5b35fbf602470175f0461306f7b0b373e59aaa242e220542ef572d2"},
+    {file = "astropy-4.3-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:859aee27f0b4cee8ea9d8d35cb186cfba58597e618931e277054c483f58b5265"},
+    {file = "astropy-4.3-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:fb2cf1e8dca429fdefabe9c963ad8e99d639b76551d4f213838862adaf213b7a"},
+    {file = "astropy-4.3-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:2361972fc3bef5e37f9f8d3237634511428e93f17d42fbd13ee965689bd47350"},
+    {file = "astropy-4.3-cp38-cp38-win32.whl", hash = "sha256:8e72ec80c1846b87267616a7739ba7639acd32c59880e113994b771bbb274e1e"},
+    {file = "astropy-4.3-cp38-cp38-win_amd64.whl", hash = "sha256:83a98369265a5f90acca884ef046e791e2a6d17d51871c7016ecb954c7b34adb"},
+    {file = "astropy-4.3-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:c4eeceb341d07f4ce53ca387a48f399f615a59fd8d67be711d886066c1e64f20"},
+    {file = "astropy-4.3-cp39-cp39-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:134c894381be801d7c2992b997d7f57ae7ae41a36955e883186df8bff5839c7b"},
+    {file = "astropy-4.3-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:33501223e48224177eb72c7c746b000cf9a40473cb9bcbcb8c9ac3256c8a6f6d"},
+    {file = "astropy-4.3-cp39-cp39-win32.whl", hash = "sha256:fcb02b46b5266d80086f66ca0042f69e34bc45546a8aca9ff62ca716d9b4c08e"},
+    {file = "astropy-4.3-cp39-cp39-win_amd64.whl", hash = "sha256:32c9752bec83da4905cdf55e6be586941be06acca671fbfda0bc1f2ef94aea79"},
+    {file = "astropy-4.3.tar.gz", hash = "sha256:6c1d1f0896e5d33851442865aa0ec4a2643dfaecb8853e9f4dca6d0541798744"},
 ]
 async-timeout = [
     {file = "async-timeout-3.0.1.tar.gz", hash = "sha256:0c3c816a028d47f659d6ff5c745cb2acf1f966da1fe5c19c77a70282b25f4c5f"},
