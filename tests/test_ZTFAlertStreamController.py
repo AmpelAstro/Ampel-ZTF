@@ -212,3 +212,17 @@ def test_archive_source(topic_stream_token: str):
     source = ZTFArchiveAlertLoader(stream=topic_stream_token)
     alerts = list(iter(source))
     assert len(alerts) == 8
+
+
+def test_archive_source_for_objectid():
+    if not (token := os.environ.get("ARCHIVE_TOKEN")):
+        pytest.skip("archive test requires api token")
+    source = ZTFArchiveAlertLoader(stream={
+        "ztf_name": "ZTF21abbxdcm",
+        "with_history": False,
+        "archive_token": token,
+        "jd_start": 2459352,
+        "jd_end": 2459366
+    })
+    alerts = list(iter(source))
+    assert len(alerts) == 13
