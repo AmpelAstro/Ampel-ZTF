@@ -37,7 +37,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.10"
-astropy = "^4.2"
+astropy = "^5.0"
 matplotlib = "^3.3.4"
 aiohttp = "^3.7.3"
 nest-asyncio = "^1.4.3"
