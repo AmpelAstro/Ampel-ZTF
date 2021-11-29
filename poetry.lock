@@ -330,8 +330,8 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
-name = "light-curve-python"
-version = "0.3.5"
+name = "light-curve"
+version = "0.4.0"
 description = "Feature extractor from noisy time series"
 category = "main"
 optional = true
@@ -339,6 +339,18 @@ python-versions = "*"
 
 [package.dependencies]
 numpy = "*"
+scipy = "*"
+
+[[package]]
+name = "light-curve-python"
+version = "0.4.0"
+description = "An alias to light-curve package"
+category = "main"
+optional = true
+python-versions = "*"
+
+[package.dependencies]
+light-curve = "0.4.0"
 
 [[package]]
 name = "matplotlib"
@@ -696,6 +708,17 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "scipy"
+version = "1.7.3"
+description = "SciPy: Scientific Library for Python"
+category = "main"
+optional = true
+python-versions = ">=3.7,<3.11"
+
+[package.dependencies]
+numpy = ">=1.16.5,<1.23.0"
+
+[[package]]
 name = "sentinels"
 version = "1.0.0"
 description = "Various objects to denote special meanings in python"
@@ -876,7 +899,7 @@ light-curve = ["light-curve-python"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.10"
-content-hash = "6407483054b681eeb2d1a1f352fe08bdeea769a659621085278b752940cccf7b"
+content-hash = "50cfe83d2a589c0d9f82581e8fc14847a39c205bbd1ad398e49c230e489f3d1b"
 
 [metadata.files]
 aiohttp = [
@@ -1259,16 +1282,27 @@ kiwisolver = [
     {file = "kiwisolver-1.3.2-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:bcadb05c3d4794eb9eee1dddf1c24215c92fb7b55a80beae7a60530a91060560"},
     {file = "kiwisolver-1.3.2.tar.gz", hash = "sha256:fc4453705b81d03568d5b808ad8f09c77c47534f6ac2e72e733f9ca4714aa75c"},
 ]
+light-curve = [
+    {file = "light_curve-0.4.0-cp36-cp36m-macosx_10_7_x86_64.whl", hash = "sha256:583ee6937f29ffdb79107caf19e5e1af727b1c2014c4e64f77a76c45fba96f14"},
+    {file = "light_curve-0.4.0-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a521721ad85a3fac8416328f04a6484cf48b71ecf93cf49b3e546dcce44269d6"},
+    {file = "light_curve-0.4.0-cp36-cp36m-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:d4a03303050cae4561e1ab2e227905c063dc8cc60bffdbccf279ac265056747f"},
+    {file = "light_curve-0.4.0-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:315c5582a4c462f9609ffc8725d512e706cd70f9d53f019fe5a43ab1ebff7eb5"},
+    {file = "light_curve-0.4.0-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:115d77ebc795792d6f471a461c4d23ff406a9a329b6cfaa1276707034198babd"},
+    {file = "light_curve-0.4.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e3d0e8351c0a8797bdfa84aada9c8e7de7fb5fc8eb71531d03faa718e7a429fb"},
+    {file = "light_curve-0.4.0-cp37-cp37m-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:2d7e137b73c70a7999195a8809cc114fcc0807fd30fabcad447965a2f591d56b"},
+    {file = "light_curve-0.4.0-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:98b434e23f519c0ca14acd5d9e215a01baf1d40257f8cfd93b9c5355c88387cc"},
+    {file = "light_curve-0.4.0-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:bfdd92b61fc0cb824fffa35cb4e34d5649681aea7af395e2679679962a0fa9c3"},
+    {file = "light_curve-0.4.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1002a3af6af3e6ba4d42a2e1dca16c79bab8f29a5ecf15dd75ee8698aae60623"},
+    {file = "light_curve-0.4.0-cp38-cp38-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:7c4eff99ccdf3531467f946fddc5fd8942528569b73f5f7aaf0235a41f86e807"},
+    {file = "light_curve-0.4.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:61d0a161037cd3dc1a36f7122bc00c4326597affebd9b83f545c3b221fd62557"},
+    {file = "light_curve-0.4.0-cp39-cp39-macosx_10_7_x86_64.whl", hash = "sha256:ab509983a336de65efe29f3ace75c768beac2e6e31b3789369472592e905a532"},
+    {file = "light_curve-0.4.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ff9fd0713a7ab924b4158db5c0da1cbcf8029c445152c4995b2dbea277fd126b"},
+    {file = "light_curve-0.4.0-cp39-cp39-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:30546b83ec24969b67abcfa2afbb28bde51c24cc51f9313aac481e6c46795fa6"},
+    {file = "light_curve-0.4.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:61c0cd1be32f16f571bca0f8cce592f44f133ee8fe97f5b4be4ca2d06e78053d"},
+    {file = "light_curve-0.4.0.tar.gz", hash = "sha256:ff4d836f8b836786f9f3cc05ab8cef91c599d9d1a0d356b02298640500db327e"},
+]
 light-curve-python = [
-    {file = "light_curve_python-0.3.5-cp36-cp36m-macosx_10_7_x86_64.whl", hash = "sha256:10e1dcbe29c49552d70ab4172dbe7e7917460631aadc62b2e2a6819915597185"},
-    {file = "light_curve_python-0.3.5-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a06f6137b468a0bb5cdee3a73259fed9976acd03adacdf11254d71fe565f6cbc"},
-    {file = "light_curve_python-0.3.5-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:d631c803ac7234159791aa6d0bd79c1fbfbef37110c3cc49ab5cf9b3720923ea"},
-    {file = "light_curve_python-0.3.5-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e9ab920674236b2dabdf7d155052ad3bcebf4418d2c440796f59eb64be127e3e"},
-    {file = "light_curve_python-0.3.5-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:b9878d96f7be8facacb690f9c9bed8673d17a27a898e778c21423c36ae52764b"},
-    {file = "light_curve_python-0.3.5-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:38a0ce6939007ff229835feb053d8d01f80fd4c10b82759d353c683ec1d7bb23"},
-    {file = "light_curve_python-0.3.5-cp39-cp39-macosx_10_7_x86_64.whl", hash = "sha256:f616481aa9f45d1ea4cadc043c3ee08ab3851c87f33060dfd4ce74c55342741b"},
-    {file = "light_curve_python-0.3.5-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dba5c90e11ca97add2e3bf15d5e902dfc92f8999737829e9f49fac152230619a"},
-    {file = "light_curve_python-0.3.5.tar.gz", hash = "sha256:faa5305884493801ea926cbbb518f00e7d40965ccd8add05e3d3ce0b18d336e8"},
+    {file = "light-curve-python-0.4.0.tar.gz", hash = "sha256:4602229f40e8e0bbd8e4c798904450733d1bf97cc76b9370b6d7b921ee6057c8"},
 ]
 matplotlib = [
     {file = "matplotlib-3.5.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:4b018ea6f26424a0852eb60eb406420d9f0d34f65736ea7bbfbb104946a66d86"},
@@ -1822,6 +1856,37 @@ requests-toolbelt = [
 schedule = [
     {file = "schedule-1.1.0-py2.py3-none-any.whl", hash = "sha256:617adce8b4bf38c360b781297d59918fbebfb2878f1671d189f4f4af5d0567a4"},
     {file = "schedule-1.1.0.tar.gz", hash = "sha256:e6ca13585e62c810e13a08682e0a6a8ad245372e376ba2b8679294f377dfc8e4"},
+]
+scipy = [
+    {file = "scipy-1.7.3-1-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:c9e04d7e9b03a8a6ac2045f7c5ef741be86727d8f49c45db45f244bdd2bcff17"},
+    {file = "scipy-1.7.3-1-cp38-cp38-macosx_12_0_arm64.whl", hash = "sha256:b0e0aeb061a1d7dcd2ed59ea57ee56c9b23dd60100825f98238c06ee5cc4467e"},
+    {file = "scipy-1.7.3-1-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:b78a35c5c74d336f42f44106174b9851c783184a85a3fe3e68857259b37b9ffb"},
+    {file = "scipy-1.7.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:173308efba2270dcd61cd45a30dfded6ec0085b4b6eb33b5eb11ab443005e088"},
+    {file = "scipy-1.7.3-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:21b66200cf44b1c3e86495e3a436fc7a26608f92b8d43d344457c54f1c024cbc"},
+    {file = "scipy-1.7.3-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ceebc3c4f6a109777c0053dfa0282fddb8893eddfb0d598574acfb734a926168"},
+    {file = "scipy-1.7.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f7eaea089345a35130bc9a39b89ec1ff69c208efa97b3f8b25ea5d4c41d88094"},
+    {file = "scipy-1.7.3-cp310-cp310-win_amd64.whl", hash = "sha256:304dfaa7146cffdb75fbf6bb7c190fd7688795389ad060b970269c8576d038e9"},
+    {file = "scipy-1.7.3-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:033ce76ed4e9f62923e1f8124f7e2b0800db533828c853b402c7eec6e9465d80"},
+    {file = "scipy-1.7.3-cp37-cp37m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:4d242d13206ca4302d83d8a6388c9dfce49fc48fdd3c20efad89ba12f785bf9e"},
+    {file = "scipy-1.7.3-cp37-cp37m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:8499d9dd1459dc0d0fe68db0832c3d5fc1361ae8e13d05e6849b358dc3f2c279"},
+    {file = "scipy-1.7.3-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ca36e7d9430f7481fc7d11e015ae16fbd5575615a8e9060538104778be84addf"},
+    {file = "scipy-1.7.3-cp37-cp37m-win32.whl", hash = "sha256:e2c036492e673aad1b7b0d0ccdc0cb30a968353d2c4bf92ac8e73509e1bf212c"},
+    {file = "scipy-1.7.3-cp37-cp37m-win_amd64.whl", hash = "sha256:866ada14a95b083dd727a845a764cf95dd13ba3dc69a16b99038001b05439709"},
+    {file = "scipy-1.7.3-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:65bd52bf55f9a1071398557394203d881384d27b9c2cad7df9a027170aeaef93"},
+    {file = "scipy-1.7.3-cp38-cp38-macosx_12_0_arm64.whl", hash = "sha256:f99d206db1f1ae735a8192ab93bd6028f3a42f6fa08467d37a14eb96c9dd34a3"},
+    {file = "scipy-1.7.3-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:5f2cfc359379c56b3a41b17ebd024109b2049f878badc1e454f31418c3a18436"},
+    {file = "scipy-1.7.3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:eb7ae2c4dbdb3c9247e07acc532f91077ae6dbc40ad5bd5dca0bb5a176ee9bda"},
+    {file = "scipy-1.7.3-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:95c2d250074cfa76715d58830579c64dff7354484b284c2b8b87e5a38321672c"},
+    {file = "scipy-1.7.3-cp38-cp38-win32.whl", hash = "sha256:87069cf875f0262a6e3187ab0f419f5b4280d3dcf4811ef9613c605f6e4dca95"},
+    {file = "scipy-1.7.3-cp38-cp38-win_amd64.whl", hash = "sha256:7edd9a311299a61e9919ea4192dd477395b50c014cdc1a1ac572d7c27e2207fa"},
+    {file = "scipy-1.7.3-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:eef93a446114ac0193a7b714ce67659db80caf940f3232bad63f4c7a81bc18df"},
+    {file = "scipy-1.7.3-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:eb326658f9b73c07081300daba90a8746543b5ea177184daed26528273157294"},
+    {file = "scipy-1.7.3-cp39-cp39-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:93378f3d14fff07572392ce6a6a2ceb3a1f237733bd6dcb9eb6a2b29b0d19085"},
+    {file = "scipy-1.7.3-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:edad1cf5b2ce1912c4d8ddad20e11d333165552aba262c882e28c78bbc09dbf6"},
+    {file = "scipy-1.7.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5d1cc2c19afe3b5a546ede7e6a44ce1ff52e443d12b231823268019f608b9b12"},
+    {file = "scipy-1.7.3-cp39-cp39-win32.whl", hash = "sha256:2c56b820d304dffcadbbb6cbfbc2e2c79ee46ea291db17e288e73cd3c64fefa9"},
+    {file = "scipy-1.7.3-cp39-cp39-win_amd64.whl", hash = "sha256:3f78181a153fa21c018d346f595edd648344751d7f03ab94b398be2ad083ed3e"},
+    {file = "scipy-1.7.3.tar.gz", hash = "sha256:ab5875facfdef77e0a47d5fd39ea178b58e60e454a4c85aa1e52fcb80db7babf"},
 ]
 sentinels = [
     {file = "sentinels-1.0.0.tar.gz", hash = "sha256:7be0704d7fe1925e397e92d18669ace2f619c92b5d4eb21a89f31e026f9ff4b1"},
