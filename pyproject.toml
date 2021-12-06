@@ -48,8 +48,8 @@ requests = "^2.25.1"
 requests-toolbelt = "^0.9.1"
 light-curve-python = {version = ">=0.2.5,<0.4.1", optional = true}
 ampel-ztf-archive = {optional = true, version = "^0.8.0-alpha.0"}
-ampel-interface = "^0.8.1-alpha.9"
-ampel-core = "^0.8.1-alpha.8"
+ampel-interface = "^0.8.1-alpha.10"
+ampel-core = "^0.8.1-alpha.9"
 ampel-photometry = "^0.8.1-alpha.2"
 ampel-alerts = "^0.8.1-alpha.3"
 
