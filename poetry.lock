@@ -881,7 +881,7 @@ light-curve = ["light-curve"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "cdd92cd2598cb5040b1bd7c10e315f288dc18861860261335fc8c7f486d5f19f"
+content-hash = "8ef2bfeac0e74cbbd7a8fda2dbf7c9adccef758728ef49c2aec1c782a8f64ab4"
 
 [metadata.files]
 aiohttp = [
