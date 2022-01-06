@@ -5,6 +5,7 @@ from os import environ
 from os.path import dirname, join
 from pathlib import Path
 from time import time
+from ampel.log.AmpelLogger import AmpelLogger
 from ampel.secret.AmpelVault import AmpelVault
 
 import mongomock
@@ -16,6 +17,8 @@ from ampel.alert.load.TarAlertLoader import TarAlertLoader
 from ampel.config.AmpelConfig import AmpelConfig
 from ampel.dev.DevAmpelContext import DevAmpelContext
 from ampel.secret.PotemkinSecretProvider import PotemkinSecretProvider
+from ampel.model.UnitModel import UnitModel
+from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 
 
 @pytest.fixture
@@ -113,6 +116,59 @@ def superseded_packets():
         TarAlertLoader,
         file_path=str(Path(__file__).parent / "test-data" / "ZTF18acruwxq.tar.gz"),
     )
+
+
+@pytest.fixture
+def forced_photometry_loader_model():
+    """
+    Sample data for schema 3.5
+
+    An email was also sent to ztfgeneral about a sample of 5934 alert packets containing forced photometry being available at: https://caltech.box.com/s/op3sma88an06nhzftxz4sq9u5nn8ve4c
+    The alerts are:
+    from the 2021-07-20 night
+    from the public programid=1
+    contain a limit of 25 forced photometry points (which is different from what the system will ultimately deliver)
+    Forced photometry replaces the previous candidates information in the prv_candidates block. The attached PDF lists the changes from the current v3.3 to the new v3.5 schema.
+    This should give you scope to start revising Fritz filters, etc. for the new alert packet structure coming soon.
+    """
+
+    return UnitModel(
+        unit="TarAlertLoader",
+        config={
+            "file_path": str(
+                Path(__file__).parent / "test-data" / "alerts_2021720_programid1.tar.gz"
+            ),
+        },
+    )
+
+
+@pytest.fixture
+def forced_photometry_alerts(mock_context, forced_photometry_loader_model):
+    supplier = ZiAlertSupplier(
+        deserialize="avro", loader=forced_photometry_loader_model
+    )
+    return supplier
+
+
+@pytest.fixture
+def upper_limit_alerts(mock_context, forced_photometry_loader_model):
+    supplier = ZiAlertSupplier(
+        deserialize="avro",
+        loader=UnitModel(
+            unit="TarAlertLoader",
+            config={
+                "file_path": str(
+                    Path(__file__).parent / "test-data" / "ZTF18abxhyqv.tar.gz"
+                )
+            },
+        ),
+    )
+    return supplier
+
+
+@pytest.fixture
+def ampel_logger():
+    return AmpelLogger.get_logger()
 
 
 @pytest.fixture

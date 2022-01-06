@@ -48,8 +48,13 @@ class ZiAlertSupplier(BaseAlertSupplier):
 
 			for el in d['prv_candidates']:
 
-				# Upperlimit
-				if el.get('candid') is None:
+				# Forced photometry or differential photometry detection
+				if "forcediffimflux" in el or el.get('candid') is not None:
+
+					dps.append(ReadOnlyDict(el | {"_is_prv_candidate": True}))
+
+				# Differential photometry upper limit
+				else:
 
 					# rarely, meaningless upper limits with negativ
 					# diffmaglim are provided by IPAC
@@ -62,14 +67,11 @@ class ZiAlertSupplier(BaseAlertSupplier):
 						pid = el['pid'],
 						diffmaglim = el['diffmaglim'],
 						programid = el['programid'],
-						pdiffimfilename = el.get('pdiffimfilename')
+						pdiffimfilename = el.get('pdiffimfilename'),
+						_is_prv_candidate = True,
 					)
 
 					dps.append(ul)
-
-				# PhotoPoint
-				else:
-					dps.append(ReadOnlyDict(el))
 
 			return AmpelAlert(
 				id = d['candid'], # alert id

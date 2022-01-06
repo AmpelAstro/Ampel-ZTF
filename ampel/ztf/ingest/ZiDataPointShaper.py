@@ -7,14 +7,14 @@
 # Last Modified Date:  10.05.2021
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Any
-from collections.abc import Iterable
+from typing import Any, Iterable, Sequence
+from bson import encode
+from ampel.util.hash import hash_payload
 from ampel.base.AmpelBaseModel import AmpelBaseModel
-from ampel.types import StockId
+from ampel.types import StockId, Tag
 from ampel.abstract.AbsT0Unit import AbsT0Unit
 from ampel.content.DataPoint import DataPoint
 from ampel.ztf.ingest.tags import tags
-
 
 class ZiDataPointShaperBase(AmpelBaseModel):
 	"""
@@ -22,8 +22,10 @@ class ZiDataPointShaperBase(AmpelBaseModel):
 	to be saved into the ampel database
 	"""
 
-	# JD2017 is used to define upper limits primary IDs
+	#: JD2017 is used to define upper limits primary IDs
 	JD2017: float = 2457754.5
+	#: Byte width of datapoint ids
+	digest_size: int = 8
 
 	# Mandatory implementation
 	def process(self, arg: Iterable[dict[str, Any]], stock: StockId) -> list[DataPoint]: # type: ignore[override]
@@ -41,6 +43,10 @@ class ZiDataPointShaperBase(AmpelBaseModel):
 
 		for photo_dict in arg:
 
+			base_tags = tags[photo_dict['programid']][photo_dict['fid']]
+
+			is_prv_candidate = popitem(photo_dict, '_is_prv_candidate', False)
+
 			# Photopoint
 			if photo_dict.get('candid'):
 
@@ -53,26 +59,28 @@ class ZiDataPointShaperBase(AmpelBaseModel):
 							.replace('.fz', '')
 					)
 
+				# Remove programpi (redundant with programid)
+				popitem(photo_dict, 'programpi', None)
+
 				ret_list.append(
-					{
-						'id': photo_dict['candid'],
-						'stock': stock,
-						'tag': tags[photo_dict['programid']][photo_dict['fid']],
-						'body': photo_dict
-					}
+					self._create_datapoint(
+						stock,
+						(["ZTF_ALERT"] if not is_prv_candidate else []) + ["ZTF_DP"],
+						photo_dict
+					)
 				)
 
-				popitem(photo_dict, 'candid', None)
-				popitem(photo_dict, 'programpi', None)
+			elif "forcediffimflux" in photo_dict:
+				
+				ret_list.append(self._create_datapoint(stock, ["ZTF_FP"], photo_dict))
 
 			else:
 
 				ret_list.append(
-					{
-						'id': self.ul_identity(photo_dict),
-						'tag': tags[photo_dict['programid']][photo_dict['fid']],
-						'stock': stock,
-						'body': {
+					self._create_datapoint(
+						stock,
+						["ZTF_UL"],
+						{
 							'jd': photo_dict['jd'],
 							'diffmaglim': photo_dict['diffmaglim'],
 							'rcid': (
@@ -82,40 +90,25 @@ class ZiDataPointShaperBase(AmpelBaseModel):
 							),
 							'fid': photo_dict['fid'],
 							'programid': photo_dict['programid']
-							#'pdiffimfilename': fname
-							#'pid': photo_dict['pid']
 						}
-					}
+					)
 				)
 
 		return ret_list
-
-
-	def ul_identity(self, uld: dict[str, Any]) -> int:
+	
+	def _create_datapoint(self, stock: StockId, tag: Sequence[Tag], body: dict[str, Any]) -> DataPoint:
 		"""
-		Calculate a unique ID for an upper limit from:
-		  - jd, floored to the millisecond
-		  - readout quadrant number (extracted from pid)
-		  - diffmaglim, rounded to 1e-3
-		 Example::
-		
-			>>> ZiT0UpperLimitShaper().identity(
-				{
-				  'diffmaglim': 19.024799346923828,
-				  'fid': 2,
-				  'jd': 2458089.7405324,
-				  'pdiffimfilename': '/ztf/archive/sci/2017/1202/240532/ztf_20171202240532_000566_zr_c08_o_q1_scimrefdiffimg.fits.fz',
-				  'pid': 335240532815,
-				  'programid': 0
-				}
-			)
-			-3352405322819025
+		Create a Datapoint from stock, body, and tags, using the hash of the body as id
 		"""
-		return (
-			(int((self.JD2017 - uld['jd']) * 1000000) * 10000000) -
-			((rcid if (rcid := uld.get("rcid")) is not None else (uld["pid"] % 10000) // 100) * 100000) -
-			round(uld['diffmaglim'] * 1000)
-		)
+		# ensure that keys are ordered
+		sorted_body = dict(sorted(body.items()))
+		return {
+			"id": hash_payload(encode(sorted_body), size=-self.digest_size*8),
+			"stock": stock,
+			"tag": [*tags[body['programid']][body['fid']], *tag],
+			"body": sorted_body,
+		}
+
 
 class ZiDataPointShaper(ZiDataPointShaperBase, AbsT0Unit):
 	

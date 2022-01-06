@@ -38,6 +38,7 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
     max_tspan: float  # maximum duration of alert detection history [days]
     min_archive_tspan: float = 0. # minimum duration of alert detection history [days]
     max_archive_tspan: float = 10**5. # maximum duration of alert detection history [days]
+    min_forced_photometry_sigma: float = 5. # significance threshold to consider a forced-photometry point a detection
 
     # Image quality
     min_drb: float = 0.0  # deep learning real bogus score
@@ -248,7 +249,15 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
         # CUT ON THE HISTORY OF THE ALERT
         #################################
 
-        pps = [el for el in alert.datapoints if el.get("candid") is not None]
+        pps = [
+            el
+            for el in alert.datapoints
+            # differential photometry
+            if el.get("candid") is not None
+            # forced photometry
+            or el.get("forcediffimflux", np.nan)
+            > self.min_forced_photometry_sigma * el.get("forcediffimfluxunc", np.nan)
+        ]
         if len(pps) < self.min_ndet:
             # self.logger.debug("rejected: %d photopoints in alert (minimum required %d)"% (npp, self.min_ndet))
             self.logger.info(None, extra={"nDet": len(pps)})

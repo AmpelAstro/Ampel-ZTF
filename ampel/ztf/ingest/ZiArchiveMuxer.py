@@ -81,14 +81,14 @@ class ZiArchiveMuxer(AbsT0Muxer):
     ) -> float:
         """
         return the smaller of:
-          - the smallest jd of any photopoint in datapoints
-          - the smallest jd of any photopoint in t0 from the same stock
+          - the smallest jd of any alert photometry point in datapoints
+          - the smallest jd of any alert photometry point in t0 from the same stock
         """
         from_alert = min(
             (
                 dp["body"]["jd"]
                 for dp in datapoints
-                if dp["id"] > 0 and "ZTF" in dp["tag"]
+                if "ZTF_DP" in dp["tag"]
             )
         )
         if (
@@ -97,10 +97,9 @@ class ZiArchiveMuxer(AbsT0Muxer):
                     [
                         {
                             "$match": {
-                                "id": {"$gt": 0},
                                 "stock": stock_id,
                                 "body.jd": {"$lt": from_alert},
-                                "tag": "ZTF",
+                                "tag": "ZTF_DP",
                             }
                         },
                         {"$group": {"_id": None, "jd": {"$min": "$body.jd"}}},

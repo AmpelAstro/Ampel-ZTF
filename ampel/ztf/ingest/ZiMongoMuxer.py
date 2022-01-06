@@ -7,7 +7,7 @@
 # Last Modified Date:  25.05.2021
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Any, Tuple
+from typing import Any
 from bisect import bisect_right
 from pymongo import UpdateOne
 from ampel.types import DataPointId, StockId
@@ -48,7 +48,7 @@ class ZiMongoMuxer(AbsT0Muxer):
 	# Standard projection used when checking DB for existing PPS/ULS
 	projection = {
 		'_id': 0, 'id': 1, 'tag': 1, 'channel': 1, 'excl': 1, 'stock': 1, 'body.jd': 1,
-		'body.programid': 1, 'body.fid': 1, 'body.rcid': 1, 'body.magpsf': 1
+		'body.programid': 1, 'body.fid': 1, 'body.rcid': 1, 'body.magpsf': 1, 'body.candid': 1,
 	}
 
 
@@ -111,6 +111,22 @@ class ZiMongoMuxer(AbsT0Muxer):
 			add_update = lambda op: ops.append(op)
 		else:
 			add_update = self.updates_buffer.add_t0_update
+		
+		# If completing states from the db, remove differential photometry from prv_candidates
+		# that corresponds to previously ingested alert photometry
+		if self.db_complete:
+			existing_candids = {candid: dp["tag"] for dp in dps_db if (candid := dp["body"].get("candid"))}
+			dps = [
+				dp
+				for dp in dps
+				if (
+					("candid" not in dp["body"])
+					or not (
+						("ZTF_ALERT" in existing_candids.get(dp["body"].get("candid"), []))
+						and ("ZTF_ALERT" not in dp["tag"])
+					)
+				)
+			]
 
 		# Create set with datapoint ids from alert
 		ids_dps_alert = {el['id'] for el in dps}
@@ -119,9 +135,9 @@ class ZiMongoMuxer(AbsT0Muxer):
 		ids_dps_db = {el['id'] for el in dps_db}
 
 		# uniquify photopoints by jd, rcid. For duplicate points,
-		# choose the one with the larger id
-		# (jd, rcid) -> ids
-		unique_dps_ids: dict[tuple[float, int], list[DataPointId]] = {}
+		# choose the one with the larger candid
+		# (jd, rcid) -> [(candid, id)]
+		unique_dps_ids: dict[tuple[float, int], list[tuple[None | int, DataPointId]]] = {}
 		# id -> superseding ids
 		ids_dps_superseded: dict[DataPointId, list[DataPointId]] = {}
 		# id -> final datapoint
@@ -133,23 +149,25 @@ class ZiMongoMuxer(AbsT0Muxer):
 			# be associated with multiple stocks at the same jd. here, match also by rcid
 			key = (dp['body']['jd'], dp['body']['rcid'])
 
-			# print(dp['id'], key, key in unique_dps)
+			# use candid to determine order, actual datapoint id to track datapoint
+			# FIXME: this assumes UL and FP will never be superseded
+			item = (dp['body'].get('candid', -1), dp['id'])
 
 			if target := unique_dps_ids.get(key):
 				# insert id in order
-				idx = bisect_right(target, dp['id'])
-				if idx == 0 or target[idx - 1] != dp['id']:
-					target.insert(idx, dp['id'])
+				idx = bisect_right(target, item)
+				if idx == 0 or target[idx - 1] != item:
+					target.insert(idx, item)
 			else:
-				unique_dps_ids[key] = [dp['id']]
+				unique_dps_ids[key] = [item]
 
 		# build set of supersessions
 		for simultaneous_dps in unique_dps_ids.values():
 			for i in range(len(simultaneous_dps) - 1):
-				ids_dps_superseded[simultaneous_dps[i]] = simultaneous_dps[i + 1:]
+				ids_dps_superseded[simultaneous_dps[i][-1]] = [item[-1] for item in simultaneous_dps[i + 1:]]
 		
 		# build final set of datapoints, preferring entries loaded from the db
-		final_dps_set = {v[-1] for v in unique_dps_ids.values()}
+		final_dps_set = {v[-1][-1] for v in unique_dps_ids.values()}
 		for dp in dps_db + dps:
 			if dp['id'] in final_dps_set and not dp['id'] in unique_dps:
 				unique_dps[dp['id']] = dp

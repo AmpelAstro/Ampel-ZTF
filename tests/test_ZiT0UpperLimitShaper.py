@@ -1,49 +1,27 @@
 import pytest
+import random
 
 from ampel.ztf.ingest.ZiDataPointShaper import ZiDataPointShaperBase
+from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
+
+# metafixture as suggested in https://github.com/pytest-dev/pytest/issues/349#issuecomment-189370273
+@pytest.fixture(params=["upper_limit_alerts", "forced_photometry_alerts"])
+def alerts(request):
+    yield request.getfixturevalue(request.param)
 
 
-@pytest.mark.parametrize(
-    "uld,expected_id,comment",
-    [
-        (
-            {
-                "diffmaglim": 19.024799346923828,
-                "fid": 2,
-                "jd": 2458089.7405324,
-                "pid": 335240532815,
-                "programid": 0,
-            },
-            -3352405322819025,
-            "",
-        ),
-        (
-            {
-                "diffmaglim": 19.6149997711182,
-                "fid": 2,
-                "jd": 2459141.8900463,
-                "pid": 1387390043915,
-                "programid": 0,
-                "rcid": None,
-            },
-            -13873900463919615,
-            "pid > 1e12, rcid None",
-        ),
-        (
-            {
-                "diffmaglim": 19.6149997711182,
-                "fid": 2,
-                "jd": 2459141.8900463,
-                "pid": 1387390043915,
-                "programid": 0,
-                "rcid": 57,
-            },
-            -13873900465719615,
-            "pid > 1e12, rcid explicitly set",
-        ),
-    ],
-)
-def test_identity(uld, expected_id, comment):
+def test_id_stability(alerts: ZiAlertSupplier, snapshot):
     shaper = ZiDataPointShaperBase()
-    assert shaper.ul_identity(uld) == expected_id, comment
-    assert shaper.process([uld], None)[0]["id"] == expected_id, comment
+    alert = next(alerts)
+    # NB: process a copy, as ZiDataPointShaper mutates its input
+    dps = shaper.process([dict(dp) for dp in alert.datapoints[:5]], alert.stock)
+    datapoint_ids = [[dp["tag"][-1], dp["id"]] for dp in dps]
+    assert datapoint_ids == snapshot, "datapoint ids are deterministic"
+
+    shuffled_dps = shaper.process(
+        [dict(random.sample(list(dp.items()), len(dp))) for dp in alert.datapoints[:5]],
+        alert.stock + 1,
+    )
+    assert [
+        [dp["tag"][-1], dp["id"]] for dp in shuffled_dps
+    ] == datapoint_ids, "datapoint ids depend only on body content"

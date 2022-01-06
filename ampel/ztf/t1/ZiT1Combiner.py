@@ -21,15 +21,14 @@ class ZiT1Combiner(T1SimpleCombiner):
 		"""
 		:param datapoints: dict instances representing datapoints
 		"""
-
 		if "ZTF_PRIV" in self.access:
 			dps = datapoints
 		else:
 			dps = [dp for dp in datapoints if dp['body']['programid'] != 2]
 			if len(dps) != len(datapoints if isinstance(datapoints, list) else list(datapoints)):
 				return T1CombineResult(
-					dps=super().combine(dps),
+					dps=super().combine(sorted(dps, key=lambda dp: dp["body"]["jd"])),
 					meta={'tag': 'HAS_DATARIGHT_EXCLUSION'}
 				)
-			
-		return super().combine(dps)
+		
+		return super().combine(sorted(dps, key=lambda dp: dp["body"]["jd"]))
