@@ -17,13 +17,14 @@ import matplotlib.pyplot as plt
 from os.path import basename
 from bson import encode
 from hashlib import blake2b
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, Union, Any
 
 # Only works directly on filenames
 #from bts_phot.calibrate_fps import get_baseline # type: ignore[import]
 
 from ampel.ztf.util.ZTFIdMapper import to_ampel_id
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
+from ampel.types import Tag
 from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
@@ -115,7 +116,7 @@ def get_fpbot_baseline(df: pd.DataFrame, window="10D", min_peak_snr=3,
     df = df.set_index(pd.to_datetime(obs_jd.datetime))
 
     # Find time of peak in each field/filter/... combo
-    fcqfid_dict = {}
+    fcqfid_dict: dict[str,dict[str,Any]] = {}
     t_peak_list = []
     for ufid in unique_fid:
         fcqfid_dict[str(ufid)] = {}
@@ -298,7 +299,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
         fileio = next(self.alert_loader)
 
 #        headervals= {}
-        headervals={'ra':None, 'dec':None, 'name': None, 'lastobs':None, 'lastdownload':None, 'lastfit':None}
+        headervals: dict[str,Any] = {'ra':None, 'dec':None, 'name': None, 'lastobs':None, 'lastdownload':None, 'lastfit':None}
 
 #        ra, dec, snname, lastobs, lastdownload, lastfit = None, None, None, None, None, None
         for byteline in fileio.readlines():
@@ -311,7 +312,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 break
 
         fileio.seek(0)
-        tags = ['FPbot', 'ZTF', 'ZTF_PRIV']
+        tags: list[Tag] = ['FPbot', 'ZTF', 'ZTF_PRIV']
 
         df = pd.read_csv(fileio, sep=',', comment='#')
 
