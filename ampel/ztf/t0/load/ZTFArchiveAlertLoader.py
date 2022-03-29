@@ -14,7 +14,6 @@ from typing import Dict, Any, Union, Optional
 import backoff
 import requests
 
-from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.model.StrictModel import StrictModel
 
@@ -44,14 +43,13 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     """
 
     #: Base URL of archive service
-    archive: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v2"
+    archive: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3"
     #: A stream identifier, created via POST /api/ztf/archive/streams/, or a query
     stream: Union[str, ObjectSource]
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._it = None
-
 
     def __iter__(self):
         return self.get_alerts()
@@ -61,26 +59,20 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
             self._it = iter(self)
         return next(self._it)
 
-
-
     def get_alerts(self):
         with requests.Session() as session:
             while True:
                 chunk = self._get_chunk(session)
-                try:
-                    yield from chunk["alerts"] if isinstance(chunk, dict) else chunk
-                except GeneratorExit:
-                    log.error(
-                        f"Chunk from stream {self.stream} partially consumed. "
-                        f"Ensure that iter_max is a multiple of the chunk size."
+                yield from chunk["alerts"] if isinstance(chunk, dict) else chunk
+                # NB: if generator exits before we get here, chunk is never acknowledged
+                if "chunk" in chunk:
+                    self._acknowledge_chunk(session, chunk["chunk"])
+                    log.info(
+                        None,
+                        extra={"streamToken": self.stream, "chunk": chunk["chunk"]},
                     )
-                    raise
-                if 'chunk' in chunk:
-                    self._acknowledge_chunk(session, chunk['chunk'])
-                    log.info(None, extra={"streamToken": self.stream, "chunk":chunk['chunk']})
-                if (
-                        isinstance(self.stream, ObjectSource)
-                        or (len(chunk["alerts"]) == 0 and chunk["remaining"]["chunks"] == 0)
+                if isinstance(self.stream, ObjectSource) or (
+                    len(chunk["alerts"]) == 0 and chunk["remaining"]["chunks"] == 0
                 ):
                     break
 

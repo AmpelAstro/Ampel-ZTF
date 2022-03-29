@@ -196,7 +196,7 @@ async def test_stop(potemkin_controller):
 def topic_stream_token() -> str:
     if not (token := os.environ.get("ARCHIVE_TOPIC_TOKEN")):
         pytest.skip("archive test requires stream token")
-    base_url = "https://ampel.zeuthen.desy.de/api/ztf/archive/v2"
+    base_url = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3"
     step = 10000
     chunk = 5
     with requests.Session() as session:
@@ -209,7 +209,7 @@ def topic_stream_token() -> str:
             json={"topic": token, "chunk_size": chunk, "step": step},
         )
         response.raise_for_status()
-        assert response.json()["chunks"] == (size + step * chunk - 1) // (step * chunk)
+        assert response.json()["remaining"]["items"] == (size + step - 1) // step
         return response.json()["resume_token"]
 
 
