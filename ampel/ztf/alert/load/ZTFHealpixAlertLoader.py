@@ -21,12 +21,10 @@ from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.secret.NamedSecret import NamedSecret
-#from ampel.ztf.ingest.ZiArchiveMuxer import BearerAuth
 from ampel.model.StrictModel import StrictModel
 from astropy.time import Time
-from astropy_healpix import healpy as hp
+import healpy as hp
 from requests_toolbelt.sessions import BaseUrlSession
-#from ampel.ztf.base.ArchiveUnit import ArchiveUnit
 from ampel.ztf.base.ArchiveUnit import BearerAuth
 
 class HealpixSource(StrictModel):

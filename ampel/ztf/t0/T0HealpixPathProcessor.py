@@ -14,7 +14,6 @@ from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
 import numpy as np
 import healpy as hp
-import astropy_healpix as ah
 import tempfile
 import requests
 
@@ -129,7 +128,8 @@ class T0HealpixPathProcessor(AlertConsumer):
         # Process map
         hpx, headers = hp.read_map( temp.name, h=True, nest=True)
         trigger_time = [datetime.fromisoformat(header[1]) for header in headers if header[0]=='DATE-OBS'][0]
-        nside = int( ah.npix_to_nside(len(hpx)) )
+#        nside = int( ah.npix_to_nside(len(hpx)) )
+        nside = int( hp.npix2nside(len(hpx)) )
 
         # Find credible levels
         i = np.flipud(np.argsort(hpx))
