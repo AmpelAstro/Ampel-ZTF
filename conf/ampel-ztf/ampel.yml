@@ -39,6 +39,12 @@ unit:
 - ampel.ztf.util.ZTFIdMapper
 - ampel.ztf.ingest.ZiCompilerOptions
 
+- ampel.ztf.t0.T0HealpixPathProcessor
+- ampel.ztf.t0.T0HealpixProcessor
+- ampel.ztf.alert.load.ZTFHealpixAlertLoader
+- ampel.ztf.alert.ZiHealpixAlertSupplier
+
+
 alias:
   t2:
     '%FIRST_ZTF_PHOTOPOINT':
