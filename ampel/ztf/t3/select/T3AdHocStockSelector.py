@@ -42,11 +42,4 @@ class T3AdHocStockSelector(AbsT3Selector):
             .hint("_id_1_channel_1")
         )
 
-        # Count results
-        if cursor.count() == 0:
-            self.logger.info(f"No transient named {self.name}")
-            return None
-
-        self.logger.info(f"{cursor.count()} transients match search criteria")
-
         return cursor
