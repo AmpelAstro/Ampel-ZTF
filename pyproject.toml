@@ -39,7 +39,6 @@ include = [
 python = ">=3.9,<3.10"
 astropy = "^5.0"
 matplotlib = "^3.3.4"
-healpy = "^0.0"
 aiohttp = "^3.7.3"
 nest-asyncio = "^1.4.3"
 backoff = "^1.10.0"
@@ -53,6 +52,7 @@ ampel-interface = ">=0.8.2-alpha.7,<0.8.3"
 ampel-core = ">=0.8.2-alpha.9,<0.8.3"
 ampel-photometry = ">=0.8.2-alpha.3,<0.8.3"
 ampel-alerts = ">=0.8.2-alpha.4,<0.8.3"
+healpy = "^1.15.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
