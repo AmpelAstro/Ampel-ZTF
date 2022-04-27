@@ -54,7 +54,7 @@ class ZTFHealpixAlertLoader(AbsAlertLoader):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.logger: AmpelLogger = AmpelLogger.get_logger()
-        self._it = None
+        self._it : Optional[Iterator] = None
 
     def set_logger(self, logger: AmpelLogger) -> None:
         self.logger = logger

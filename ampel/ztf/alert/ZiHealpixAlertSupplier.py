@@ -13,6 +13,8 @@ from typing import Any, Callable, Dict, List, Literal, Sequence, Union
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
+from ampel.ztf.alert.load.ZTFHealpixAlertLoader import ZTFHealpixAlertLoader
+from numpy import isin
 
 class ZiHealpixAlertSupplier(BaseAlertSupplier):
     """
@@ -21,7 +23,7 @@ class ZiHealpixAlertSupplier(BaseAlertSupplier):
     """
 
     # Override default
-    deserialize: Union[None, Literal["avro", "json"], Callable[[Any], Dict]] = None
+    deserialize = None
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -31,8 +33,10 @@ class ZiHealpixAlertSupplier(BaseAlertSupplier):
         Define the Healpix map property which will be used by the loader.
         Nominally set in Loader config?
         """
-
-        self.alert_loader.set_source( nside=nside, pixels=healpix, time=time, with_history=with_history )
+        if isinstance(self.alert_loader, ZTFHealpixAlertLoader):
+            self.alert_loader.set_source( nside=nside, pixels=healpix, time=time, with_history=with_history )
+        else:
+            raise TypeError(f"set_healpix called with alert_loader {type(self.alert_loader).__name__}")
 
 
 #    def set_time(self, time: datetime) -> None:

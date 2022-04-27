@@ -132,10 +132,10 @@ class T0HealpixPathProcessor(AlertConsumer):
         nside = int( hp.npix2nside(len(hpx)) )
 
         # Find credible levels
-        i = np.flipud(np.argsort(hpx))
-        sorted_credible_levels = np.cumsum(hpx[i].astype(float))
+        idx = np.flipud(np.argsort(hpx))
+        sorted_credible_levels = np.cumsum(hpx[idx].astype(float))
         credible_levels = np.empty_like(sorted_credible_levels)
-        credible_levels[i] = sorted_credible_levels
+        credible_levels[idx] = sorted_credible_levels
         healpix_pvalues = list(credible_levels)
 
         # Create mask for pixel selection
@@ -212,8 +212,9 @@ class T0HealpixPathProcessor(AlertConsumer):
                 # have access to the secrets store. Work around this by explicitly instantiating and
                 # setting a loader through the context.
                 self.alert_supplier = self.context.loader.new(self.supplier, unit_type=BaseAlertSupplier)
+                assert isinstance(supplier_config := self.supplier.config, dict)
                 loader = self.context.loader.new(
-                    UnitModel(**self.supplier.config["loader"]),
+                    UnitModel(**supplier_config["loader"]),
                     unit_type=AbsAlertLoader,
                     stream={"nside": nside, "pixels": pixel_query, "time": trigger_time}
                 )
