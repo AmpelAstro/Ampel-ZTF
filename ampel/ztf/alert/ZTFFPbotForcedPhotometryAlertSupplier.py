@@ -4,8 +4,8 @@
 # License           : BSD-3-Clause
 # Author            : jno <jnordin@physik.hu-berlin.de>
 # Date              : 14.03.2022
-# Last Modified Date: 14.03.2022
-# Last Modified By  : jno <jnordin@physik.hu-berlin.de>
+# Last Modified Date: 17.05.2022
+# Last Modified By  : sr <simeon.reusch@desy.de>
 
 import sys, re, os
 import numpy as np
@@ -96,7 +96,7 @@ def get_fpbot_baseline(df: pd.DataFrame, window="10D", min_peak_snr=3,
     """
     For each unique baseline combination, estimate and store baseline.
     Partially taken from
-	https://github.com/BrightTransientSurvey/ztf_forced_phot/blob/main/bts_phot/calibrate_fps.py.
+    https://github.com/BrightTransientSurvey/ztf_forced_phot/blob/main/bts_phot/calibrate_fps.py.
 
     risetime (float): days prior to peak to discard from baseline
     falltime ('co'|float): if 'co' this will be estimated from peak mag
@@ -104,7 +104,7 @@ def get_fpbot_baseline(df: pd.DataFrame, window="10D", min_peak_snr=3,
     """
 
     df['fcqfid'] = np.array(df.fieldid.values*10000 +
-	                        df.ccdid.values*100 +
+                            df.ccdid.values*100 +
                             df.qid.values*10 +
                             df.filterid.values
                             )
@@ -158,7 +158,7 @@ def get_fpbot_baseline(df: pd.DataFrame, window="10D", min_peak_snr=3,
         fcqfid_dict['t_peak'] = t_peak
         if falltime == 'co':
             around_max = np.where((df.obsmjd.values - t_peak > - 10) &
-			                      (df.obsmjd.values - t_peak < 10))
+                                  (df.obsmjd.values - t_peak < 10))
             if len(around_max[0]) > 0:
                 diff_flux_around_max = df.ampl.values[around_max]
                 mag_min = np.nanmin(df.magzp.values[around_max] -
@@ -192,7 +192,7 @@ def get_fpbot_baseline(df: pd.DataFrame, window="10D", min_peak_snr=3,
                     base_flux = fcqf_df.ampl.values[pre_bl]
                     base_flux_unc = fcqf_df['ampl.err'].values[pre_bl]  # Would ampl.err work?
                     mask = np.where(np.abs((base_flux - np.median(base_flux))
-					                       /base_flux_unc ) <= 5)
+                                           /base_flux_unc ) <= 5)
                     if len(mask[0]) > 1:
                         Cmean = np.average(base_flux[mask],
                                            weights=1/base_flux_unc[mask]**2)
@@ -317,7 +317,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
         df = pd.read_csv(fileio, sep=',', comment='#')
 
         if self.excl_poor_conditions:
-			# Should be equivalent
+            # Should be equivalent
 #            df = df[(df['ampl.err']>0) & (df['chi2dof']<3) & (df['cloudy']==0) & (df['infobits']==0) & (df['pass']==1)]
             df = df[(df['pass'] == 1)]
 
@@ -329,6 +329,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         # Create baseline
         df, baseline_info = get_fpbot_baseline(df, risetime=self.transient_risetime, falltime=self.transient_falltime)
+
         self.logger.info('Corrected baseline', extra=baseline_info)
 
         if df.shape[0]==0:
@@ -338,7 +339,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
         # Plot
         color_dict = {'1': 'MediumAquaMarine', '2': 'Crimson', '3': 'Goldenrod'}
         if self.plot_suffix and self.plot_dir:
-            fig = plt.figure()
+            fig, ax = plt.subplots()
             y_max = -99
             for key, binfo in baseline_info.items():
                 if key =='t_peak':
@@ -351,30 +352,42 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
                 if 'flux_max' in binfo.keys() and binfo['flux_max'] > y_max:
                     y_max = binfo['flux_max']
-                plt.errorbar(df_sub.obsmjd, df_sub.ampl, df_sub['ampl.err'],
-                             fmt='^',
-                             mec='grey',
-                             ecolor=color_dict[key[-1]],
-                             mfc='None')
-                plt.errorbar(df_sub.obsmjd, df_sub.ampl_corr, df_sub.ampl_err_corr,
-                             fmt='o',
-                             mec=color_dict[key[-1]],
-                             ecolor=color_dict[key[-1]],
-                             mfc='None')
+                ax.errorbar(
+                    df_sub.obsmjd, 
+                    df_sub.ampl, 
+                    df_sub['ampl.err'],
+                    fmt='^',
+                    mec='grey',
+                    ecolor=color_dict[key[-1]],
+                    mfc='None'
+                )
+                ax.errorbar(
+                    df_sub.obsmjd,
+                    df_sub.ampl_corr,
+                    df_sub.ampl_err_corr,
+                    fmt='o',
+                    mec=color_dict[key[-1]],
+                    ecolor=color_dict[key[-1]],
+                    mfc='None'
+                )
 
 
             peak_times = df[(df['not_baseline'] == 1)].obsmjd
-            plt.axvline(x=peak_times.min(), color='0.5', ls='--')
-            plt.axvline(x=peak_times.max(), color='0.5', ls='--')
-            plt.ylim([-1000,y_max*2]) # Bottom limit set based on sample runs
+            ax.axvline(x=peak_times.min(), color='0.5', ls='--')
+            ax.axvline(x=peak_times.max(), color='0.5', ls='--')
+            ax.set_xlabel("Date [MJD]")
+            ax.set_ylabel(f"Flux (ZP = {self.pivot_zeropoint} mag)")
+
+            y_min = 10**((self.pivot_zeropoint - 20 )/2.5)
+
+            ax.set_ylim([-y_min, y_max*1.4]) # Bottom limit set based on sample runs
 
             plt.tight_layout()
             plt.savefig(os.path.join(self.plot_dir, 'fpbase_%s.%s'%(headervals['name'], self.plot_suffix)))
             plt.close('fig')
             plt.close('all')
-            del(fig)
+            del(fig, ax)
             gc.collect()
-
 
         # Add back zp correction (assumed to be used later)
         df['ampl'] /= df['ampl_zp_scale']
