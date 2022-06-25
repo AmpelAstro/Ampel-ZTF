@@ -28,9 +28,12 @@ unit:
 - ampel.ztf.t3.skyportal.SkyPortalPublisher
 
 # Aux units
+- ampel.ztf.alert.HealpixPathSupplier
 - ampel.ztf.alert.ZiAlertSupplier
+- ampel.ztf.alert.ZiHealpixAlertSupplier
 - ampel.ztf.alert.ZiTaggedAlertSupplier
 - ampel.ztf.alert.ZTFForcedPhotometryAlertSupplier
+- ampel.ztf.alert.load.ZTFHealpixAlertLoader
 - ampel.ztf.t0.load.UWAlertLoader
 - ampel.ztf.t0.load.ZTFArchiveAlertLoader
 - ampel.ztf.util.ZTFIdMapper
