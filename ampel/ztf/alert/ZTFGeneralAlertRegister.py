@@ -28,8 +28,8 @@ class ZTFGeneralAlertRegister(BaseAlertRegister):
 	struct: Literal['<QB5s'] = '<QB5s'
 
 
-	def file(self, alert: AmpelAlertProtocol, filter_res: None | int = None) -> None:
-		self._write(pack('<QBQ', alert.id, filter_res or 0, alert.stock)[:-3])
+	def file(self, alert: AmpelAlertProtocol, filter_res: int = 0) -> None:
+		self._write(pack('<QBQ', alert.id, -filter_res, alert.stock)[:-3])
 
 
 	@classmethod
@@ -37,7 +37,7 @@ class ZTFGeneralAlertRegister(BaseAlertRegister):
 		f: BinaryIO | str, multiplier: int = 100000, verbose: bool = True
 	) -> Generator[tuple[int, ...], None, None]:
 		for el in reg_iter(f, multiplier, verbose):
-			yield el[0], el[1], int.from_bytes(el[2], 'little') # type: ignore[arg-type]
+			yield el[0], -el[1], int.from_bytes(el[2], 'little') # type: ignore[arg-type]
 
 
 	@classmethod
@@ -45,7 +45,7 @@ class ZTFGeneralAlertRegister(BaseAlertRegister):
 		f: BinaryIO | str, alert_id: int | list[int], **kwargs
 	) -> None | list[tuple[int, ...]]:
 		if ret := super().find_alert(f, alert_id=alert_id, **kwargs):
-			return [(el[0], el[1], int.from_bytes(el[2], 'little')) for el in ret] # type: ignore[arg-type]
+			return [(el[0], -el[1], int.from_bytes(el[2], 'little')) for el in ret] # type: ignore[arg-type]
 		return None
 
 
@@ -54,5 +54,5 @@ class ZTFGeneralAlertRegister(BaseAlertRegister):
 		f: BinaryIO | str, stock_id: int | list[int], **kwargs
 	) -> None | list[tuple[int, ...]]:
 		if ret := super().find_stock(f, stock_id=stock_id, stock_offset=9, stock_bytes_len=5, **kwargs):
-			return [(el[0], el[1], int.from_bytes(el[2], 'little')) for el in ret] # type: ignore[arg-type]
+			return [(el[0], -el[1], int.from_bytes(el[2], 'little')) for el in ret] # type: ignore[arg-type]
 		return None

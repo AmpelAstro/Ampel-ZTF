@@ -4,7 +4,7 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                26.05.2020
-# Last Modified Date:  24.11.2021
+# Last Modified Date:  27.06.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from struct import pack
@@ -24,8 +24,13 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
 	Logs: alert_id, filter_res, stock
 	"""
 
-	__slots__: ClassVar[tuple[str, ...]] = '_write', 'alert_max', 'alert_min', 'stock_max', 'stock_min' # type: ignore
-	_slot_defaults = {'alert_max': 0, 'alert_min': 2**64, 'stock_max': 0, 'stock_min': 2**64, 'ztf_years': set()}
+	__slots__: ClassVar[tuple[str, ...]] = '_write', 'alert_max', \
+		'alert_min', 'stock_max', 'stock_min' # type: ignore
+	_slot_defaults = {
+		'alert_max': 0, 'alert_min': 2**64,
+		'stock_max': 0, 'stock_min': 2**64,
+		'ztf_years': set()
+	}
 
 	new_header_size: int | str = "+4096"
 	header_hints: ClassVar[Sequence[str]] = ('alert', 'stock') # type: ignore
@@ -44,7 +49,7 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
 			self.ztf_years = set(hdr['ztf_years'])
 
 
-	def file(self, alert: AmpelAlertProtocol, filter_res: None | int = None) -> None:
+	def file(self, alert: AmpelAlertProtocol, filter_res: int = 0) -> None:
 
 		alid = alert.id
 		if alid > self.alert_max:
@@ -61,7 +66,7 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
 		if (sid & 15) not in self.ztf_years: # type: ignore[operator]
 			self.ztf_years.add(sid & 15) # type: ignore[operator]
 
-		self._write(pack('<QBQ', alert.id, filter_res or 0, alert.stock)[:-3])
+		self._write(pack('<QBQ', alert.id, -filter_res, alert.stock)[:-3])
 
 
 	def close(self, **kwargs) -> None: # type: ignore[override]
@@ -71,7 +76,6 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
 			hdr['ztf_years'] = list(self.ztf_years)
 
 		super().close(**kwargs)
-
 
 
 	@classmethod
