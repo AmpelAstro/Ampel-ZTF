@@ -54,7 +54,7 @@ class ZiDataPointShaperBase(AmpelUnit):
 					)
 
 				ret_list.append(
-					{
+					{    # type: ignore[typeddict-item]
 						'id': photo_dict['candid'],
 						'stock': stock,
 						'tag': tags[photo_dict['programid']][photo_dict['fid']],
@@ -68,7 +68,7 @@ class ZiDataPointShaperBase(AmpelUnit):
 			else:
 
 				ret_list.append(
-					{
+					{    # type: ignore[typeddict-item]
 						'id': self.ul_identity(photo_dict),
 						'tag': tags[photo_dict['programid']][photo_dict['fid']],
 						'stock': stock,
