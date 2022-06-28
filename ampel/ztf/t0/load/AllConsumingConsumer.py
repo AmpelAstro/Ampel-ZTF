@@ -143,12 +143,6 @@ class AllConsumingConsumer:
         self._offsets = {}
         self._auto_commit = auto_commit
 
-    def __del__(self):
-        # NB: have to explicitly call close() here to prevent
-        # rd_kafka_consumer_close() from segfaulting. See:
-        # https://github.com/confluentinc/confluent-kafka-python/issues/358
-        self._consumer.close()
-
     def __next__(self):
         message = self.consume()
         if message is None:
