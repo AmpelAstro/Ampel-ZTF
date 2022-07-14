@@ -189,10 +189,10 @@ class AllConsumingConsumer:
                         # bail on timeouts
                         return None
                 break
-        else:
-            return message
 
-        if message.error():
+        if message is None:
+            return message
+        elif message.error():
             raise KafkaError(message.error())
         else:
             self._offsets[(message.topic(), message.partition())] = message.offset()
