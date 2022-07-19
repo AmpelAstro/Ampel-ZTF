@@ -8,16 +8,21 @@
 # Last Modified By  : sr <simeon.reusch@desy.de>
 
 import sys, re, os
-import numpy as np
-from astropy.time import Time
-import pandas as pd
-import gc
-from scipy.stats import median_abs_deviation
-import matplotlib.pyplot as plt
+
 from os.path import basename
 from bson import encode
 from hashlib import blake2b
 from typing import Optional, Literal, Union, Any
+
+import numpy as np
+import pandas as pd
+import gc
+import matplotlib.pyplot as plt
+import ztfquery
+
+from appdirs import user_cache_dir
+from astropy.time import Time
+from scipy.stats import median_abs_deviation
 
 # Only works directly on filenames
 # from bts_phot.calibrate_fps import get_baseline # type: ignore[import]
@@ -98,6 +103,8 @@ def get_fpbot_baseline(
     falltime=365,
     primary_grid_only: bool = False,
     min_det_per_field_band: int = 1,
+    zp_max_deviation_from_median: float = 99.0,
+    reference_days_before_peak: Optional[float] = None,
 ) -> pd.DataFrame:
     """
     For each unique baseline combination, estimate and store baseline.
@@ -114,6 +121,11 @@ def get_fpbot_baseline(
 
     min_det_per_field_band (int): minimum detections required
     per unique combination of field and band
+
+    zp_max_deviation_from_median (float): maximum deviation of the zeropoint from the median zeropoint that is allowed for each obs to survive
+
+    reference_days_before_peak (Opt[float]): number of days the reference images used for a filter/ccd/band-combination have to been made before the estimated peak date (to avoid contamination of the reference images with transient light)
+
     """
     df["fcqfid"] = np.array(
         df.fieldid.values * 10000
@@ -142,9 +154,10 @@ def get_fpbot_baseline(
             df.query("fieldid + filterid != @added", inplace=True)
     df = df.reset_index(drop=True)
 
-    unique_fid = np.unique(df.fcqfid.values).astype(int)
+    df["zp_median_deviation"] = df.magzp - df.zpmed
+    df.query("abs(zp_median_deviation) < @zp_max_deviation_from_median", inplace=True)
 
-    print(df)
+    unique_fid = np.unique(df.fcqfid.values).astype(int)
 
     # Time index for use for rolling window
     df = df.sort_values("obsmjd")
@@ -179,8 +192,28 @@ def get_fpbot_baseline(
         else:
             fcqfid_dict[str(ufid)]["det_sn"] = False
 
-    # should we not first convert to a common zeropoint or flux scale (jansky?)
+    """
+    For all field/ccd/fid combination where we have determined a peak, we can now check if the reference image end date is comfortably prior to the peak and remove this combo if not
+    """
+    if reference_days_before_peak:
 
+        ufids_to_check = []
+
+        for ufid, res in fcqfid_dict.items():
+            if "t_max" in res.keys():
+                ufids_to_check.append(ufid)
+
+        ref_mjd_dict = get_reference_mjds(fcqfid_list=ufids_to_check)
+
+        for ufid, ref_end_mjd in ref_mjd_dict.items():
+            t_max = fcqfid_dict[ufid]["t_max"]
+            print(f"t_max = {t_max} / ref_end = {ref_end_mjd} / ufid = {ufid}")
+            print(f"t_max - ref_end_mjd: {t_max-ref_end_mjd}")
+            if (t_max - ref_end_mjd) < reference_days_before_peak:
+                ufid = int(ufid)
+                df.query("fcqfid != @ufid", inplace=True)
+
+    # should we not first convert to a common zeropoint or flux scale (jansky?)
     df["baseline"] = np.zeros_like(df.ampl.values)
     df["baseline_err_mult"] = np.zeros_like(df.ampl.values)
     df["n_baseline"] = np.zeros_like(df.ampl.values).astype(int)
@@ -317,6 +350,65 @@ def get_fpbot_baseline(
     return df, fcqfid_dict
 
 
+def get_reference_mjds(fcqfid_list: list) -> dict:
+    """
+    Get list of references from IPAC and return dates for all unique combinations of fieldid, CCD and filter
+    """
+    fieldids = list(
+        set([int(str(fcqfid)[: len(str(fcqfid)) - 4]) for fcqfid in fcqfid_list])
+    )
+
+    cachedir = user_cache_dir("AMPEL_FPbot_baseline")
+
+    metadata_dfs = []
+    for fieldid in fieldids:
+        cachefile = os.path.join(cachedir, f"{fieldid}_ref_info.csv")
+
+        if os.path.isfile(cachefile):
+            mt = pd.read_csv(cachefile, index_col=0)
+            print(f"Loading reference data for field {fieldid} from cache")
+            metadata_dfs.append(mt)
+
+        else:
+            from ztfquery import query
+
+            if not os.path.exists(cachedir):
+                os.makedirs(cachedir)
+
+            zq = query.ZTFQuery()
+            querystring = f"field={fieldid}"
+
+            print(f"Checking IPAC if references are available for field {fieldid}")
+
+            zq.load_metadata(kind="ref", sql_query=querystring)
+            mt = zq.metatable
+            mt.to_csv(cachefile)
+            metadata_dfs.append(mt)
+
+    mt = pd.concat(metadata_dfs).reset_index(drop=True)
+
+    ref_mjd_dict: dict[int, float] = {}
+
+    for fcqfid in fcqfid_list:
+        if len(str(fcqfid)) == 7:
+            i = 0
+        else:
+            i = 1
+
+        fieldid = int(str(fcqfid)[: 3 + i])
+        ccdid = int(str(fcqfid)[3 + i : 5 + i])
+        qid = int(str(fcqfid)[5 + i : 6 + i])
+        fid = int(str(fcqfid)[6 + i : 7 + i])
+        _mt = mt.query(
+            "field == @fieldid and ccdid == @ccdid and qid == @qid and fid == @fid"
+        )
+        endobsdate = _mt.endobsdate.values[0].split("+")[0]
+        endobsdate_mjd = float(Time(endobsdate, format="iso").mjd)
+        ref_mjd_dict.update({fcqfid: endobsdate_mjd})
+
+    return ref_mjd_dict
+
+
 class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
     """
     Returns an AmpelAlert instance for each file path provided by the underlying alert loader.
@@ -332,7 +424,12 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
     transient_falltime: Union[Literal["co"], float] = 365.0
 
     primary_grid_only: bool = False
+
     min_det_per_field_band: int = 1
+
+    zp_max_deviation_from_median: float = 99.0
+
+    reference_days_before_peak: Optional[float] = None
 
     plot_suffix: Optional[str]
     plot_dir: Optional[str]
@@ -392,6 +489,8 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             falltime=self.transient_falltime,
             primary_grid_only=self.primary_grid_only,
             min_det_per_field_band=self.min_det_per_field_band,
+            zp_max_deviation_from_median=self.zp_max_deviation_from_median,
+            reference_days_before_peak=self.reference_days_before_peak,
         )
 
         self.logger.info("Corrected baseline", extra=baseline_info)
@@ -401,7 +500,12 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             return self.__next__()
 
         # Plot
-        color_dict = {"1": "MediumAquaMarine", "2": "Crimson", "3": "Goldenrod"}
+
+        # color_dict = {"1": "MediumAquaMarine", "2": "Crimson", "3": "Goldenrod"}
+        """
+        Jakob, if you have aesthetic misgivings, feel free to change back to the old color scheme ;)
+        """
+        color_dict = {"1": "green", "2": "red", "3": "orange"}
 
         if self.plot_suffix and self.plot_dir:
             fig, ax = plt.subplots()
@@ -417,35 +521,49 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
                 if "flux_max" in binfo.keys() and binfo["flux_max"] > y_max:
                     y_max = binfo["flux_max"]
-                ax.errorbar(
-                    df_sub.obsmjd,
-                    df_sub.ampl,
-                    df_sub["ampl.err"],
-                    fmt="^",
-                    mec="grey",
-                    ecolor=color_dict[key[-1]],
-                    mfc="None",
-                )
+                # ax.errorbar(
+                #     df_sub.obsmjd,
+                #     df_sub.ampl,
+                #     df_sub["ampl.err"],
+                #     fmt="^",
+                #     mec="grey",
+                #     ecolor=color_dict[key[-1]],
+                #     mfc="None",
+                # )
+                # ax.errorbar(
+                #     df_sub.obsmjd,
+                #     df_sub.ampl_corr,
+                #     df_sub.ampl_err_corr,
+                #     fmt="o",
+                #     mec=color_dict[key[-1]],
+                #     ecolor=color_dict[key[-1]],
+                #     mfc="None",
+                # )
                 ax.errorbar(
                     df_sub.obsmjd,
                     df_sub.ampl_corr,
-                    df_sub.ampl_err_corr,
+                    df_sub["ampl_err_corr"],
                     fmt="o",
                     mec=color_dict[key[-1]],
                     ecolor=color_dict[key[-1]],
                     mfc="None",
+                    alpha=0.7,
+                    ms=2,
+                    elinewidth=0.8,
                 )
+
+            if y_max == -99:
+                y_max = df.ampl_corr.max()
 
             peak_times = df[(df["not_baseline"] == 1)].obsmjd
 
             ax.axhline(y=0, color="0.7", ls="--")
             ax.axvline(x=peak_times.min(), color="0.5", ls="--")
             ax.axvline(x=peak_times.max(), color="0.5", ls="--")
-            ax.set_xlabel("Date [MJD]")
+            ax.set_xlabel("Date (MJD)")
             ax.set_ylabel(f"Flux (ZP = {self.pivot_zeropoint} mag)")
 
             y_min = 10 ** ((self.pivot_zeropoint - 20) / 2.5)
-
             ax.set_ylim([-y_min, y_max * 1.4])  # Bottom limit set based on sample runs
 
             plt.tight_layout()
