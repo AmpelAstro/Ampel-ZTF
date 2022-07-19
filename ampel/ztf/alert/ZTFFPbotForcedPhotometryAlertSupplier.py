@@ -4,7 +4,7 @@
 # License           : BSD-3-Clause
 # Author            : jno <jnordin@physik.hu-berlin.de>
 # Date              : 14.03.2022
-# Last Modified Date: 17.05.2022
+# Last Modified Date: 19.07.2022
 # Last Modified By  : sr <simeon.reusch@desy.de>
 
 import sys, re, os
@@ -91,7 +91,13 @@ ZTF_FILTER_MAP = {"ZTF_g": 1, "ZTF_r": 2, "ZTF_i": 3}
 
 
 def get_fpbot_baseline(
-    df: pd.DataFrame, window="10D", min_peak_snr=3, risetime=100, falltime=365
+    df: pd.DataFrame,
+    window: str = "10D",
+    min_peak_snr: float = 3,
+    risetime: float = 100,
+    falltime=365,
+    primary_grid_only: bool = False,
+    min_det_per_field_band: int = 1,
 ) -> pd.DataFrame:
     """
     For each unique baseline combination, estimate and store baseline.
@@ -99,17 +105,46 @@ def get_fpbot_baseline(
     https://github.com/BrightTransientSurvey/ztf_forced_phot/blob/main/bts_phot/calibrate_fps.py.
 
     risetime (float): days prior to peak to discard from baseline
-    falltime ('co'|float): if 'co' this will be estimated from peak mag
-        assuming Co decay, if int this will be taken as direct days.
-    """
 
+    falltime ('co'|float): if 'co' this will be estimated from peak mag assuming Co decay, if int this will be taken as direct days.
+
+    primary_grid_only (bool): if this is set to True,
+    all observations in the secondary ZTF grid will be
+    discarded
+
+    min_det_per_field_band (int): minimum detections required
+    per unique combination of field and band
+    """
     df["fcqfid"] = np.array(
         df.fieldid.values * 10000
         + df.ccdid.values * 100
         + df.qid.values * 10
         + df.filterid.values
     )
+
+    if primary_grid_only:
+        for fid in df.fieldid.unique():
+            if len(str(fid)) > 3:
+                df = df.query("fieldid != @fid").reset_index(drop=True)
+
+    """
+    Remove all combinations of fieldid and filterid where
+    minimum detection number per field and band are not met
+    (min_det_per_field_band, default 10)
+    """
+    counts = df.groupby(by=["fieldid", "filterid"]).size().reset_index(name="counts")
+
+    for i, row in counts.iterrows():
+        if row["counts"] < min_det_per_field_band:
+            fieldid = row["fieldid"]
+            filterid = row["filterid"]
+            added = fieldid + filterid
+            df.query("fieldid + filterid != @added", inplace=True)
+    df = df.reset_index(drop=True)
+
     unique_fid = np.unique(df.fcqfid.values).astype(int)
+
+    print(df)
 
     # Time index for use for rolling window
     df = df.sort_values("obsmjd")
@@ -296,6 +331,9 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
     transient_risetime: float = 100.0
     transient_falltime: Union[Literal["co"], float] = 365.0
 
+    primary_grid_only: bool = False
+    min_det_per_field_band: int = 1
+
     plot_suffix: Optional[str]
     plot_dir: Optional[str]
 
@@ -349,7 +387,11 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         # Create baseline
         df, baseline_info = get_fpbot_baseline(
-            df, risetime=self.transient_risetime, falltime=self.transient_falltime
+            df,
+            risetime=self.transient_risetime,
+            falltime=self.transient_falltime,
+            primary_grid_only=self.primary_grid_only,
+            min_det_per_field_band=self.min_det_per_field_band,
         )
 
         self.logger.info("Corrected baseline", extra=baseline_info)
