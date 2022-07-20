@@ -20,7 +20,7 @@ import gc
 import matplotlib.pyplot as plt
 import ztfquery
 
-from appdirs import user_cache_dir
+# from appdirs import user_cache_dir
 from astropy.time import Time
 from scipy.stats import median_abs_deviation
 
@@ -203,15 +203,16 @@ def get_fpbot_baseline(
             if "t_max" in res.keys():
                 ufids_to_check.append(ufid)
 
-        ref_mjd_dict = get_reference_mjds(fcqfid_list=ufids_to_check)
+        if ufids_to_check:
 
-        for ufid, ref_end_mjd in ref_mjd_dict.items():
-            t_max = fcqfid_dict[ufid]["t_max"]
-            print(f"t_max = {t_max} / ref_end = {ref_end_mjd} / ufid = {ufid}")
-            print(f"t_max - ref_end_mjd: {t_max-ref_end_mjd}")
-            if (t_max - ref_end_mjd) < reference_days_before_peak:
-                ufid = int(ufid)
-                df.query("fcqfid != @ufid", inplace=True)
+            ref_mjd_dict = get_reference_mjds(fcqfid_list=ufids_to_check)
+
+            for ufid, ref_end_mjd in ref_mjd_dict.items():
+                t_max = fcqfid_dict[ufid]["t_max"]
+
+                if (t_max - ref_end_mjd) < reference_days_before_peak:
+                    ufid = int(ufid)
+                    df.query("fcqfid != @ufid", inplace=True)
 
     # should we not first convert to a common zeropoint or flux scale (jansky?)
     df["baseline"] = np.zeros_like(df.ampl.values)
@@ -354,38 +355,13 @@ def get_reference_mjds(fcqfid_list: list) -> dict:
     """
     Get list of references from IPAC and return dates for all unique combinations of fieldid, CCD and filter
     """
+    from planobs.utils import get_references
+
     fieldids = list(
         set([int(str(fcqfid)[: len(str(fcqfid)) - 4]) for fcqfid in fcqfid_list])
     )
 
-    cachedir = user_cache_dir("AMPEL_FPbot_baseline")
-
-    metadata_dfs = []
-    for fieldid in fieldids:
-        cachefile = os.path.join(cachedir, f"{fieldid}_ref_info.csv")
-
-        if os.path.isfile(cachefile):
-            mt = pd.read_csv(cachefile, index_col=0)
-            print(f"Loading reference data for field {fieldid} from cache")
-            metadata_dfs.append(mt)
-
-        else:
-            from ztfquery import query
-
-            if not os.path.exists(cachedir):
-                os.makedirs(cachedir)
-
-            zq = query.ZTFQuery()
-            querystring = f"field={fieldid}"
-
-            print(f"Checking IPAC if references are available for field {fieldid}")
-
-            zq.load_metadata(kind="ref", sql_query=querystring)
-            mt = zq.metatable
-            mt.to_csv(cachefile)
-            metadata_dfs.append(mt)
-
-    mt = pd.concat(metadata_dfs).reset_index(drop=True)
+    references = get_references(fieldids)
 
     ref_mjd_dict: dict[int, float] = {}
 
@@ -399,10 +375,10 @@ def get_reference_mjds(fcqfid_list: list) -> dict:
         ccdid = int(str(fcqfid)[3 + i : 5 + i])
         qid = int(str(fcqfid)[5 + i : 6 + i])
         fid = int(str(fcqfid)[6 + i : 7 + i])
-        _mt = mt.query(
+        _ref = references.query(
             "field == @fieldid and ccdid == @ccdid and qid == @qid and fid == @fid"
         )
-        endobsdate = _mt.endobsdate.values[0].split("+")[0]
+        endobsdate = _ref.endobsdate.values[0].split("+")[0]
         endobsdate_mjd = float(Time(endobsdate, format="iso").mjd)
         ref_mjd_dict.update({fcqfid: endobsdate_mjd})
 
