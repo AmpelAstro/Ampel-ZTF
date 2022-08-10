@@ -24,8 +24,8 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
 	Logs: alert_id, filter_res, stock
 	"""
 
-	__slots__: ClassVar[tuple[str, ...]] = '_write', 'alert_max', \
-		'alert_min', 'stock_max', 'stock_min' # type: ignore
+	__slots__: ClassVar[tuple[str, ...]] = ('_write', 'alert_max', # type: ignore
+		'alert_min', 'stock_max', 'stock_min')
 	_slot_defaults = {
 		'alert_max': 0, 'alert_min': 2**64,
 		'stock_max': 0, 'stock_min': 2**64,
