@@ -112,7 +112,7 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup=lambda e: e.response.status_code not in {503, 504, 429, 408},
+        giveup=lambda e: not isinstance(e, requests.HTTPError) or e.response.status_code not in {503, 504, 429, 408},
         max_time=600,
     )
     def get_photopoints(self, ztf_name: str, jd_center: float, time_pre: float, time_post: float) -> dict[str, Any]:

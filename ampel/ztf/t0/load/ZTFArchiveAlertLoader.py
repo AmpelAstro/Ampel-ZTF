@@ -79,7 +79,7 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup=lambda e: e.response.status_code not in {502, 503, 504, 429, 408},
+        giveup=lambda e: not isinstance(e, requests.HTTPError) or e.response.status_code not in {502, 503, 504, 429, 408},
         max_time=600,
     )
     def _get_chunk(self, session: requests.Session) -> dict[str, Any]:
@@ -101,7 +101,7 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup=lambda e: e.response.status_code not in {502, 503, 504, 429, 408},
+        giveup=lambda e: not isinstance(e, requests.HTTPError) or e.response.status_code not in {502, 503, 504, 429, 408},
         max_time=600,
     )
     def _acknowledge_chunk(self, session: requests.Session, chunk_id: int) -> None:
