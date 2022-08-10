@@ -72,7 +72,7 @@ class T0HealpixPathProcessor(AlertConsumer):
             kwargs["compiler_opts"] = CompilerOptions()
         super().__init__(**kwargs)
 
-    def run(self) -> int:
+    def proceed(self, event_hdlr: EventHandler) -> int:
         stats = {
             "alerts": stat_alerts,
             "accepted": stat_accepted.labels("any"),
@@ -92,12 +92,6 @@ class T0HealpixPathProcessor(AlertConsumer):
         # DBLoggingHandler formats, saves and pushes log records into the DB
         if db_logging_handler := logger.get_db_logging_handler():
             db_logging_handler.auto_flush = False
-
-        # Add new doc in the 'events' collection
-        event_hdlr = EventHandler(
-            self.process_name, self.context.db, tier=0,
-            run_id=run_id, raise_exc=self.raise_exc
-        )
 
         updates_buffer = DBUpdatesBuffer(
             self._ampel_db,
@@ -215,7 +209,7 @@ class T0HealpixPathProcessor(AlertConsumer):
                 assert isinstance(supplier_config := self.supplier.config, dict)
                 loader = self.context.loader.new(
                     UnitModel(**supplier_config["loader"]),
-                    unit_type=AbsAlertLoader,
+                    unit_type=AbsAlertLoader, # type: ignore[type-var]
                     stream={"nside": nside, "pixels": pixel_query, "time": trigger_time}
                 )
                 self.alert_supplier.alert_loader = loader
@@ -436,7 +430,7 @@ class T0HealpixPathProcessor(AlertConsumer):
                 # Flush registers and rejected log handlers
                 self._fbh.done()
 
-                event_hdlr.update(logger)
+                event_hdlr.update()
 
             except Exception as e:
 
