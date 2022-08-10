@@ -8,6 +8,7 @@
 # Last Modified By  : Marcus Fenner <mf@physik.hu-berlin.de>
 
 from datetime import datetime
+from functools import cached_property
 from typing import (
     Any,
     Generator,
@@ -19,7 +20,8 @@ import requests
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.log.AmpelLogger import AmpelLogger
-from ampel.ztf.base.ArchiveUnit import ArchiveUnit
+from ampel.ztf.base.ArchiveUnit import BearerAuth, BaseUrlSession
+from ampel.secret.NamedSecret import NamedSecret
 
 from astropy.time import Time
 
@@ -31,8 +33,7 @@ class HealpixSource(AmpelBaseModel):
     time: datetime
     with_history: bool = False
 
-# Note: ignore error: Definition of "dict" in base class "BaseModel" is incompatible with definition in base class "AmpelUnit"  [misc]
-class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]], ArchiveUnit): # type: ignore[misc]
+class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     """
     Create iterator of alerts found within a Healpix map.
     """
@@ -52,12 +53,30 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]], ArchiveUnit): # type
     source: None | HealpixSource = None
     # If not set at init, needs to be set by alert proceessor
 
-    # class Config:
-    #     """
-    #     This is needed to not get pickle errors with python3.10
-    #     see https://github.com/samuelcolvin/pydantic/issues/1241
-    #     """
-    #     keep_untouched = (cached_property,)
+    archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
+
+    # NB: init lazily, as Secret properties are not resolved until after __init__()
+    @cached_property
+    def session(self) -> BaseUrlSession:
+        """Pre-authorized requests.Session"""
+        session = BaseUrlSession(
+            base_url=(
+                url
+                if (
+                    url := self.archive
+                ).endswith("/")
+                else url + "/"
+            )
+        )
+        session.auth = BearerAuth(self.archive_token.get())
+        return session
+    
+    class Config:
+        """
+        This is needed to not get pickle errors with python3.10
+        see https://github.com/samuelcolvin/pydantic/issues/1241
+        """
+        keep_untouched = (cached_property,)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
