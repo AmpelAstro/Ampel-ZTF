@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/dev/DevSkyPortalClient.py
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : 16.09.2020
-# Last Modified Date: 16.09.2020
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                Ampel-ZTF/ampel/ztf/dev/DevSkyPortalClient.py
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                16.09.2020
+# Last Modified Date:  16.09.2020
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 import gzip
 import io
 from collections import defaultdict
 from datetime import datetime
-from typing import Sequence, Dict, Any, Generator
+from typing import Any
+from collections.abc import Sequence, Generator
 
 import numpy as np
 import requests
@@ -149,7 +150,7 @@ class DevSkyPortalClient:
                 content[k].append(v)
         return {**base, **content}
 
-    def _transform_datapoints(self, dps: Sequence[Dict[str,Any]], after=-float("inf")) -> Generator[Dict[str,Any],None,None]:
+    def _transform_datapoints(self, dps: Sequence[dict[str,Any]], after=-float("inf")) -> Generator[dict[str,Any],None,None]:
         ztf_filters = {1: "ztfg", 2: "ztfr", 3: "ztfi"}
         for dp in dps:
             if dp["jd"] <= after:

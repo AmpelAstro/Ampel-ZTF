@@ -27,6 +27,7 @@ def _make_muxer(context: AmpelContext, model: UnitModel) -> ZiArchiveMuxer:
 
     muxer = context.loader.new_context_unit(
         model=model,
+        sub_type=ZiArchiveMuxer,
         context=context,
         logger=logger,
         updates_buffer=updates_buffer,

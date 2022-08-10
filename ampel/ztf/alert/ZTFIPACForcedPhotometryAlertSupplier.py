@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/alert/ZTFIPACForcedPhotometryAlertSupplier.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 25.10.2021
-# Last Modified Date: 24.11.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-ZTF/ampel/ztf/alert/ZTFIPACForcedPhotometryAlertSupplier.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                25.10.2021
+# Last Modified Date:  24.11.2021
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import sys
 import pandas as pd
@@ -21,7 +21,7 @@ from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
 from ampel.model.PlotProperties import PlotProperties
-from ampel.plot.create import mplfig_to_svg_dict1
+from ampel.plot.create import create_plot_record
 
 dcast = {
 	'field': int,
@@ -203,7 +203,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
 					'name': sn_name,
 					'stock': {
 						'ret': d,
-						'plot': mplfig_to_svg_dict1(
+						'plot': create_plot_record(
 							fig, self.plot_props,
 							logger = self.logger,
 							extra={"sn_name": sn_name}

@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/ztf/t3/complement/AddTNSNames.py
-# License           : BSD-3-Clause
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : 13.12.2018
-# Last Modified Date: 10.03.2021
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                ampel/ztf/t3/complement/AddTNSNames.py
+# License:             BSD-3-Clause
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                13.12.2018
+# Last Modified Date:  10.03.2021
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 
-from typing import Iterable, Optional, Dict, Any
+from typing import Any
+from collections.abc import Iterable
 
-from pydantic import Field
 from ampel.struct.AmpelBuffer import AmpelBuffer
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
 from ampel.ztf.base.CatalogMatchUnit import CatalogMatchContextUnit
@@ -23,7 +23,8 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
     Add TNS names to transients.
     """
 
-    search_radius: float = Field(3, description="Matching radius in arcsec")
+    #: Matching radius in arcsec
+    search_radius: float = 3.
     include_report: bool = False
 
     def complement(self, records: Iterable[AmpelBuffer], t3s: T3Store) -> None:
@@ -80,7 +81,7 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
 
     def _get_t2_result(
         self, record: AmpelBuffer, unit_id: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> None | dict[str, Any]:
         """
         Get the result of the latest invocation of the given unit
         """

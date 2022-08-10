@@ -1,19 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/template/ZTFLegacyChannelTemplate.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 16.10.2019
-# Last Modified Date: 30.05.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-ZTF/ampel/template/ZTFLegacyChannelTemplate.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                16.10.2019
+# Last Modified Date:  30.05.2021
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Dict, Any, ClassVar, List, Optional, Union
-from ampel.model.UnitModel import UnitModel
-from pydantic import validator
+from typing import Any, ClassVar
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.config.builder.FirstPassConfig import FirstPassConfig
 from ampel.template.AbsEasyChannelTemplate import AbsEasyChannelTemplate
-from ampel.model.StrictModel import StrictModel
 from ampel.model.ingest.T2Compute import T2Compute
 
 
@@ -31,7 +28,7 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
 	"""
 
 	# static variables (ClassVar type) are ignored by pydantic
-	_access: ClassVar[Dict[str, List[str]]] = {
+	_access: ClassVar[dict[str, list[str]]] = {
 		"ztf_uw_private": ["ZTF", "ZTF_PUB", "ZTF_PRIV"],
 		"ztf_uw_public": ["ZTF", "ZTF_PUB"],
 		"ztf_uw_caltech": ["ZTF", "ZTF_PUB"],
@@ -42,10 +39,10 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
 	#: include all previously ingested photopoints in emitted states
 	live_history: bool = True
 	#: include X days of archival datapoints in emitted states
-	archive_history: Optional[int] = None
+	archive_history: None | int = None
 
 	# Mandatory implementation
-	def get_channel(self, logger: AmpelLogger) -> Dict[str, Any]:
+	def get_channel(self, logger: AmpelLogger) -> dict[str, Any]:
 		assert self.template is not None
 		return {
 			**super().get_channel(logger),
@@ -55,10 +52,10 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
 	# Mandatory implementation
 	def get_processes(
 		self, logger: AmpelLogger, first_pass_config: FirstPassConfig
-	) -> List[Dict[str, Any]]:
+	) -> list[dict[str, Any]]:
 
 		# T3 processes
-		ret: List[Dict[str, Any]] = []
+		ret: list[dict[str, Any]] = []
 
 		for index, el in enumerate(self.t3_supervise):
 			# populate name and tier if unset
@@ -78,7 +75,7 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
 			else None
 		)
 		if mongo_muxer and archive_muxer:
-			muxer: Optional[dict[str,Any]] = {
+			muxer: None | dict[str,Any] = {
 				"unit": "ChainedT0Muxer",
 				"config": {"muxers": [mongo_muxer, archive_muxer]},
 			}
@@ -110,7 +107,7 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
 				supplier=supplier,
 				shaper="ZiDataPointShaper",
 				muxer=muxer,
-				combiner="ZiT1Combiner",
+				combiner={"unit": "ZiT1Combiner", "config": {"access": self.access, "policy": self.policy}},
 			),
 		)
 

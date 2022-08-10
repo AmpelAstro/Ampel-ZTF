@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/t2/T2CatalogMatch.py
-# License           : BSD-3-Clause
-# Author            : matteo.giomi@desy.de
-# Date              : 24.08.2018
-# Last Modified Date: 29.01.2021
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                Ampel-ZTF/ampel/ztf/t2/T2CatalogMatch.py
+# License:             BSD-3-Clause
+# Author:              matteo.giomi@desy.de
+# Date:                24.08.2018
+# Last Modified Date:  29.01.2021
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-from pydantic import Field
-from typing import Any, Dict, Literal, Optional, Sequence, Union, ClassVar
+from typing import Any, Literal, ClassVar
+from collections.abc import Sequence
 from ampel.types import UBson
 from ampel.abstract.AbsPointT2Unit import AbsPointT2Unit
 from ampel.content.DataPoint import DataPoint
-from ampel.model.StrictModel import StrictModel
+from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.struct.UnitResult import UnitResult
 from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
 from ampel.enum.DocumentCode import DocumentCode
 from ampel.model.DPSelection import DPSelection
 
 
-class CatalogModel(StrictModel):
+class CatalogModel(AmpelBaseModel):
     """
     :param use: either extcats or catsHTM, depending on how the catalog is set up.
     :param rs_arcsec: search radius for the cone search, in arcseconds
@@ -57,9 +57,9 @@ class CatalogModel(StrictModel):
 
     use: Literal["extcats", "catsHTM"]
     rs_arcsec: float
-    keys_to_append: Optional[Sequence[str]]
-    pre_filter: Optional[Dict[str, Any]]
-    post_filter: Optional[Dict[str, Any]]
+    keys_to_append: None | Sequence[str]
+    pre_filter: None | dict[str, Any]
+    post_filter: None | dict[str, Any]
     #: return all matches, not only the closest
     all: bool = False
 
@@ -82,7 +82,7 @@ class T2CatalogMatch(CatalogMatchUnit, AbsPointT2Unit):
         self.all_catalogs = {k: v for k, v in self.catalogs.items() if v.all}
         self.closest_catalogs = {k: v for k, v in self.catalogs.items() if not v.all}
 
-    def process(self, datapoint: DataPoint) -> Union[UBson, UnitResult]:
+    def process(self, datapoint: DataPoint) -> UBson | UnitResult:
         """
         :returns: example of a match in SDSS but not in NED:
 

@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/t0/DecentFilter.py
-# License           : BSD-3-Clause
-# Author            : m. giomi <matteo.giomi@desy.de>
-# Date              : 06.06.2018
-# Last Modified Date: 10.03.2021
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                Ampel-ZTF/ampel/ztf/t0/DecentFilter.py
+# License:             BSD-3-Clause
+# Author:              m. giomi <matteo.giomi@desy.de>
+# Date:                06.06.2018
+# Last Modified Date:  10.03.2021
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 import numpy as np
-from typing import Optional, Union, Dict, Any
+from typing import Any
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 
@@ -154,7 +154,7 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
 
         return sg_confused and very_close
 
-    def is_star_in_gaia(self, transient: Dict[str, Any]) -> bool:
+    def is_star_in_gaia(self, transient: dict[str, Any]) -> bool:
         """
         match tranient position with GAIA DR2 and uses parallax
         and proper motion to evaluate star-likeliness
@@ -236,7 +236,7 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
         return False
 
     # Override
-    def process(self, alert: AmpelAlertProtocol) -> Optional[Union[bool, int]]:
+    def process(self, alert: AmpelAlertProtocol) -> None | bool | int:
         """
         Mandatory implementation.
         To exclude the alert, return *None*

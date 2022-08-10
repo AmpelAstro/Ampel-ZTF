@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/base/Observatory.py
-# License           : BSD-3-Clause
-# Author            : matteo.giomi@desy.de
-# Date              : 19.08.2018
-# Last Modified Date: 20.08.2018
-# Last Modified By  : matteo.giomi@desy.de
+# File:                ampel/base/Observatory.py
+# License:             BSD-3-Clause
+# Author:              matteo.giomi@desy.de
+# Date:                19.08.2018
+# Last Modified Date:  20.08.2018
+# Last Modified By:    matteo.giomi@desy.de
 
 import time
 import numpy as np

@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/ztf/t0/load/ZTFAlertArchiver.py
-# License           : BSD-3-Clause
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : 14.04.2021
-# Last Modified Date: 14.04.2021
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                ampel/ztf/t0/load/ZTFAlertArchiver.py
+# License:             BSD-3-Clause
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                14.04.2021
+# Last Modified Date:  14.04.2021
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 
 import io
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import fastavro
 
@@ -31,7 +31,7 @@ class ZTFAlertArchiver(AbsOpsUnit):
     #: Consumer group name
     group_name: str
     #: Topic name regexes to subscribe to
-    topics: List[str] = ["^ztf_.*_programid1$", "^ztf_.*_programid2$"]
+    topics: list[str] = ["^ztf_.*_programid1$", "^ztf_.*_programid2$"]
     #: Time to wait for messages before giving up, in seconds
     timeout: int = 300
     #: URI of postgres server hosting the archive
@@ -53,7 +53,7 @@ class ZTFAlertArchiver(AbsOpsUnit):
             **{"group.id": self.group_name},
         )
 
-    def run(self, beacon: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    def run(self, beacon: None | dict[str, Any] = None) -> None | dict[str, Any]:
 
         try:
             for message in self.consumer:

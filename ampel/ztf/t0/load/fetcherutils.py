@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/ztf/t0/load/fetcherutils.py
-# License           : BSD-3-Clause
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : Unspecified
-# Last Modified Date: 14.11.2018
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                ampel/ztf/t0/load/fetcherutils.py
+# License:             BSD-3-Clause
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                Unspecified
+# Last Modified Date:  14.11.2018
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 # type: ignore[import]
 # pylint: disable=bad-builtin

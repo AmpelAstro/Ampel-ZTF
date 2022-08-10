@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/t3/complement/ZTFCutoutImages.py
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : 18.09.2020
-# Last Modified Date: 18.09.2020
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                Ampel-ZTF/ampel/ztf/t3/complement/ZTFCutoutImages.py
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                18.09.2020
+# Last Modified Date:  18.09.2020
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 import backoff, requests # type: ignore[import]
 from base64 import b64decode
 from requests_toolbelt.sessions import BaseUrlSession
-from typing import Iterable, Literal, Optional, Dict
+from typing import Literal
+from collections.abc import Iterable
 
 from ampel.view.T3Store import T3Store
-from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.struct.AmpelBuffer import AmpelBuffer
 from ampel.core.AmpelContext import AmpelContext
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
@@ -28,7 +28,7 @@ class ZTFCutoutImages(AbsBufferComplement):
 
     def __init__(self, context: AmpelContext, **kwargs) -> None:
 
-        AmpelBaseModel.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
         self.session = BaseUrlSession(
             base_url=context.config.get("resource.ampel-ztf/archive", str, raise_exc=True)
@@ -46,7 +46,7 @@ class ZTFCutoutImages(AbsBufferComplement):
         giveup=lambda e: e.response.status_code not in {503, 504, 429, 408},
         max_time=60,
     )
-    def get_cutout(self, candid: int) -> Optional[Dict[str, bytes]]:
+    def get_cutout(self, candid: int) -> None | dict[str, bytes]:
         response = self.session.get(f"cutouts/{candid}")
         if response.status_code == 404:
             return None

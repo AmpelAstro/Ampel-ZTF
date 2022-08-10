@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/ztf/t0/alerts/AllConsumingConsumer.py
-# License           : BSD-3-Clause
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : Unspecified
-# Last Modified Date: 14.11.2018
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                ampel/ztf/t0/alerts/AllConsumingConsumer.py
+# License:             BSD-3-Clause
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                Unspecified
+# Last Modified Date:  14.11.2018
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import enum
 import json
 import sys
 import time
 import uuid
-from typing import Optional
 
 import confluent_kafka
 
@@ -162,7 +161,7 @@ class AllConsumingConsumer:
             self._consumer.store_offsets(offsets=offsets)
             self._offsets.clear()
 
-    def consume(self) -> Optional[confluent_kafka.Message]:
+    def consume(self) -> None | confluent_kafka.Message:
         """
         Block until one message has arrived, and return it.
 

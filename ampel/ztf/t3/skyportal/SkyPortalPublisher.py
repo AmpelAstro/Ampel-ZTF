@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/t3/skyportal/SkyPortalPublisher.py
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : 16.09.2020
-# Last Modified Date: 16.09.2020
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                Ampel-ZTF/ampel/ztf/t3/skyportal/SkyPortalPublisher.py
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                16.09.2020
+# Last Modified Date:  16.09.2020
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 import asyncio, nest_asyncio
-from typing import Generator, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
+from collections.abc import Generator
 
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
 from ampel.struct.JournalAttributes import JournalAttributes
@@ -22,14 +23,14 @@ if TYPE_CHECKING:
 class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
 
     #: Save sources to these groups
-    groups: Optional[list[str]] = None
-    filters: Optional[list[str]] = None
+    groups: None | list[str] = None
+    filters: None | list[str] = None
     #: Post T2 results as annotations instead of comments
     annotate: bool = False
 
     def process(self,
         tviews: Generator["TransientView", JournalAttributes, None],
-        t3s: Optional["T3Store"] = None
+        t3s: 'None | T3Store' = None
     ) -> None:
         """Pass each view to :meth:`post_candidate`."""
         # Patch event loop to be reentrant if it is already running, e.g.
@@ -55,7 +56,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
                 ],
             )
 
-    async def post_view(self, view: "TransientView") -> Tuple[StockId, JournalAttributes]:
+    async def post_view(self, view: "TransientView") -> tuple[StockId, JournalAttributes]:
         return view.id, JournalAttributes(
             extra=dict(
                 await self.post_candidate(

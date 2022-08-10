@@ -1,29 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/ztf/pipeline/t0/load/UWAlertLoader.py
-# License           : BSD-3-Clause
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : Unspecified
-# Last Modified Date: 25.03.2021
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                ampel/ztf/pipeline/t0/load/UWAlertLoader.py
+# License:             BSD-3-Clause
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                Unspecified
+# Last Modified Date:  25.03.2021
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 import io
 import itertools
 import logging
 import uuid
 from collections import defaultdict
-from typing import DefaultDict, Iterator, List, Literal, Optional
+from typing import DefaultDict, Literal
+from collections.abc import Iterator
 
 import fastavro
-from pydantic import Field
 
-from ampel.base.AmpelBaseModel import AmpelBaseModel
+from ampel.base.AmpelUnit import AmpelUnit
 from ampel.ztf.t0.load.AllConsumingConsumer import AllConsumingConsumer
 
 log = logging.getLogger(__name__)
 
 
-class UWAlertLoader(AmpelBaseModel):
+class UWAlertLoader(AmpelUnit):
     """
     Iterable class that loads avro alerts from the Kafka stream 
     provided by University of Washington (UW) 
@@ -49,13 +49,13 @@ class UWAlertLoader(AmpelBaseModel):
             self.bootstrap, timeout=self.timeout, topics=topics, **config
         )
 
-    def alerts(self, limit: Optional[int]=None) -> Iterator[io.BytesIO]:
+    def alerts(self, limit: None | int=None) -> Iterator[io.BytesIO]:
         """
         Generate alerts until timeout is reached
         :returns: dict instance of the alert content
         :raises StopIteration: when next(fastavro.reader) has dried out
         """
-        topic_stats: DefaultDict[str, List[float]] = defaultdict(lambda: [float("inf"), -float("inf"), 0])
+        topic_stats: defaultdict[str, list[float]] = defaultdict(lambda: [float("inf"), -float("inf"), 0])
         for message in itertools.islice(self._consumer, limit):
             reader = fastavro.reader(io.BytesIO(message.value()))
             alert = next(reader)  # raise StopIteration

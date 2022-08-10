@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/util/ZTFIdMapper.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 07.06.2018
-# Last Modified Date: 12.02.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-ZTF/ampel/ztf/util/ZTFIdMapper.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                07.06.2018
+# Last Modified Date:  12.02.2021
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import List, Union, Iterable, overload, cast
+from typing import overload, cast
+from collections.abc import Iterable
 from ampel.types import StrictIterable, StockId
 from ampel.abstract.AbsIdMapper import AbsIdMapper
 
@@ -29,11 +30,11 @@ class ZTFIdMapper(AbsIdMapper):
 
 	@overload
 	@classmethod
-	def to_ampel_id(cls, ztf_id: StrictIterable[str]) -> List[int]:
+	def to_ampel_id(cls, ztf_id: StrictIterable[str]) -> list[int]:
 		...
 
 	@classmethod
-	def to_ampel_id(cls, ztf_id: Union[str, StrictIterable[str]]) -> Union[int, List[int]]: # type: ignore[override]
+	def to_ampel_id(cls, ztf_id: str | StrictIterable[str]) -> int | list[int]: # type: ignore[override]
 		"""
 		:returns: ampel id (positive integer).
 
@@ -114,11 +115,11 @@ class ZTFIdMapper(AbsIdMapper):
 
 	@overload
 	@classmethod
-	def to_ext_id(cls, ampel_id: StrictIterable[StockId]) -> List[str]:
+	def to_ext_id(cls, ampel_id: StrictIterable[StockId]) -> list[str]:
 		...
 
 	@classmethod
-	def to_ext_id(cls, ampel_id: Union[StockId, StrictIterable[StockId]]) -> Union[str, List[str]]: # type: ignore[override]
+	def to_ext_id(cls, ampel_id: StockId | StrictIterable[StockId]) -> str | list[str]: # type: ignore[override]
 		"""
 		%timeit to_ext_id(274878346346)
 		1.54 µs ± 77.9 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)

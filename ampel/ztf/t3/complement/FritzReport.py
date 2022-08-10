@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/ztf/t3/complement/FritzReport.py
-# License           : BSD-3-Clause
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : 03.11.2020
-# Date              : 03.11.2020
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                ampel/ztf/t3/complement/FritzReport.py
+# License:             BSD-3-Clause
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                03.11.2020
+# Date:                03.11.2020
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 import asyncio, nest_asyncio
-from pydantic.tools import parse_obj_as
-from typing import Any, Dict, Iterable, Optional, Tuple
+from typing import Any, Tuple
+from collections.abc import Iterable
 
 from ampel.view.T3Store import T3Store
 from ampel.struct.AmpelBuffer import AmpelBuffer
 from ampel.secret.NamedSecret import NamedSecret
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
-from ampel.ztf.t3.skyportal.SkyPortalClient import BaseHttpUrl, SkyPortalAPIError, SkyPortalClient
+from ampel.ztf.t3.skyportal.SkyPortalClient import SkyPortalAPIError, SkyPortalClient
 
 
 class FritzReport(SkyPortalClient, AbsBufferComplement):
@@ -24,13 +24,13 @@ class FritzReport(SkyPortalClient, AbsBufferComplement):
     """
 
     #: Base URL of SkyPortal server
-    base_url: BaseHttpUrl = parse_obj_as(BaseHttpUrl, "https://fritz.science")
+    base_url: str = "https://fritz.science"
     #: API token
     token: NamedSecret[str] = NamedSecret(label="fritz/jno/ampelbot")
 
     async def get_catalog_item(
-        self, names: Tuple[str, ...]
-    ) -> Optional[Dict[str, Any]]:
+        self, names: tuple[str, ...]
+    ) -> None | dict[str, Any]:
         """Get catalog entry associated with the stock name"""
         for name in names:
             if name.startswith("ZTF"):

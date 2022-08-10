@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/alert/PhotoAlertPlotter.py
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 23.01.2018
-# Last Modified Date: 13.06.2018
-# Last Modified By  : mg <matteo.giomi@desy.de>
+# File:                Ampel-ZTF/ampel/ztf/alert/PhotoAlertPlotter.py
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                23.01.2018
+# Last Modified Date:  13.06.2018
+# Last Modified By:    mg <matteo.giomi@desy.de>
 
 import gzip, io, os
 import numpy as np

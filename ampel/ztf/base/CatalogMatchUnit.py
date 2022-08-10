@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/base/CatalogMatchUnit.py
-# License           : BSD-3-Clause
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : 10.03.2021
-# Last Modified Date: 10.03.2021
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                Ampel-ZTF/ampel/ztf/base/CatalogMatchUnit.py
+# License:             BSD-3-Clause
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                10.03.2021
+# Last Modified Date:  10.03.2021
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 from functools import cached_property
 from typing import (
@@ -69,13 +69,13 @@ class BaseConeSearchRequest(TypedDict):
 
 
 class ConeSearchRequest(BaseConeSearchRequest, total=False):
-    keys_to_append: Optional[Sequence[str]]
-    pre_filter: Optional[Dict[str, Any]]
-    post_filter: Optional[Dict[str, Any]]
+    keys_to_append: None | Sequence[str]
+    pre_filter: None | dict[str, Any]
+    post_filter: None | dict[str, Any]
 
 
 class CatalogItem(TypedDict):
-    body: Dict[str, Any]
+    body: dict[str, Any]
     dist_arcsec: float
 
 
@@ -98,7 +98,7 @@ class CatalogMatchUnitBase:
         ra: float,
         dec: float,
         catalogs: Sequence[ConeSearchRequest],
-    ) -> List[bool]:
+    ) -> list[bool]:
         ...
 
     @overload
@@ -108,7 +108,7 @@ class CatalogMatchUnitBase:
         ra: float,
         dec: float,
         catalogs: Sequence[ConeSearchRequest],
-    ) -> List[Optional[CatalogItem]]:
+    ) -> list[None | CatalogItem]:
         ...
 
     @overload
@@ -118,7 +118,7 @@ class CatalogMatchUnitBase:
         ra: float,
         dec: float,
         catalogs: Sequence[ConeSearchRequest],
-    ) -> List[Optional[List[CatalogItem]]]:
+    ) -> list[None | list[CatalogItem]]:
         ...
 
     @backoff.on_exception(
@@ -139,9 +139,7 @@ class CatalogMatchUnitBase:
         ra: float,
         dec: float,
         catalogs: Sequence[ConeSearchRequest],
-    ) -> Union[
-        List[bool], List[Optional[CatalogItem]], List[Optional[List[CatalogItem]]]
-    ]:
+    ) -> list[bool] | list[None | CatalogItem] | list[None | list[CatalogItem]]:
         response = self.session.post(
             f"cone_search/{method}",
             json={
@@ -155,17 +153,17 @@ class CatalogMatchUnitBase:
 
     def cone_search_any(
         self, ra: float, dec: float, catalogs: Sequence[ConeSearchRequest]
-    ) -> List[bool]:
+    ) -> list[bool]:
         return self._cone_search("any", ra, dec, catalogs)
 
     def cone_search_nearest(
         self, ra: float, dec: float, catalogs: Sequence[ConeSearchRequest]
-    ) -> List[Optional[CatalogItem]]:
+    ) -> list[None | CatalogItem]:
         return self._cone_search("nearest", ra, dec, catalogs)
 
     def cone_search_all(
         self, ra: float, dec: float, catalogs: Sequence[ConeSearchRequest]
-    ) -> List[Optional[List[CatalogItem]]]:
+    ) -> list[None | list[CatalogItem]]:
         return self._cone_search("all", ra, dec, catalogs)
 
 

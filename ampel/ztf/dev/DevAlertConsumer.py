@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/dev/DevAlertConsumer.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 07.06.2018
-# Last Modified Date: 30.07.2020
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-ZTF/ampel/ztf/dev/DevAlertConsumer.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                07.06.2018
+# Last Modified Date:  30.07.2020
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 
 import logging, time, sys, fastavro, tarfile # type: ignore[import]
-from typing import Any, Optional
+from typing import Any
 from ampel.alert.AmpelAlert import AmpelAlert
 
 
@@ -107,7 +107,7 @@ class DevAlertConsumer:
 		return iter_count - iter_offset
 
 
-	def _unpack(self, tar_info) -> Optional[AmpelAlert]:
+	def _unpack(self, tar_info) -> None | AmpelAlert:
 
 		# Reach end of archive
 		if tar_info is None:

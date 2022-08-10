@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/alert/ZTFGeneralActiveAlertRegister.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 26.05.2020
-# Last Modified Date: 24.11.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-ZTF/ampel/ztf/alert/ZTFGeneralActiveAlertRegister.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                26.05.2020
+# Last Modified Date:  27.06.2022
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from struct import pack
-from typing import Optional, ClassVar, Tuple, Union, BinaryIO, List, Sequence, Set, Dict, Any
+from typing import ClassVar, BinaryIO, Any
+from collections.abc import Sequence
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.ztf.alert.ZTFGeneralAlertRegister import ZTFGeneralAlertRegister
 from ampel.log.AmpelLogger import AmpelLogger
@@ -23,16 +24,21 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
 	Logs: alert_id, filter_res, stock
 	"""
 
-	__slots__: ClassVar[Tuple[str, ...]] = '_write', 'alert_max', 'alert_min', 'stock_max', 'stock_min' # type: ignore
-	_slot_defaults = {'alert_max': 0, 'alert_min': 2**64, 'stock_max': 0, 'stock_min': 2**64, 'ztf_years': set()}
+	__slots__: ClassVar[tuple[str, ...]] = '_write', 'alert_max', \
+		'alert_min', 'stock_max', 'stock_min' # type: ignore
+	_slot_defaults = {
+		'alert_max': 0, 'alert_min': 2**64,
+		'stock_max': 0, 'stock_min': 2**64,
+		'ztf_years': set()
+	}
 
-	new_header_size: Union[int, str] = "+4096"
+	new_header_size: int | str = "+4096"
 	header_hints: ClassVar[Sequence[str]] = ('alert', 'stock') # type: ignore
 	alert_min: int
 	alert_max: int
 	stock_min: int
 	stock_max: int
-	ztf_years: Set[int]
+	ztf_years: set[int]
 
 
 	def __init__(self, **kwargs) -> None: # type: ignore[override]
@@ -43,7 +49,7 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
 			self.ztf_years = set(hdr['ztf_years'])
 
 
-	def file(self, alert: AmpelAlertProtocol, filter_res: Optional[int] = None) -> None:
+	def file(self, alert: AmpelAlertProtocol, filter_res: int = 0) -> None:
 
 		alid = alert.id
 		if alid > self.alert_max:
@@ -60,7 +66,7 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
 		if (sid & 15) not in self.ztf_years: # type: ignore[operator]
 			self.ztf_years.add(sid & 15) # type: ignore[operator]
 
-		self._write(pack('<QBQ', alert.id, filter_res or 0, alert.stock)[:-3])
+		self._write(pack('<QBQ', alert.id, -filter_res, alert.stock)[:-3])
 
 
 	def close(self, **kwargs) -> None: # type: ignore[override]
@@ -72,18 +78,17 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
 		super().close(**kwargs)
 
 
-
 	@classmethod
 	def find_stock(cls, # type: ignore[override]
-		f: Union[BinaryIO, str], stock_id: Union[int, List[int]], **kwargs
-	) -> Optional[List[Tuple[int, ...]]]:
+		f: BinaryIO | str, stock_id: int | list[int], **kwargs
+	) -> None | list[tuple[int, ...]]:
 		return super().find_stock(f, stock_id, header_hint_callback=cls._match_ztf_years, **kwargs)
 
 
 	@staticmethod
 	def _match_ztf_years(
-		header: Dict[str, Any], stock_id: Union[int, List[int]], logger: Optional[AmpelLogger] = None
-	) -> Optional[Union[int, List[int]]]:
+		header: dict[str, Any], stock_id: int | list[int], logger: None | AmpelLogger = None
+	) -> None | int | list[int]:
 
 		if 'ztf_years' in header:
 			zy = header['ztf_years']

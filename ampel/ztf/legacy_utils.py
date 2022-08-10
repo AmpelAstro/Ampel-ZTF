@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/legacy_utils.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 07.06.2018
-# Last Modified Date: 19.03.2020
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-ZTF/ampel/ztf/legacy_utils.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                07.06.2018
+# Last Modified Date:  19.03.2020
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import overload, List, Union, Tuple
+from typing import overload, Tuple
 
 
 number_map = {
@@ -32,10 +32,10 @@ def to_ampel_id(ztf_id: str) -> int:
 	...
 
 @overload
-def to_ampel_id(ztf_id: Union[List[str], Tuple[str, ...]]) -> List[int]:
+def to_ampel_id(ztf_id: list[str] | tuple[str, ...]) -> list[int]:
 	...
 
-def to_ampel_id(ztf_id: Union[str, List[str], Tuple[str, ...]]) -> Union[int, List[int]]:
+def to_ampel_id(ztf_id: str | list[str] | tuple[str, ...]) -> int | list[int]:
 	""" :returns: Ampel ID (int).  """
 
 	# Handle sequences
@@ -62,10 +62,10 @@ def to_ztf_id(ampel_id: int) -> str:
 	...
 
 @overload
-def to_ztf_id(ampel_id: Union[List[int], Tuple[int, ...]]) -> List[str]:
+def to_ztf_id(ampel_id: list[int] | tuple[int, ...]) -> list[str]:
 	...
 
-def to_ztf_id(ampel_id: Union[int, List[int], Tuple[int, ...]]) -> Union[str, List[str]]:
+def to_ztf_id(ampel_id: int | list[int] | tuple[int, ...]) -> str | list[str]:
 	"""
 	:param ampel_id: int or list of int
 	:returns: ZTF ID (string).

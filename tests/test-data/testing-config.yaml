@@ -871,6 +871,21 @@ unit:
     distrib: ampel-ztf
     file: /Users/jakob/Documents/ZTF/Ampel-v0.8/Ampel-ZTF/conf/ampel-ztf/ampel.yml
     version: 0.8.0a0
+  ZiHealpixAlertSupplier:
+    fqn: ampel.ztf.alert.ZiHealpixAlertSupplier
+    base:
+    - ZiHealpixAlertSupplier
+    - BaseAlertSupplier
+    - AbsAlertSupplier
+    distrib: ampel-ztf
+    file: /Users/jakob/Documents/ZTF/Ampel-v0.8/Ampel-ZTF/conf/ampel-ztf/ampel.yml
+    version: 0.8.3a1
+    dependencies:
+    - charset_normalizer
+    - idna
+    - requests
+    - requests_toolbelt
+    - urllib3
   UWAlertLoader:
     fqn: ampel.ztf.t0.load.UWAlertLoader
     base:
@@ -880,6 +895,21 @@ unit:
     version: 0.8.0a0
     env:
       confluent_kafka: 1.7.0
+  ZTFHealpixAlertLoader:
+    fqn: ampel.ztf.alert.load.ZTFHealpixAlertLoader
+    base:
+    - ZTFHealpixAlertLoader
+    - AbsAlertLoader
+    - AmpelBaseModel
+    distrib: ampel-ztf
+    file: /Users/jakob/Documents/ZTF/Ampel-v0.8/Ampel-ZTF/conf/ampel-ztf/ampel.yml
+    version: 0.8.3a1
+    dependencies:
+    - charset_normalizer
+    - idna
+    - requests
+    - requests_toolbelt
+    - urllib3
   ZTFArchiveAlertLoader:
     fqn: ampel.ztf.t0.load.ZTFArchiveAlertLoader
     base:

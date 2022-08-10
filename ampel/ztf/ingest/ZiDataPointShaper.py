@@ -1,21 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/ingest/ZiDataPointShaper.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 14.12.2017
-# Last Modified Date: 10.05.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-ZTF/ampel/ztf/ingest/ZiDataPointShaper.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                14.12.2017
+# Last Modified Date:  10.05.2021
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Dict, List, Any, Iterable, Optional
-from ampel.base.AmpelBaseModel import AmpelBaseModel
+from typing import Any
+from collections.abc import Iterable
+from ampel.base.AmpelUnit import AmpelUnit
 from ampel.types import StockId
 from ampel.abstract.AbsT0Unit import AbsT0Unit
 from ampel.content.DataPoint import DataPoint
 from ampel.ztf.ingest.tags import tags
 
 
-class ZiDataPointShaperBase(AmpelBaseModel):
+class ZiDataPointShaperBase(AmpelUnit):
 	"""
 	This class 'shapes' datapoints in a format suitable
 	to be saved into the ampel database
@@ -25,7 +26,7 @@ class ZiDataPointShaperBase(AmpelBaseModel):
 	JD2017: float = 2457754.5
 
 	# Mandatory implementation
-	def process(self, arg: Iterable[Dict[str, Any]], stock: StockId) -> List[DataPoint]: # type: ignore[override]
+	def process(self, arg: Iterable[dict[str, Any]], stock: StockId) -> list[DataPoint]: # type: ignore[override]
 		"""
 		:param arg: sequence of unshaped pps
 		IMPORTANT:
@@ -34,7 +35,7 @@ class ZiDataPointShaperBase(AmpelBaseModel):
 		2) 'stock' is not set here on purpose since it will conflict with the $addToSet operation
 		"""
 
-		ret_list: List[DataPoint] = []
+		ret_list: list[DataPoint] = []
 		setitem = dict.__setitem__
 		popitem = dict.pop
 
@@ -53,7 +54,7 @@ class ZiDataPointShaperBase(AmpelBaseModel):
 					)
 
 				ret_list.append(
-					{
+					{    # type: ignore[typeddict-item]
 						'id': photo_dict['candid'],
 						'stock': stock,
 						'tag': tags[photo_dict['programid']][photo_dict['fid']],
@@ -67,7 +68,7 @@ class ZiDataPointShaperBase(AmpelBaseModel):
 			else:
 
 				ret_list.append(
-					{
+					{    # type: ignore[typeddict-item]
 						'id': self.ul_identity(photo_dict),
 						'tag': tags[photo_dict['programid']][photo_dict['fid']],
 						'stock': stock,
@@ -90,7 +91,7 @@ class ZiDataPointShaperBase(AmpelBaseModel):
 		return ret_list
 
 
-	def ul_identity(self, uld: Dict[str, Any]) -> int:
+	def ul_identity(self, uld: dict[str, Any]) -> int:
 		"""
 		Calculate a unique ID for an upper limit from:
 		  - jd, floored to the millisecond
@@ -118,6 +119,6 @@ class ZiDataPointShaperBase(AmpelBaseModel):
 
 class ZiDataPointShaper(ZiDataPointShaperBase, AbsT0Unit):
 	
-	def process(self, arg: Any, stock: Optional[StockId] = None) -> List[DataPoint]:
+	def process(self, arg: Any, stock: None | StockId = None) -> list[DataPoint]:
 		assert stock is not None
 		return super().process(arg, stock)

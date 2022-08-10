@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/t2/T2LightCurveFeatures.py
-# License           : BSD-3-Clause
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : 15.04.2021
-# Last Modified Date: 15.04.2021
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                Ampel-ZTF/ampel/ztf/t2/T2LightCurveFeatures.py
+# License:             BSD-3-Clause
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                15.04.2021
+# Last Modified Date:  15.04.2021
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-from typing import Any, Optional
+from typing import Any
 import numpy as np
 import light_curve
 
@@ -24,13 +24,13 @@ class T2LightCurveFeatures(AbsLightCurveT2Unit):
 
     #: Features to extract from the light curve.
     #: See: https://docs.rs/light-curve-feature/0.2.2/light_curve_feature/features/index.html
-    features: dict[str, Optional[dict[str, Any]]] = {
+    features: dict[str, None | dict[str, Any]] = {
         "InterPercentileRange": {"quantile": 0.25},
         "LinearFit": None,
         "StetsonK": None,
     }
     #: Bandpasses to use
-    bands: dict[int, str] = {1: "g", 2: "r", 3: "i"}
+    bands: dict[str, int] = {"g": 1, "r": 2, "i": 3}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -40,7 +40,7 @@ class T2LightCurveFeatures(AbsLightCurveT2Unit):
 
     def process(self, lightcurve: LightCurve) -> UBson:
         result = {}
-        for fid, band in self.bands.items():
+        for band, fid in self.bands.items():
             if (
                 in_band := lightcurve.get_ntuples(
                     ["jd", "magpsf", "sigmapsf"],

@@ -1,20 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-ZTF/ampel/ztf/t0/ZTFAlertStreamController.py
-# License           : BSD-3-Clause
-# Author            : Jakob van Santen <jakob.van.santen@desy.de>
-# Date              : 07.08.2020
-# Last Modified Date: 07.08.2020
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                Ampel-ZTF/ampel/ztf/t0/ZTFAlertStreamController.py
+# License:             BSD-3-Clause
+# Author:              Jakob van Santen <jakob.van.santen@desy.de>
+# Date:                07.08.2020
+# Last Modified Date:  07.08.2020
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import asyncio
-import copy
-import logging
+import asyncio, copy, logging
 from collections import Counter
-from typing import Any, Dict, List, Optional, Set, Sequence
-
-import backoff
-import requests
+from typing import Any
+from collections.abc import Sequence
 
 from ampel.abstract.AbsProcessController import AbsProcessController
 from ampel.secret.AmpelVault import AmpelVault
@@ -36,12 +32,12 @@ class ZTFAlertStreamController(AbsProcessController):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self._scale_event: Optional[asyncio.Event] = None
+        self._scale_event: None | asyncio.Event = None
         self.update(self.config, self.vault, self.processes)
 
     def update(self,
         config: AmpelConfig,
-        secrets: Optional[AmpelVault],
+        secrets: None | AmpelVault,
         processes: Sequence[ProcessModel],
     ) -> None:
         self.config = config
@@ -50,7 +46,7 @@ class ZTFAlertStreamController(AbsProcessController):
         self._process = self.merge_processes(list(self.processes))
 
     @staticmethod
-    def merge_processes(processes: List[ProcessModel]) -> ProcessModel:
+    def merge_processes(processes: list[ProcessModel]) -> ProcessModel:
         assert len(processes) > 0
         process = copy.deepcopy(processes[0])
 
@@ -80,7 +76,7 @@ class ZTFAlertStreamController(AbsProcessController):
 
         return process
 
-    def stop(self, name: Optional[str] = None) -> None:
+    def stop(self, name: None | str = None) -> None:
         """Stop scheduling new processes."""
         assert name is None
         self._process.active = False
@@ -88,7 +84,7 @@ class ZTFAlertStreamController(AbsProcessController):
         if self._scale_event:
             self._scale_event.set()
 
-    def scale(self, name: Optional[str] = None, multiplier: int = 1) -> None:
+    def scale(self, name: None | str = None, multiplier: int = 1) -> None:
         if multiplier < 1:
             raise ValueError("multiplier must be nonnegative")
         assert self._scale_event
@@ -120,7 +116,7 @@ class ZTFAlertStreamController(AbsProcessController):
         assert self._process.active
         pending = {launch() for _ in range(self.multiplier)}
         pending.add(asyncio.create_task(self._scale_event.wait(), name="scale"))
-        done: Set[asyncio.Task] = set()
+        done: set[asyncio.Task] = set()
         try:
             while self._process.active and len(pending) > 1:
                 try:
@@ -165,9 +161,9 @@ class ZTFAlertStreamController(AbsProcessController):
     @staticmethod
     @concurrent.process(timeout=60)
     def run_mp_process(
-        config: Dict[str, Any],
-        secrets: Optional[AmpelVault],
-        p: Dict[str, Any],
+        config: dict[str, Any],
+        secrets: None | AmpelVault,
+        p: dict[str, Any],
     ) -> bool:
 
         try:
@@ -190,6 +186,6 @@ class ZTFAlertStreamController(AbsProcessController):
             process_name = p["name"],
         )
 
-        n_alerts = processor.run()
+        processor.run()
 
         return True
