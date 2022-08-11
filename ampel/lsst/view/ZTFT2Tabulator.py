@@ -8,6 +8,7 @@
 # Last Modified By  : Marcus Fenner <mf@physik.hu-berlin.de>
 
 from typing import Any, List, Sequence, Tuple
+from ampel.types import StockId
 
 import numpy as np
 from ampel.content.DataPoint import DataPoint
@@ -69,13 +70,13 @@ class ZTFT2Tabulator(AbsT2Tabulator):
     ) -> Sequence[Any]:
         return self.get_values(dps, ["jd"])[0]
 
-    def get_stock_id(self, dps: List[DataPoint]) -> set[int]:
+    def get_stock_id(self, dps: List[DataPoint]) -> set[StockId]:
         return set(
             sum(
                 [
-                    el["stock"]
-                    if isinstance(el["stock"], list)
-                    else [el["stock"]]
+                    stockid
+                    if isinstance(stockid := el["stock"], Sequence) and not isinstance(stockid, (str,bytes))
+                    else [stockid]
                     for el in dps
                     if "ZTF" in el["tag"]
                 ],
