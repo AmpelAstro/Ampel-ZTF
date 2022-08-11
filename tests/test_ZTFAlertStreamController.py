@@ -231,4 +231,4 @@ def test_archive_source_for_objectid():
         "jd_end": 2459366
     })
     alerts = list(iter(source))
-    assert len(alerts) == 13
+    assert len(alerts) == 10
