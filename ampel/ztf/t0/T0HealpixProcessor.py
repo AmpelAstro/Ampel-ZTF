@@ -7,26 +7,15 @@
 # Last Modified Date: 27.04.2021
 # Last Modified By  : jnordin <jnordin@physik.hu-berlin.de>
 
-from datetime import datetime
-from signal import SIGINT, SIGTERM, default_int_handler, signal
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 import numpy as np
 import healpy as hp
+from signal import SIGINT, SIGTERM, signal
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-
-from ampel.abstract.AbsAlertSupplier import AbsAlertSupplier
-from ampel.abstract.AbsEventUnit import AbsEventUnit
 from ampel.alert.AlertConsumer import AlertConsumer
 from ampel.alert.AlertConsumerError import AlertConsumerError
-from ampel.alert.AlertConsumerMetrics import (
-    stat_accepted,
-    stat_alerts,
-    stat_time,
-)
-from ampel.alert.FilterBlocksHandler import FilterBlocksHandler
-from ampel.base.AuxUnitRegister import AuxUnitRegister
+from ampel.alert.AlertConsumerMetrics import stat_accepted, stat_alerts, stat_time
 from ampel.core.EventHandler import EventHandler
-from ampel.dev.DevAmpelContext import DevAmpelContext
 from ampel.ingest.ChainedIngestionHandler import ChainedIngestionHandler
 from ampel.log import VERBOSE, LogFlag
 from ampel.log.AmpelLogger import AmpelLogger
@@ -34,9 +23,6 @@ from ampel.log.AmpelLoggingError import AmpelLoggingError
 from ampel.log.LightLogRecord import LightLogRecord
 from ampel.log.utils import report_exception
 from ampel.model.ingest.CompilerOptions import CompilerOptions
-from ampel.model.ingest.DualIngestDirective import DualIngestDirective
-from ampel.model.ingest.IngestDirective import IngestDirective
-from ampel.model.UnitModel import UnitModel
 from ampel.mongo.update.DBUpdatesBuffer import DBUpdatesBuffer
 from pymongo.errors import PyMongoError
 
@@ -117,12 +103,10 @@ class T0HealpixProcessor(AlertConsumer):
         # Setup ingesters
         ing_hdlr = ChainedIngestionHandler(
             self.context, self.shaper, self.directives, updates_buffer,
-			run_id, tier = 0, logger = logger, database = self.database,
-			trace_id = {'alertconsumer': self._trace_id},
-			compiler_opts = self.compiler_opts or CompilerOptions()
-		)
-
-
+            run_id, tier = 0, logger = logger, database = self.database,
+            trace_id = {'alertconsumer': self._trace_id},
+            compiler_opts = self.compiler_opts or CompilerOptions()
+        )
 
         iter_max = self.iter_max
         if self.iter_max != self.__class__.iter_max:
@@ -183,13 +167,7 @@ class T0HealpixProcessor(AlertConsumer):
                                 "%s: abording run() procedure"
                                 % e.__class__.__name__
                             )
-                            self._report_ap_error(
-                                e,
-                                event_hdlr,
-                                logger,
-                                run_id,
-                                extra={"a": alert.id},
-                            )
+                            self._report_ap_error(e, event_hdlr, logger, extra={"a": alert.id})
                             raise e
 
                         # Possibly tolerable errors (could be an error from a contributed filter)
@@ -202,11 +180,7 @@ class T0HealpixProcessor(AlertConsumer):
                                     extra={"a": alert.id},
                                 )
                             self._report_ap_error(
-                                e,
-                                event_hdlr,
-                                logger,
-                                run_id,
-                                extra={
+                                e, event_hdlr, logger, extra={
                                     "a": alert.id,
                                     "section": "filter",
                                     "c": fblock.channel,
@@ -256,7 +230,7 @@ class T0HealpixProcessor(AlertConsumer):
                                 filter_results,
                                 stock_id,
                                 alert.tag,
-                                {"alert": alert.id, "healpix": {**self.healpix_log, 'pvalue':alert_pvalue}},
+                                {"alert": alert.id, "healpix": {**self.healpix_log, 'pvalue': alert_pvalue}},
 #                                {"alert": alert.id, "healpix": {'pvalue':alert_pvalue}},
                             )
                     except (PyMongoError, AmpelLoggingError) as e:
@@ -264,24 +238,16 @@ class T0HealpixProcessor(AlertConsumer):
                             "%s: abording run() procedure"
                             % e.__class__.__name__
                         )
-                        self._report_ap_error(
-                            e,
-                            event_hdlr,
-                            logger,
-                            run_id,
-                            extra={"a": alert.id},
-                        )
+                        self._report_ap_error(e, event_hdlr, logger, extra={"a": alert.id})
                         raise e
 
                     except Exception as e:
 
                         self._report_ap_error(
-                            e,
-                            event_hdlr,
-                            logger,
-                            run_id,
-                            filter_results,
-                            extra={"a": alert.id, "section": "ingest"},
+                            e, event_hdlr, logger, extra={
+                                "a": alert.id, "section": "ingest",
+                                "c": [self.directives[el[0]].channel for el in filter_results]
+                            }
                         )
 
                         if self.raise_exc:

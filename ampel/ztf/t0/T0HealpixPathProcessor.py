@@ -7,29 +7,19 @@
 # Last Modified Date: 27.04.2022
 # Last Modified By  : jn <jno@physik.hu-berlin.de>
 
-from datetime import datetime
-from signal import SIGINT, SIGTERM, default_int_handler, signal
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
-from ampel.abstract.AbsAlertLoader import AbsAlertLoader
-from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
+import tempfile, collections, requests
 import numpy as np
 import healpy as hp
-import tempfile
-import requests
+from datetime import datetime
+from signal import SIGINT, SIGTERM, signal
+from typing import List, Tuple, Union
 
-from ampel.abstract.AbsAlertSupplier import AbsAlertSupplier
-from ampel.abstract.AbsEventUnit import AbsEventUnit
+from ampel.abstract.AbsAlertLoader import AbsAlertLoader
+from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
 from ampel.alert.AlertConsumer import AlertConsumer
 from ampel.alert.AlertConsumerError import AlertConsumerError
-from ampel.alert.AlertConsumerMetrics import (
-    stat_accepted,
-    stat_alerts,
-    stat_time,
-)
-from ampel.alert.FilterBlocksHandler import FilterBlocksHandler
-from ampel.base.AuxUnitRegister import AuxUnitRegister
+from ampel.alert.AlertConsumerMetrics import stat_accepted, stat_alerts, stat_time
 from ampel.core.EventHandler import EventHandler
-from ampel.dev.DevAmpelContext import DevAmpelContext
 from ampel.ingest.ChainedIngestionHandler import ChainedIngestionHandler
 from ampel.log import VERBOSE, LogFlag
 from ampel.log.AmpelLogger import AmpelLogger
@@ -37,8 +27,6 @@ from ampel.log.AmpelLoggingError import AmpelLoggingError
 from ampel.log.LightLogRecord import LightLogRecord
 from ampel.log.utils import report_exception
 from ampel.model.ingest.CompilerOptions import CompilerOptions
-from ampel.model.ingest.DualIngestDirective import DualIngestDirective
-from ampel.model.ingest.IngestDirective import IngestDirective
 from ampel.model.UnitModel import UnitModel
 from ampel.mongo.update.DBUpdatesBuffer import DBUpdatesBuffer
 from pymongo.errors import PyMongoError
@@ -66,11 +54,11 @@ class T0HealpixPathProcessor(AlertConsumer):
     querysize: int = 1000
 
 
-
     def __init__(self, **kwargs) -> None:
         if not kwargs.get("compiler_opts"):
             kwargs["compiler_opts"] = CompilerOptions()
         super().__init__(**kwargs)
+
 
     def proceed(self, event_hdlr: EventHandler) -> int:
         stats = {
@@ -101,6 +89,7 @@ class T0HealpixPathProcessor(AlertConsumer):
             catch_signals=False,  # we do it ourself
             max_size=self.updates_buffer_size,
         )
+
         any_filter = any([fb.filter_model for fb in self._fbh.filter_blocks])
         # if bypassing filters, track passing rates at top level
         if not any_filter:
@@ -109,21 +98,18 @@ class T0HealpixPathProcessor(AlertConsumer):
                 for channel in self._fbh.chan_names
             ]
 
-
-
-
         # Retrieve mapfile.
         temp = tempfile.NamedTemporaryFile(prefix="t0Healpix_", dir=self.scratch_dir, delete=False)
-        logger.info('Downloading map', extra={'url':self.map_url,'tmpfile':temp.name})
+        logger.info('Downloading map', extra={'url': self.map_url, 'tmpfile': temp.name})
         map_data = requests.get(self.map_url)
         with open(temp.name, 'wb') as fh:
             fh.write(map_data.content)
 
         # Process map
-        hpx, headers = hp.read_map( temp.name, h=True, nest=True)
-        trigger_time = [datetime.fromisoformat(header[1]) for header in headers if header[0]=='DATE-OBS'][0]
-#        nside = int( ah.npix_to_nside(len(hpx)) )
-        nside = int( hp.npix2nside(len(hpx)) )
+        hpx, headers = hp.read_map(temp.name, h=True, nest=True)
+        trigger_time = [datetime.fromisoformat(header[1]) for header in headers if header[0] == 'DATE-OBS'][0]
+        # nside = int( ah.npix_to_nside(len(hpx)) )
+        nside = int(hp.npix2nside(len(hpx)))
 
         # Find credible levels
         idx = np.flipud(np.argsort(hpx))
@@ -161,10 +147,10 @@ class T0HealpixPathProcessor(AlertConsumer):
         # Setup ingesters
         ing_hdlr = ChainedIngestionHandler(
             self.context, self.shaper, self.directives, updates_buffer,
-			run_id, tier = 0, logger = logger, database = self.database,
-			trace_id = {'alertconsumer': self._trace_id},
-			compiler_opts = self.compiler_opts or CompilerOptions()
-		)
+            run_id, tier = 0, logger = logger, database = self.database,
+            trace_id = {'alertconsumer': self._trace_id},
+            compiler_opts = self.compiler_opts or CompilerOptions()
+        )
 
 
         iter_max = self.iter_max
@@ -241,14 +227,8 @@ class T0HealpixPathProcessor(AlertConsumer):
                                 print(
                                     "%s: abording run() procedure"
                                     % e.__class__.__name__
-                                    )
-                                self._report_ap_error(
-                                    e,
-                                    event_hdlr,
-                                    logger,
-                                    run_id,
-                                    extra={"a": alert.id},
-                                    )
+                                )
+                                self._report_ap_error(e, event_hdlr, logger, extra={"a": alert.id})
                                 raise e
 
                             # Possibly tolerable errors (could be an error from a contributed filter)
@@ -261,15 +241,11 @@ class T0HealpixPathProcessor(AlertConsumer):
                                         extra={"a": alert.id},
                                     )
                                 self._report_ap_error(
-                                    e,
-                                    event_hdlr,
-                                    logger,
-                                    run_id,
-                                    extra={
+                                    e, event_hdlr, logger, extra={
                                         "a": alert.id,
                                         "section": "filter",
                                         "c": fblock.channel,
-                                    },
+                                    }
                                 )
 
                                 if self.raise_exc:
@@ -280,7 +256,7 @@ class T0HealpixPathProcessor(AlertConsumer):
                                     if err == self.error_max:
                                         logger.error(
                                             "Max number of error reached, breaking alert processing"
-                                            )
+                                        )
                                         self.set_cancel_run(
                                             AlertConsumerError.TOO_MANY_ERRORS
                                         )
@@ -328,24 +304,16 @@ class T0HealpixPathProcessor(AlertConsumer):
                                 "%s: abording run() procedure"
                                 % e.__class__.__name__
                             )
-                            self._report_ap_error(
-                                e,
-                                event_hdlr,
-                                logger,
-                                run_id,
-                                extra={"a": alert.id},
-                            )
+                            self._report_ap_error(e, event_hdlr, logger, extra={"a": alert.id})
                             raise e
 
                         except Exception as e:
 
                             self._report_ap_error(
-                                e,
-                                event_hdlr,
-                                logger,
-                                run_id,
-                                filter_results,
-                                extra={"a": alert.id, "section": "ingest"},
+                                e, event_hdlr, logger, extra={
+                                    "a": alert.id, "section": "ingest",
+                                    "c": [self.directives[el[0]].channel for el in filter_results]
+                                }
                             )
 
                             if self.raise_exc:
