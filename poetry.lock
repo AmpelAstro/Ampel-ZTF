@@ -31,18 +31,18 @@ frozenlist = ">=1.1.0"
 
 [[package]]
 name = "ampel-alerts"
-version = "0.8.3a8"
+version = "0.8.3a9"
 description = "Alert support for the Ampel system"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.11"
 
 [package.dependencies]
-ampel-core = ">=0.8.3-alpha.11,<0.9.0"
-ampel-interface = ">=0.8.3-alpha.12,<0.9.0"
+ampel-core = ">=0.8.3-alpha.21,<0.9.0"
+ampel-interface = ">=0.8.3-beta.1,<0.9.0"
 
 [package.extras]
-docs = ["tomlkit (>=0.11.0,<0.12.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "Sphinx (>=5.0.2,<5.1.0)"]
+docs = ["tomlkit (>=0.11.0,<0.12.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "Sphinx (>=5.1.1,<5.2.0)"]
 
 [[package]]
 name = "ampel-core"
@@ -928,14 +928,14 @@ light-curve = ["light-curve"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "6bac973a3646ba1b304ee57386d625f8505a2ce02fc334fcdfa1c7a016c86368"
+content-hash = "06a7fd8a322dcf64ca3d7616ca9bfd6ec0c9a210cba93f6e6f4b2baada589635"
 
 [metadata.files]
 aiohttp = []
 aiosignal = []
 ampel-alerts = [
-    {file = "ampel-alerts-0.8.3a8.tar.gz", hash = "sha256:1b893e9ec500a041a5a3dd89cf1dd45f2c796c8edfabde8b5ff70f2714c29eb6"},
-    {file = "ampel_alerts-0.8.3a8-py3-none-any.whl", hash = "sha256:265bbb80d842fc0407454cf15cb6760031cc141326a5585fa77cad53d73ed131"},
+    {file = "ampel-alerts-0.8.3a9.tar.gz", hash = "sha256:d8554eb6d723aab916752b5196d1ddc3d97473e2ec338b647b6cae0c35a5b567"},
+    {file = "ampel_alerts-0.8.3a9-py3-none-any.whl", hash = "sha256:81903218fd3282caa885e497ee176ac03a4dfbeff58e9a895ff2930374dd375f"},
 ]
 ampel-core = [
     {file = "ampel-core-0.8.3a21.tar.gz", hash = "sha256:01533437205e417cb6df8f97d7cb835fb79dccb31dcbb5daa61d467b80eb275c"},
