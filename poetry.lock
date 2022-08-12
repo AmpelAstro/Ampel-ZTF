@@ -46,7 +46,7 @@ docs = ["tomlkit (>=0.11.0,<0.12.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0
 
 [[package]]
 name = "ampel-core"
-version = "0.8.3a21"
+version = "0.8.3a22"
 description = "Alice in Modular Provenance-Enabled Land"
 category = "main"
 optional = false
@@ -62,10 +62,10 @@ pymongo = ">=4.0,<5.0"
 schedule = ">=1.0.0,<2.0.0"
 sjcl = ">=0.2.1,<0.3.0"
 slackclient = ">=2.7,<3.0"
-yq = ">=2.12.0,<3.0.0"
+yq = ">=3.0.0,<4.0.0"
 
 [package.extras]
-docs = ["tomlkit (>=0.7.0,<0.8.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "sphinx-press-theme (>=0.5.1,<0.9.0)", "Sphinx (>=3.5.1,<5.0.0)"]
+docs = ["tomlkit (>=0.7.0,<0.8.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "sphinx-press-theme (>=0.5.1,<0.9.0)", "Sphinx (>=5.1.1,<5.2.0)"]
 server = ["uvicorn[standard] (>=0.13.3,<0.16.0)", "fastapi (>=0.63,<0.69)"]
 
 [[package]]
@@ -904,7 +904,7 @@ multidict = ">=4.0"
 
 [[package]]
 name = "yq"
-version = "2.14.0"
+version = "3.1.0"
 description = "Command-line YAML/XML processor - jq wrapper for YAML/XML documents"
 category = "main"
 optional = false
@@ -928,7 +928,7 @@ light-curve = ["light-curve"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "ae661449e596dd2000e15e5f3f68c607f0162d9a92740f246eac81c77b094251"
+content-hash = "fd3fd852ac7c31d96c28dc7cfd144660673b653c2bfd1dffe9eed5946ef2f5f1"
 
 [metadata.files]
 aiohttp = [
@@ -1014,8 +1014,8 @@ ampel-alerts = [
     {file = "ampel_alerts-0.8.3b1-py3-none-any.whl", hash = "sha256:73138c7c4b8772b7f43d4076cdc15c5d39a3df170732bcc36f3c9ffdc2f0816f"},
 ]
 ampel-core = [
-    {file = "ampel-core-0.8.3a21.tar.gz", hash = "sha256:01533437205e417cb6df8f97d7cb835fb79dccb31dcbb5daa61d467b80eb275c"},
-    {file = "ampel_core-0.8.3a21-py3-none-any.whl", hash = "sha256:5569d5e4ad496e2d96a00577ef16575146a0e78cbf2156bb33a82493ef0f1c0a"},
+    {file = "ampel-core-0.8.3a22.tar.gz", hash = "sha256:ee606d605ca1181b50326a7c444ac4d32def734cb4c278bb40c43b25625462cd"},
+    {file = "ampel_core-0.8.3a22-py3-none-any.whl", hash = "sha256:e9e33d21c0eff46acdd0f1b54686fe72b6feeee90733796a05acd53bd223ab7f"},
 ]
 ampel-interface = [
     {file = "ampel-interface-0.8.3b1.tar.gz", hash = "sha256:c757e1cc6579f9d9bd1dd92248959a2aed8c7102017b940ec5d65cb2dff98e05"},
@@ -2153,6 +2153,6 @@ yarl = [
     {file = "yarl-1.8.1.tar.gz", hash = "sha256:af887845b8c2e060eb5605ff72b6f2dd2aab7a761379373fd89d314f4752abbf"},
 ]
 yq = [
-    {file = "yq-2.14.0-py3-none-any.whl", hash = "sha256:b6321b29cb39c4e92a4a6f16d47d99a024650211e45e09a02d1906ec45fbaede"},
-    {file = "yq-2.14.0.tar.gz", hash = "sha256:f4bf2b299d1e5c7ebd74cfb25d1f5d9b6401063bac07a2d09a156144c1d644e1"},
+    {file = "yq-3.1.0-py3-none-any.whl", hash = "sha256:a1acffd3257a0b8e460f1a7ec1ae5af4646944e810f7d7099084b3104aa05769"},
+    {file = "yq-3.1.0.tar.gz", hash = "sha256:30a84aa22486c749ba269256bd586c0bcd370b7e2a71e76c3924ead4867e74f2"},
 ]
