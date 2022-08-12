@@ -60,6 +60,8 @@ class CatalogModel(AmpelBaseModel):
     keys_to_append: None | Sequence[str]
     pre_filter: None | dict[str, Any]
     post_filter: None | dict[str, Any]
+    #: return all matches, not only the closest
+    all: bool = False
 
 
 class T2CatalogMatch(CatalogMatchUnit, AbsPointT2Unit):
@@ -68,11 +70,17 @@ class T2CatalogMatch(CatalogMatchUnit, AbsPointT2Unit):
     """
 
     # run only on first datapoint by default
-    eligible: ClassVar[DPSelection] = DPSelection(filter='PPSFilter', sort='jd', select='first')
+    eligible: ClassVar[DPSelection] = DPSelection(
+        filter="PPSFilter", sort="jd", select="first"
+    )
 
     # Each value specifies a catalog in extcats or catsHTM format and the query parameters
     catalogs: dict[str, CatalogModel]
 
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.all_catalogs = {k: v for k, v in self.catalogs.items() if v.all}
+        self.closest_catalogs = {k: v for k, v in self.catalogs.items() if not v.all}
 
     def process(self, datapoint: DataPoint) -> UBson | UnitResult:
         """
@@ -85,7 +93,7 @@ class T2CatalogMatch(CatalogMatchUnit, AbsPointT2Unit):
                 'subclass': '',
                 'dist2transient': 1.841666956181802e-09}
             },
-            'NED': False
+            'NED': None
         }
 
         Note that, when a match is found, the distance of the lightcurve object
@@ -98,7 +106,7 @@ class T2CatalogMatch(CatalogMatchUnit, AbsPointT2Unit):
         except KeyError:
             return UnitResult(code=DocumentCode.T2_MISSING_INFO)
 
-        matches = self.cone_search_nearest(
+        closest_matches = self.cone_search_nearest(
             ra=transient_ra,
             dec=transient_dec,
             catalogs=[
@@ -110,14 +118,43 @@ class T2CatalogMatch(CatalogMatchUnit, AbsPointT2Unit):
                     "pre_filter": cat_opts.pre_filter,
                     "post_filter": cat_opts.post_filter,
                 }
-                for catalog, cat_opts in self.catalogs.items()
+                for catalog, cat_opts in self.closest_catalogs.items()
+            ],
+        )
+
+        all_matches = self.cone_search_all(
+            ra=transient_ra,
+            dec=transient_dec,
+            catalogs=[
+                {
+                    "name": catalog,
+                    "use": cat_opts.use,
+                    "rs_arcsec": cat_opts.rs_arcsec,
+                    "keys_to_append": cat_opts.keys_to_append,
+                    "pre_filter": cat_opts.pre_filter,
+                    "post_filter": cat_opts.post_filter,
+                }
+                for catalog, cat_opts in self.all_catalogs.items()
             ],
         )
 
         # return the info as dictionary
-        return {
-            catalog: {
-                "dist2transient": match["dist_arcsec"], **match["body"]
-            } if match is not None else None
-            for catalog, match in zip(self.catalogs, matches)
+        body: dict[str, Any] = {
+            catalog: {"dist2transient": match["dist_arcsec"], **match["body"]}
+            if match is not None
+            else None
+            for catalog, match in zip(self.closest_catalogs, closest_matches)
         }
+        body.update(
+            {
+                catalog: [
+                    {"dist2transient": item["dist_arcsec"], **item["body"]}
+                    for item in match
+                ]
+                if match
+                else None
+                for catalog, match in zip(self.all_catalogs, all_matches)
+            }
+        )
+
+        return body

@@ -54,7 +54,6 @@ def test_alert_only(logger, first_pass_config, unit_loader: UnitLoader):
     assert directive.ingest.combine is None
 
     with unit_loader.validate_unit_models():
-        process["processor"]["config"]["process_name"] = "foo"
         ProcessModel(**(process | {"version": 0}))
 
 

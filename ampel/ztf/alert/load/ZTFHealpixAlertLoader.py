@@ -20,9 +20,8 @@ import requests
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.log.AmpelLogger import AmpelLogger
+from ampel.ztf.base.ArchiveUnit import BearerAuth, BaseUrlSession
 from ampel.secret.NamedSecret import NamedSecret
-from ampel.ztf.ingest.ZiArchiveMuxer import BearerAuth
-from requests_toolbelt.sessions import BaseUrlSession
 
 from astropy.time import Time
 
@@ -32,6 +31,7 @@ class HealpixSource(AmpelBaseModel):
     nside: int = 128
     pixels: list[int] = []
     time: datetime
+    with_history: bool = False
 
 class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     """
@@ -45,8 +45,6 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     query_start: int = 0  # first ipix index to query
     with_history: bool = False
 
-    archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
-
     archive: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3/"
 
     #: A stream identifier, created via POST /api/ztf/archive/streams/
@@ -55,6 +53,24 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     source: None | HealpixSource = None
     # If not set at init, needs to be set by alert proceessor
 
+    archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
+
+    # NB: init lazily, as Secret properties are not resolved until after __init__()
+    @cached_property
+    def session(self) -> BaseUrlSession:
+        """Pre-authorized requests.Session"""
+        session = BaseUrlSession(
+            base_url=(
+                url
+                if (
+                    url := self.archive
+                ).endswith("/")
+                else url + "/"
+            )
+        )
+        session.auth = BearerAuth(self.archive_token.get())
+        return session
+    
     class Config:
         """
         This is needed to not get pickle errors with python3.10
@@ -75,20 +91,16 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
         nside: int,
         pixels: list[int],
         time: datetime,
+        with_history: bool = False,
     ) -> None:
         self.source = HealpixSource(
             nside=nside,
             pixels=pixels,
             time=time,
+            with_history=with_history,
         )
         # Reset iter
         self._it = None
-
-    @cached_property
-    def session(self) -> BaseUrlSession:
-        session = BaseUrlSession(base_url=(self.archive))
-        session.auth = BearerAuth(self.archive_token.get())
-        return session
 
     def __iter__(self) -> Iterator[dict[str, Any]]:  # type: ignore[override]
         return self._get_alerts()
@@ -120,8 +132,7 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     @backoff.on_exception(
         backoff.expo,
         requests.exceptions.HTTPError,
-        giveup=lambda e: e.response.status_code  # type: ignore[attr-defined]
-        not in {500, 502, 503, 504, 429, 408},
+        giveup=lambda e: not isinstance(e, requests.HTTPError) or e.response.status_code not in {500, 502, 503, 504, 429, 408},
         max_time=600,
     )
     def _get_chunk(self) -> dict[str, Any]:

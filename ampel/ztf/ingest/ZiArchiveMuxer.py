@@ -12,26 +12,23 @@ from ampel.content.DataPoint import DataPoint
 from ampel.secret.NamedSecret import NamedSecret
 from ampel.model.UnitModel import UnitModel
 from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
+from ampel.ztf.base.ArchiveUnit import ArchiveUnit
 from ampel.ztf.util.ZTFIdMapper import to_ztf_id
 
 
-class BearerAuth(requests.auth.AuthBase):
-    def __init__(self, token: str) -> None:
-        self.token = token
-
-    def __call__(self, req: requests.PreparedRequest) -> requests.PreparedRequest:
-        req.headers["authorization"] = f"bearer {self.token}"
-        return req
-
-
-class ZiArchiveMuxer(AbsT0Muxer):
+class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
     """
     Add datapoints from archived ZTF-IPAC alerts.
     """
 
     #: Number of days of history to add, relative to the earliest point in the
     #: t0 collection
-    history_days: int
+    history_days: float = 0
+    #: Number of days of looking ahead based on the JD contained in alert
+    #: Only effect if original alert obtained through time-dependent search
+    #:Warning: could interfer if further alserts added ex through ZiMongoMuxer
+    future_days: float = 0
+
 
     shaper: UnitModel | str = "ZiDataPointShaper"
     archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
@@ -58,23 +55,6 @@ class ZiArchiveMuxer(AbsT0Muxer):
         )
 
         self._t0_col = self.context.db.get_collection("t0", "w")
-
-    # NB: init lazily, as Secret properties are not resolved until after __init__()
-    @cached_property
-    def session(self) -> BaseUrlSession:
-        session = BaseUrlSession(
-            base_url=(
-                url
-                if (
-                    url := self.context.config.get(
-                        "resource.ampel-ztf/archive", str, raise_exc=True
-                    )
-                ).endswith("/")
-                else url + "/"
-            )
-        )
-        session.auth = BearerAuth(self.archive_token.get())
-        return session
 
     def get_earliest_jd(
         self, stock_id: StockId, datapoints: Sequence[DataPoint]
@@ -113,19 +93,40 @@ class ZiArchiveMuxer(AbsT0Muxer):
         else:
             return min((from_alert, from_db))
 
+    def get_latest_jd(
+        self, datapoints: Sequence[DataPoint]
+    ) -> float:
+        """
+        return the largest jd of any photopoint in datapoints
+        Note: Not checking the DB - thought the window should be rel to alert?
+        """
+        return max(
+            (
+                dp["body"]["jd"]
+                for dp in datapoints
+                if dp["id"] > 0 and "ZTF" in dp["tag"]
+            )
+        )
+
+
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup=lambda e: e.response.status_code not in {503, 504, 429, 408},
+        giveup=lambda e: not isinstance(e, requests.HTTPError) or e.response.status_code not in {503, 504, 429, 408},
         max_time=600,
     )
-    def get_photopoints(self, ztf_name: str, before_jd: float) -> list[dict[str, Any]]:
+    def get_photopoints(self, ztf_name: str, jd_center: float, time_pre: float, time_post: float) -> dict[str, Any]:
         response = self.session.get(
             f"object/{ztf_name}/photopoints",
-            params={"jd_end": before_jd, "jd_start": before_jd - self.history_days},
+            params={
+                "jd_end": jd_center+time_post,
+                "jd_start": jd_center-time_pre,
+                },
         )
         response.raise_for_status()
         return response.json()
+
+
 
     def process(
         self, dps: list[DataPoint], stock_id: None | StockId = None
@@ -136,19 +137,44 @@ class ZiArchiveMuxer(AbsT0Muxer):
         Attempt to determine which pps/uls should be inserted into the t0 collection,
         and which one should be marked as superseded.
         """
-        # Find photopoints from earlier alerts
-        if stock_id is None or not (
-            history := self.get_photopoints(
-                to_ztf_id(stock_id),
-                before_jd=self.get_earliest_jd(to_ztf_id(stock_id), dps),
-            )
-        ):
+
+        if not stock_id:
             # no new points to add; use input points for combination
             return dps, dps
 
-        alert = ZiAlertSupplier.shape_alert_dict(history)
-        dps_to_insert = self._shaper.process(alert.datapoints, stock_id)
+        # Alert jd, assumed to be latest dp
+        alert_jd =  max(
+            (
+                dp["body"]["jd"]
+                for dp in dps
+                if dp["id"] > 0 and "ZTF" in dp["tag"]
+            )
+        )
 
-        extended_dps = sorted(dps_to_insert + dps, key=lambda d: d["body"]["jd"])
+        # Obtain archive alert based on this
+        # - _possibly_ inefficient since we also search within alert time range
+        archive_alert_dict = self.get_photopoints(
+            to_ztf_id(stock_id), alert_jd, self.history_days, self.future_days
+             )
+        archive_alert = ZiAlertSupplier.shape_alert_dict(archive_alert_dict)
+        archive_dps = self._shaper.process(archive_alert.datapoints, stock_id)
+        if len(archive_dps)==0:
+            # nothing found in archive
+            return dps, dps
+
+
+        # Create combined state of alert and archive
+        # Only dps with a new jd are added. In practice this means that
+        # if (for some reason) a detection exists in the archive, but
+        # an upper limit is provided in the alert, then the upper limit is used.
+        jds_alert = [dp['body']['jd'] for dp in dps]
+        extended_dps = sorted(
+            dps + [dp for dp in archive_dps if not dp['body']['jd'] in jds_alert],
+            key=lambda d: d["body"]["jd"])
+
+        # Potentially one could here check the DB content, both to extend
+        # the state and avoid duplicate inserts. Would then also need to
+        # check for superseeded dps.
+        # There is possibly an advantage of having a "pure" archive state.
 
         return extended_dps, extended_dps

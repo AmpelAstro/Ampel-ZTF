@@ -68,7 +68,9 @@ class KafkaMetrics:
                 for k, v in partition.items():
                     if metric := self._metrics.get(k):
                         # only record value for assigned partitions (i.e. where desired is True)
-                        metric.labels(topic["topic"], partition["partition"]).set(v if partition["desired"] else -1)
+                        metric.labels(topic["topic"], partition["partition"]).set(
+                            v if partition["desired"] else -1
+                        )
 
     def on_consume(self, message):
         kind, ts = message.timestamp()
@@ -100,7 +102,14 @@ class AllConsumingConsumer:
     Consume messages on all topics beginning with 'ztf_'.
     """
 
-    def __init__(self, broker, timeout=None, topics=["^ztf_.*"], **consumer_config):
+    def __init__(
+        self,
+        broker,
+        timeout=None,
+        topics=["^ztf_.*"],
+        auto_commit=True,
+        **consumer_config,
+    ):
         """ """
 
         self._metrics = KafkaMetrics.instance()
@@ -108,7 +117,7 @@ class AllConsumingConsumer:
             "bootstrap.servers": broker,
             "default.topic.config": {"auto.offset.reset": "smallest"},
             "enable.auto.commit": True,
-            "receive.message.max.bytes": 2 ** 29,
+            "receive.message.max.bytes": 2**29,
             "auto.commit.interval.ms": 10000,
             "enable.auto.offset.store": False,
             "group.id": uuid.uuid1(),
@@ -130,13 +139,8 @@ class AllConsumingConsumer:
             self._poll_attempts = max((1, int(timeout / self._poll_interval)))
         self._timeout = timeout
 
-        self._last_message = None
-
-    def __del__(self):
-        # NB: have to explicitly call close() here to prevent
-        # rd_kafka_consumer_close() from segfaulting. See:
-        # https://github.com/confluentinc/confluent-kafka-python/issues/358
-        self._consumer.close()
+        self._offsets = {}
+        self._auto_commit = auto_commit
 
     def __next__(self):
         message = self.consume()
@@ -148,17 +152,25 @@ class AllConsumingConsumer:
     def __iter__(self):
         return self
 
+    def commit(self):
+        if self._offsets:
+            offsets = [
+                confluent_kafka.TopicPartition(topic, partition, offset + 1)
+                for (topic, partition), offset in self._offsets.items()
+            ]
+            self._consumer.store_offsets(offsets=offsets)
+            self._offsets.clear()
+
     def consume(self) -> None | confluent_kafka.Message:
         """
         Block until one message has arrived, and return it.
-        
+
         Messages returned to the caller marked for committal
         upon the _next_ call to consume().
         """
         # mark the last emitted message for committal
-        if self._last_message is not None:
-            self._consumer.store_offsets(self._last_message)
-        self._last_message = None
+        if self._auto_commit:
+            self.commit()
 
         message = None
         for _ in range(self._poll_attempts):
@@ -176,12 +188,12 @@ class AllConsumingConsumer:
                         # bail on timeouts
                         return None
                 break
-        else:
-            return message
 
-        if message.error():
+        if message is None:
+            return message
+        elif message.error():
             raise KafkaError(message.error())
         else:
-            self._last_message = message
+            self._offsets[(message.topic(), message.partition())] = message.offset()
             self._metrics.on_consume(message)
             return message

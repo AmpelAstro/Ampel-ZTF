@@ -25,6 +25,7 @@ from ampel.metrics.AmpelMetricsRegistry import AmpelMetricsRegistry
 from ampel.secret.NamedSecret import NamedSecret
 from ampel.protocol.LoggerProtocol import LoggerProtocol
 from ampel.enum.DocumentCode import DocumentCode
+from ampel.types import Traceless
 from ampel.util.collections import ampel_iter
 from ampel.util.mappings import flatten_dict
 
@@ -425,7 +426,7 @@ class PostReport(TypedDict):
 
 class BaseSkyPortalPublisher(SkyPortalClient):
 
-    logger: LoggerProtocol
+    logger: Traceless[LoggerProtocol]
 
     def __init__(self, **kwargs):
         if "logger" not in kwargs:

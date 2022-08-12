@@ -1084,7 +1084,7 @@ alias:
       col: t0
 resource:
   mongo: mongodb://localhost:27017
-  ampel-ztf/archive: https://ampel.zeuthen.desy.de/api/ztf/archive/v2/
+  ampel-ztf/archive: https://ampel.zeuthen.desy.de/api/ztf/archive/v3/
   ampel-ztf/catalogmatch: https://ampel.zeuthen.desy.de/api/catalogmatch/
   ampel-ztf/kafka:
     bootstrap: gregor

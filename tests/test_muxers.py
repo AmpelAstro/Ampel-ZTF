@@ -265,8 +265,11 @@ def test_get_photopoints_from_api(mock_context, archive_token):
     muxer = _make_muxer(
         mock_context, UnitModel(unit="ZiArchiveMuxer", config={"history_days": 30})
     )
-    alert = muxer.get_photopoints("ZTF18abcfcoo", before_jd=2458300)
-    assert len(alert["prv_candidates"]) == 10
+    alert_pre = muxer.get_photopoints("ZTF18abcfcoo", jd_center=2458300, time_pre=30, time_post=0)
+
+    alert_post = muxer.get_photopoints("ZTF18abcfcoo", jd_center=2458270, time_pre=0, time_post=30)
+
+    assert len(alert_pre["prv_candidates"]) == 10 and len(alert_post["prv_candidates"]) == 10
 
 
 def test_deduplication(
