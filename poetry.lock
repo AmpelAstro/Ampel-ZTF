@@ -46,7 +46,7 @@ docs = ["tomlkit (>=0.11.0,<0.12.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0
 
 [[package]]
 name = "ampel-core"
-version = "0.8.3a22"
+version = "0.8.3a23"
 description = "Alice in Modular Provenance-Enabled Land"
 category = "main"
 optional = false
@@ -61,10 +61,10 @@ pydantic = ">=1.9.0,<2.0.0"
 pymongo = ">=4.0,<5.0"
 schedule = ">=1.0.0,<2.0.0"
 sjcl = ">=0.2.1,<0.3.0"
-slackclient = ">=2.7,<3.0"
 yq = ">=3.0.0,<4.0.0"
 
 [package.extras]
+slack = ["slack-sdk (>=3.18.1,<4.0.0)"]
 docs = ["tomlkit (>=0.7.0,<0.8.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "sphinx-press-theme (>=0.5.1,<0.9.0)", "Sphinx (>=5.1.1,<5.2.0)"]
 server = ["uvicorn[standard] (>=0.13.3,<0.16.0)", "fastapi (>=0.63,<0.69)"]
 
@@ -777,20 +777,6 @@ python-versions = "*"
 pycryptodome = "*"
 
 [[package]]
-name = "slackclient"
-version = "2.9.4"
-description = "Slack API clients for Web API and RTM API (Legacy) - Please use https://pypi.org/project/slack-sdk/ instead."
-category = "main"
-optional = false
-python-versions = ">=3.6.0"
-
-[package.dependencies]
-aiohttp = ">3.5.2,<4.0.0"
-
-[package.extras]
-optional = ["aiodns (>1.0)"]
-
-[[package]]
 name = "sqlalchemy"
 version = "1.3.24"
 description = "Database Abstraction Library"
@@ -928,7 +914,7 @@ light-curve = ["light-curve"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "fd3fd852ac7c31d96c28dc7cfd144660673b653c2bfd1dffe9eed5946ef2f5f1"
+content-hash = "223c7d6f8501c7c58fc7dc038d253ff3f20e712f5314e9fa150a72734c4d4a78"
 
 [metadata.files]
 aiohttp = [
@@ -1014,8 +1000,8 @@ ampel-alerts = [
     {file = "ampel_alerts-0.8.3b1-py3-none-any.whl", hash = "sha256:73138c7c4b8772b7f43d4076cdc15c5d39a3df170732bcc36f3c9ffdc2f0816f"},
 ]
 ampel-core = [
-    {file = "ampel-core-0.8.3a22.tar.gz", hash = "sha256:ee606d605ca1181b50326a7c444ac4d32def734cb4c278bb40c43b25625462cd"},
-    {file = "ampel_core-0.8.3a22-py3-none-any.whl", hash = "sha256:e9e33d21c0eff46acdd0f1b54686fe72b6feeee90733796a05acd53bd223ab7f"},
+    {file = "ampel-core-0.8.3a23.tar.gz", hash = "sha256:aaeeb6484bdb830b0a88437095f93c67145824ff1287c1f5c0e68a2a5a9fc5e2"},
+    {file = "ampel_core-0.8.3a23-py3-none-any.whl", hash = "sha256:dc204f993807ea405a39ee3fa520652f660c87a3d76621bb390c318783fbc124"},
 ]
 ampel-interface = [
     {file = "ampel-interface-0.8.3b1.tar.gz", hash = "sha256:c757e1cc6579f9d9bd1dd92248959a2aed8c7102017b940ec5d65cb2dff98e05"},
@@ -1914,10 +1900,6 @@ six = [
 ]
 sjcl = [
     {file = "sjcl-0.2.1.tar.gz", hash = "sha256:3761ba01f9f049eaa2f67516054b7bfb2e27fe8bc7c9c630da7168fba58f0c57"},
-]
-slackclient = [
-    {file = "slackclient-2.9.4-py2.py3-none-any.whl", hash = "sha256:a8cab9146795e23d66a03473b80dd23df8c500829dfa9d06b3e3d5aec0a2b293"},
-    {file = "slackclient-2.9.4.tar.gz", hash = "sha256:ab79fefb5412d0595bc01d2f195a787597f2a617b6766562932ab9ffbe5cb173"},
 ]
 sqlalchemy = [
     {file = "SQLAlchemy-1.3.24-cp27-cp27m-macosx_10_14_x86_64.whl", hash = "sha256:87a2725ad7d41cd7376373c15fd8bf674e9c33ca56d0b8036add2d634dba372e"},
