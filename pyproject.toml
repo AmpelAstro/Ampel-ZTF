@@ -53,6 +53,7 @@ ampel-interface = "^0.8.3-beta.5"
 ampel-core = "^0.8.3-beta.3"
 ampel-photometry = "^0.8.3-alpha.2"
 ampel-alerts = "^0.8.3-beta.1"
+ampel-plot = {version = "0.8.3", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -70,6 +71,7 @@ archive = ["ampel-ztf-archive"]
 healpix = ["healpy"]
 light-curve = ["light-curve"]
 kafka = ["confluent-kafka"]
+plot = ["ampel-plot"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools >= 40.6.0", "wheel"]
