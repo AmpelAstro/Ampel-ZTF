@@ -46,6 +46,7 @@ unit:
 - ampel.ztf.alert.load.ZTFHealpixAlertLoader
 - ampel.ztf.alert.ZiHealpixAlertSupplier
 
+- ampel.ztf.view.ZTFT2Tabulator
 
 alias:
   t2:
