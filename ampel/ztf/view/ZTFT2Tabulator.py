@@ -7,7 +7,7 @@
 # Last Modified Date: 05.05.2022
 # Last Modified By  : Marcus Fenner <mf@physik.hu-berlin.de>
 
-from typing import Any, List, Sequence, Tuple
+from typing import Any, Sequence, Iterable
 from ampel.types import StockId
 
 import numpy as np
@@ -34,7 +34,7 @@ signdict = {
 class ZTFT2Tabulator(AbsT2Tabulator):
     def get_flux_table(
         self,
-        dps: List[DataPoint],
+        dps: Iterable[DataPoint],
     ) -> Table:
         magpsf, sigmapsf, jd, fids, magzpsci, isdiffpos = self.get_values(
             dps, ["magpsf", "sigmapsf", "jd", "fid", "magzpsci", "isdiffpos"]
@@ -58,19 +58,19 @@ class ZTFT2Tabulator(AbsT2Tabulator):
         )
 
     def get_positions(
-        self, dps: List[DataPoint]
-    ) -> Sequence[Tuple[float, float, float]]:
+        self, dps: Iterable[DataPoint]
+    ) -> Sequence[tuple[float, float, float]]:
         return tuple(
             zip(self.get_jd(dps), *self.get_values(dps, ["ra", "dec"]))
         )
 
     def get_jd(
         self,
-        dps: List[DataPoint],
+        dps: Iterable[DataPoint],
     ) -> Sequence[Any]:
         return self.get_values(dps, ["jd"])[0]
 
-    def get_stock_id(self, dps: List[DataPoint]) -> set[StockId]:
+    def get_stock_id(self, dps: Iterable[DataPoint]) -> set[StockId]:
         return set(
             sum(
                 [
@@ -84,13 +84,13 @@ class ZTFT2Tabulator(AbsT2Tabulator):
             )
         )
 
-    def get_stock_name(self, dps: List[DataPoint]) -> list[str]:
+    def get_stock_name(self, dps: Iterable[DataPoint]) -> list[str]:
         return [ZTFIdMapper.to_ext_id(el) for el in self.get_stock_id(dps)]
 
     @staticmethod
     def get_values(
-        dps: List[DataPoint], params: Sequence[str]
-    ) -> Tuple[Sequence[Any], ...]:
+        dps: Iterable[DataPoint], params: Sequence[str]
+    ) -> tuple[Sequence[Any], ...]:
         if tup := tuple(
             map(
                 list,
