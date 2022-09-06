@@ -74,7 +74,7 @@ class ZTFT2Tabulator(AbsT2Tabulator):
         return set(
             sum(
                 [
-                    stockid
+                    list(stockid)
                     if isinstance(stockid := el["stock"], Sequence) and not isinstance(stockid, (str,bytes))
                     else [stockid]
                     for el in dps
