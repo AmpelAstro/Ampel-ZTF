@@ -80,3 +80,26 @@ relative_files = true
 
 [tool.pytest.ini_options]
 addopts = "--showlocals -rsx"
+
+[tool.mypy]
+namespace_packages = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+  "astropy.*",
+  "fastavro.*",
+  "confluent_kafka.*",
+  "ampel.ztf.t0.ArchiveUpdater",
+  "pandas.*",
+  "matplotlib.*",
+  "requests_toolbelt.*",
+  "scipy.*",
+  "ztfquery",
+  "nest_asyncio",
+  "healpy",
+  "light_curve",
+  "planobs.*"
+]
+ignore_missing_imports = true
+
