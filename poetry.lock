@@ -46,7 +46,7 @@ docs = ["Sphinx (>=5.1.1,<5.2.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)",
 
 [[package]]
 name = "ampel-core"
-version = "0.8.3b5"
+version = "0.8.3b7"
 description = "Alice in Modular Provenance-Enabled Land"
 category = "main"
 optional = false
@@ -942,7 +942,7 @@ plot = ["ampel-plot"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "d8c3f1638dd06fb179ae9da7eabcea77af4eadce320ad823439332f90f5c7d0a"
+content-hash = "e4f8bd8585e122e9b5e1672f637c32313f6f2a4735992c1bc4843bb3d1fe9bda"
 
 [metadata.files]
 aiohttp = [
@@ -1028,8 +1028,8 @@ ampel-alerts = [
     {file = "ampel_alerts-0.8.3b1-py3-none-any.whl", hash = "sha256:73138c7c4b8772b7f43d4076cdc15c5d39a3df170732bcc36f3c9ffdc2f0816f"},
 ]
 ampel-core = [
-    {file = "ampel-core-0.8.3b5.tar.gz", hash = "sha256:66c87202faea96ec6a82c9900a1548347be2fe5aaf0661468de2b26de607685e"},
-    {file = "ampel_core-0.8.3b5-py3-none-any.whl", hash = "sha256:39355b7c73a3ca1936a405721a1e3f0882ca45828760ceb20bac3d8b7bab3ff5"},
+    {file = "ampel-core-0.8.3b7.tar.gz", hash = "sha256:81b3b76195d7cb7f20f519e3eee30027752d0dc74cb8af7cb2d3a34021b54e9f"},
+    {file = "ampel_core-0.8.3b7-py3-none-any.whl", hash = "sha256:409a56120be2a03915913bdb1091c85cba28aebdd5fe335f78c4683e331e0d84"},
 ]
 ampel-interface = [
     {file = "ampel-interface-0.8.3b5.tar.gz", hash = "sha256:6984bc0a5fe1281b829c0409e6f4ceca6cd6d5c2571b353db25084b0a343d8fa"},
