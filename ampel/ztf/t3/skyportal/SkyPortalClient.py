@@ -109,8 +109,8 @@ def encode_t2_body(t2: "T2Document") -> str:
     ).decode()
 
 
-def decode_t2_body(blob: str) -> Dict[str, Any]:
-    doc = json.loads(base64.b64decode(blob.encode()).decode())
+def decode_t2_body(blob: Union[str,Dict[str,Any]]) -> Dict[str, Any]:
+    doc = json.loads(base64.b64decode(blob.encode()).decode()) if isinstance(blob, str) else blob
     return {"ts": int(datetime.fromisoformat(doc.pop("timestamp")).timestamp()), **doc}
 
 
@@ -242,7 +242,8 @@ class SkyPortalClient(AmpelBaseModel):
             aiohttp.ClientConnectionError,
             asyncio.TimeoutError,
         ),
-        max_time=300,
+        max_time=1200,
+        factor=10,
     )
     async def request(
         self,
@@ -280,9 +281,14 @@ class SkyPortalClient(AmpelBaseModel):
                         response.raise_for_status()
                     stat_http_responses.labels(*labels).inc()
                     if _decode_json:
-                        payload = await response.json()
-                        if raise_exc and payload["status"] != "success":
-                            raise SkyPortalAPIError(payload["message"])
+                        payload = await response.json(content_type=None)
+                        if raise_exc:
+                            # only check status if endpoint knows it was returning JSON
+                            if response.content_type == "application/json" and payload["status"] != "success":
+                                raise SkyPortalAPIError(payload["message"], url, kwargs)
+                            # otherwise, believe status code
+                            else:
+                                response.raise_for_status()
                         return payload
                     else:
                         return response
@@ -593,7 +599,11 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                     ret["comment_errors"].append(exc.args[0])
                 continue
             # update previous comment
-            previous_body = decode_t2_body(comment["attachment_bytes"])
+            previous_body = decode_t2_body(
+                await self.get(
+                    f"sources/{name}/comments/{comment['id']}/attachment",
+                )
+            )
             if (t2["body"] is not None) and (
                 t2["body"][-1]["ts"] > previous_body["ts"]
             ):
