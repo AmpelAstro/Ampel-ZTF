@@ -7,6 +7,7 @@
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 import asyncio, nest_asyncio
+from functools import partial
 from typing import TYPE_CHECKING
 from collections.abc import Generator
 
@@ -18,6 +19,7 @@ from ampel.ztf.t3.skyportal.SkyPortalClient import BaseSkyPortalPublisher
 if TYPE_CHECKING:
     from ampel.view.T3Store import T3Store
     from ampel.view.TransientView import TransientView
+    from ampel.content.JournalRecord import JournalRecord
 
 
 class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
@@ -27,6 +29,11 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
     filters: None | list[str] = None
     #: Post T2 results as annotations instead of comments
     annotate: bool = False
+    #: Explicitly post photometry for each stock. If False, rely on some backend
+    #: service (like Kowalski on Fritz) to fill in photometry for sources.
+    include_photometry: bool = True
+
+    process_name: None | str = None
 
     def process(self,
         tviews: Generator["TransientView", JournalAttributes, None],
@@ -43,6 +50,33 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
             ...
         asyncio.run(self.post_candidates(tviews))
 
+    def _filter_journal_entries(self, jentry: "JournalRecord", after: float):
+        """Select journal entries from SkyPortalPublisher newer than last update"""
+        return (
+            jentry["unit"] == "SkyPortalPublisher"
+            and (self.process_name is None or jentry["process"] == self.process_name)
+            and jentry["ts"] >= after
+        )
+
+    def requires_update(self, view: "TransientView") -> bool:
+        # find latest activity activity at lower tiers
+        latest_activity = max(
+            (
+                jentry["ts"]
+                for jentry in view.get_journal_entries() or []
+                if jentry.get("tier") in {0, 1, 2}
+            ),
+            default=float("inf"),
+        )
+        return view.stock is not None and bool(
+            view.get_journal_entries(
+                tier=3,
+                filter_func=partial(
+                    self._filter_journal_entries, after=latest_activity
+                ),
+            )
+        )
+
     async def post_candidates(
         self, tviews: Generator["TransientView", JournalAttributes, None]
     ) -> None:
@@ -52,7 +86,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
                 *[
                     self.post_view(view)
                     for view in tviews
-                    if view.stock is not None
+                    if self.requires_update(view)
                 ],
             )
 
