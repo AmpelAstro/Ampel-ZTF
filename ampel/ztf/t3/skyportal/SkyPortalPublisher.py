@@ -62,7 +62,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
         latest_activity = max(
             (
                 jentry["ts"]
-                for jentry in view.get_journal_entries()
+                for jentry in view.get_journal_entries() or []
                 if jentry.get("tier") in {0, 1, 2}
             ),
             default=float("inf"),
