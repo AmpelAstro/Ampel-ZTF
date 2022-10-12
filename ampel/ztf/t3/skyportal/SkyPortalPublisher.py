@@ -98,6 +98,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
                     groups=self.groups,
                     filters=self.filters,
                     annotate=self.annotate,
+                    post_photometry=self.include_photometry,
                 )
             )
         )
