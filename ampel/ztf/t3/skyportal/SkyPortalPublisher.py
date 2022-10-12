@@ -7,6 +7,7 @@
 # Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
 
 import asyncio
+from functools import partial
 from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import nest_asyncio
@@ -29,7 +30,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
     #: Post T2 results as annotations instead of comments
     annotate: bool = False
     #: Explicitly post photometry for each stock. If False, rely on some backend
-    #: service (like Kowalski on Fritz) to fill in photometry for sources. 
+    #: service (like Kowalski on Fritz) to fill in photometry for sources.
     include_photometry: bool = True
 
     process_name: Optional[str] = None
@@ -48,17 +49,31 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
             ...
         return asyncio.run(self.post_candidates(tviews))
 
-    def _filter_journal_entries(self, jentry: "JournalRecord"):
-        """Select journal entries from SkyPortalPublisher _newer_ than last fully-successful run"""
+    def _filter_journal_entries(self, jentry: "JournalRecord", after: float):
+        """Select journal entries from SkyPortalPublisher newer than last update"""
         return (
             jentry["unit"] == "SkyPortalPublisher"
             and (self.process_name is None or jentry["process"] == self.process_name)
-            and jentry["ts"] >= self.context["last_run"]
+            and jentry["ts"] >= after
         )
 
     def requires_update(self, view: "TransientView") -> bool:
+        # find latest activity activity at lower tiers
+        latest_activity = max(
+            (
+                jentry["ts"]
+                for jentry in view.get_journal_entries()
+                if jentry.get("tier") in {0, 1, 2}
+            ),
+            default=float("inf"),
+        )
         return view.stock is not None and bool(
-            view.get_journal_entries(tier=3, filter_func=self._filter_journal_entries)
+            view.get_journal_entries(
+                tier=3,
+                filter_func=partial(
+                    self._filter_journal_entries, after=latest_activity
+                ),
+            )
         )
 
     async def post_candidates(
