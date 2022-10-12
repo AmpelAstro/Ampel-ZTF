@@ -18,6 +18,7 @@ from ampel.ztf.t3.skyportal.SkyPortalClient import BaseSkyPortalPublisher
 
 if TYPE_CHECKING:
     from ampel.view.TransientView import TransientView
+    from ampel.content.JournalRecord import JournalRecord
 
 
 class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
@@ -27,6 +28,8 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
     filters: Optional[List[str]] = None
     #: Post T2 results as annotations instead of comments
     annotate: bool = False
+
+    process_name: Optional[str] = None
 
     def add(
         self, tviews: Sequence["TransientView"]
@@ -42,6 +45,19 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
             ...
         return asyncio.run(self.post_candidates(tviews))
 
+    def _filter_journal_entries(self, jentry: "JournalRecord"):
+        """Select journal entries from SkyPortalPublisher _newer_ than last fully-successful run"""
+        return (
+            jentry["unit"] == "SkyPortalPublisher"
+            and (self.process_name is None or jentry["process"] == self.process_name)
+            and jentry["ts"] >= self.context["last_run"]
+        )
+
+    def requires_update(self, view: "TransientView") -> bool:
+        return view.stock is not None and bool(
+            view.get_journal_entries(tier=3, filter_func=self._filter_journal_entries)
+        )
+
     async def post_candidates(
         self, tviews: Sequence["TransientView"]
     ) -> Dict[StockId, JournalTweak]:
@@ -52,7 +68,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
                     *[
                         self.post_view(view)
                         for view in tviews
-                        if view.stock is not None
+                        if self.requires_update(view)
                     ],
                 )
             )
