@@ -630,6 +630,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         filters: Optional[List[str]] = None,
         groups: Optional[List[str]] = None,
         instrument: Optional[str] = None,
+        post_photometry: bool = True,
         annotate: bool = False,
     ) -> PostReport:
         """
@@ -781,26 +782,27 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 except SkyPortalAPIError as exc:
                     ret["save_error"] = exc.args[0]
 
-        # Post photometry for the latest light curve.
-        # For ZTF, the id of the most recent detection is the alert id
-        # NB: we rely on the advertised, but as of 2020-09-17, unimplemented,
-        # feature that repeated POST /api/photometry with the same alert_id and
-        # group_ids are idempotent
-        photometry = {
-            "obj_id": name,
-            "group_ids": "all",
-            "magsys": "ab",
-            "instrument_id": instrument_id,
-            **self.make_photometry(dps),
-        }
-        datapoint_ids = photometry.pop("_id")
-        try:
-            photometry_response = await self.put("photometry", json=photometry)
-            photometry_ids = photometry_response["data"]["ids"]
-            assert len(datapoint_ids) == len(photometry_ids)
-            ret["photometry_count"] = len(photometry_ids)
-        except SkyPortalAPIError as exc:
-            ret["photometry_error"] = exc.args[0]
+        if post_photometry:
+            # Post photometry for the latest light curve.
+            # For ZTF, the id of the most recent detection is the alert id
+            # NB: we rely on the advertised, but as of 2020-09-17, unimplemented,
+            # feature that repeated POST /api/photometry with the same alert_id and
+            # group_ids are idempotent
+            photometry = {
+                "obj_id": name,
+                "group_ids": "all",
+                "magsys": "ab",
+                "instrument_id": instrument_id,
+                **self.make_photometry(dps),
+            }
+            datapoint_ids = photometry.pop("_id")
+            try:
+                photometry_response = await self.put("photometry", json=photometry)
+                photometry_ids = photometry_response["data"]["ids"]
+                assert len(datapoint_ids) == len(photometry_ids)
+                ret["photometry_count"] = len(photometry_ids)
+            except SkyPortalAPIError as exc:
+                ret["photometry_error"] = exc.args[0]
 
         # SkyPortal only supports one of thumbnail per object and type
         # ('new', 'ref', 'sub', 'sdss', 'dr8', 'new_gz', 'ref_gz', 'sub_gz')

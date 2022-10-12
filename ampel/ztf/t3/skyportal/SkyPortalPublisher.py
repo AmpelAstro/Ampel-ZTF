@@ -28,6 +28,9 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
     filters: Optional[List[str]] = None
     #: Post T2 results as annotations instead of comments
     annotate: bool = False
+    #: Explicitly post photometry for each stock. If False, rely on some backend
+    #: service (like Kowalski on Fritz) to fill in photometry for sources. 
+    include_photometry: bool = True
 
     process_name: Optional[str] = None
 
@@ -83,6 +86,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
                         groups=self.groups,
                         filters=self.filters,
                         annotate=self.annotate,
+                        post_photometry=self.photometry,
                     )
                 )
             ),
