@@ -57,7 +57,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
             and jentry["ts"] >= after
         )
 
-    def requires_update(self, view: "TransientView") -> bool:
+    def already_updated(self, view: "TransientView") -> bool:
         # find latest activity activity at lower tiers
         latest_activity = max(
             (
@@ -67,7 +67,9 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
             ),
             default=float("inf"),
         )
-        return view.stock is not None and bool(
+        # a stock has been updated if there is a SkyPortalPublisher journal
+        # record later than a tier 0/2 update
+        return bool(
             view.get_journal_entries(
                 tier=3,
                 filter_func=partial(
@@ -86,7 +88,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
                     *[
                         self.post_view(view)
                         for view in tviews
-                        if self.requires_update(view)
+                        if not (view.stock is None or self.already_updated(view))
                     ],
                 )
             )
