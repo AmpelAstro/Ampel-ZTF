@@ -32,12 +32,19 @@ signdict = {
 
 
 class ZTFT2Tabulator(AbsT2Tabulator):
+    def filter_detections(
+        self, dps: Iterable[DataPoint]
+    ) -> Iterable[DataPoint]:
+        return [dp for dp in dps
+                    if 'ZTF' in dp['tag'] and 'magpsf' in dp['body'].keys() ]
+
     def get_flux_table(
         self,
         dps: Iterable[DataPoint],
     ) -> Table:
         magpsf, sigmapsf, jd, fids, magzpsci, isdiffpos = self.get_values(
-            dps, ["magpsf", "sigmapsf", "jd", "fid", "magzpsci", "isdiffpos"]
+            self.filter_detections(dps),
+            ["magpsf", "sigmapsf", "jd", "fid", "magzpsci", "isdiffpos"]
         )
         filter_names = [ZTF_BANDPASSES[fid]["name"] for fid in fids]
         signs = [signdict[el] for el in isdiffpos]
@@ -60,8 +67,9 @@ class ZTFT2Tabulator(AbsT2Tabulator):
     def get_positions(
         self, dps: Iterable[DataPoint]
     ) -> Sequence[tuple[float, float, float]]:
+        det_dps = self.filter_detections(dps)
         return tuple(
-            zip(self.get_jd(dps), *self.get_values(dps, ["ra", "dec"]))
+            zip(self.get_jd(det_dps), *self.get_values(det_dps, ["ra", "dec"]))
         )
 
     def get_jd(
