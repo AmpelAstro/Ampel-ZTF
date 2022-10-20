@@ -49,7 +49,7 @@ confluent-kafka = {version = "^1.5.0", optional = true}
 healpy = {version = "^1.15", optional = true}
 light-curve = {version = ">=0.6,<0.7", optional = true}
 ampel-ztf-archive = {version = "^0.8.0-alpha.0", optional = true}
-ampel-interface = "^0.8.3-beta.5"
+ampel-interface = "^0.8.3-beta.6"
 ampel-core = "^0.8.3-beta.7"
 ampel-photometry = "^0.8.3-alpha.2"
 ampel-alerts = "^0.8.3-beta.1"
