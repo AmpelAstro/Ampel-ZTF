@@ -4,7 +4,7 @@
 # License           : BSD-3-Clause
 # Author            : jno <jnordin@physik.hu-berlin.de>
 # Date              : 14.03.2022
-# Last Modified Date: 19.07.2022
+# Last Modified Date: 18.08.2022
 # Last Modified By  : sr <simeon.reusch@desy.de>
 
 import sys, re, os
@@ -102,9 +102,9 @@ def get_fpbot_baseline(
     risetime: float = 100,
     falltime=365,
     primary_grid_only: bool = False,
-    min_det_per_field_band: int = 1,
-    zp_max_deviation_from_median: float = 99.0,
-    reference_days_before_peak: Optional[float] = None,
+    min_det_per_field_band: int = 10,
+    zp_max_deviation_from_median: float = 0.5,
+    reference_days_before_peak: Optional[float] = 50.0,
 ) -> pd.DataFrame:
     """
     For each unique baseline combination, estimate and store baseline.
@@ -154,8 +154,10 @@ def get_fpbot_baseline(
             df.query("fieldid + filterid != @added", inplace=True)
     df = df.reset_index(drop=True)
 
-    df["zp_median_deviation"] = df.magzp - df.zpmed
-    df.query("abs(zp_median_deviation) < @zp_max_deviation_from_median", inplace=True)
+    # Cut datapoints for which magzp deviates too much from median magzp
+    median_zp = np.median(df.magzp)
+    df["zp_median_deviation"] = np.abs(np.log10(median_zp / df.magzp))
+    df.query("zp_median_deviation < @zp_max_deviation_from_median", inplace=True)
 
     unique_fid = np.unique(df.fcqfid.values).astype(int)
 
@@ -390,6 +392,8 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
     Returns an AmpelAlert instance for each file path provided by the underlying alert loader.
     """
 
+    correct_baseline: bool = True
+
     flux_unc_floor: float = 0.02
     excl_poor_conditions: bool = True
     excl_baseline_pp: bool = False
@@ -401,11 +405,11 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
     primary_grid_only: bool = False
 
-    min_det_per_field_band: int = 1
+    min_det_per_field_band: int = 10
 
-    zp_max_deviation_from_median: float = 99.0
+    zp_max_deviation_from_median: float = 0.5
 
-    reference_days_before_peak: Optional[float] = None
+    reference_days_before_peak: Optional[float] = 50.0
 
     plot_suffix: Optional[str]
     plot_dir: Optional[str]
@@ -448,117 +452,121 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         df = pd.read_csv(fileio, sep=",", comment="#")
 
-        if self.excl_poor_conditions:
-            # Should be equivalent
-            #            df = df[(df['ampl.err']>0) & (df['chi2dof']<3) & (df['cloudy']==0) & (df['infobits']==0) & (df['pass']==1)]
-            df = df[(df["pass"] == 1)]
+        if self.correct_baseline:
 
-        # Correct for common zeropoint
-        df["ampl_zp_scale"] = 10 ** ((self.pivot_zeropoint - df["magzp"]) / 2.5)
-        df["ampl"] *= df["ampl_zp_scale"]
-        df["ampl.err"] *= df["ampl_zp_scale"]
+            if self.excl_poor_conditions:
+                # Should be equivalent
+                #            df = df[(df['ampl.err']>0) & (df['chi2dof']<3) & (df['cloudy']==0) & (df['infobits']==0) & (df['pass']==1)]
+                df = df[(df["pass"] == 1)]
 
-        # Create baseline
-        df, baseline_info = get_fpbot_baseline(
-            df,
-            risetime=self.transient_risetime,
-            falltime=self.transient_falltime,
-            primary_grid_only=self.primary_grid_only,
-            min_det_per_field_band=self.min_det_per_field_band,
-            zp_max_deviation_from_median=self.zp_max_deviation_from_median,
-            reference_days_before_peak=self.reference_days_before_peak,
-        )
+            # Correct for common zeropoint
+            df["ampl_zp_scale"] = 10 ** ((self.pivot_zeropoint - df["magzp"]) / 2.5)
+            df["ampl"] *= df["ampl_zp_scale"]
+            df["ampl.err"] *= df["ampl_zp_scale"]
 
-        self.logger.info("Corrected baseline", extra=baseline_info)
-
-        if df.shape[0] == 0:
-            self.logger.info("No baseline")
-            return self.__next__()
-
-        # Plot
-
-        # color_dict = {"1": "MediumAquaMarine", "2": "Crimson", "3": "Goldenrod"}
-        """
-        Jakob, if you have aesthetic misgivings, feel free to change back to the old color scheme ;)
-        """
-        color_dict = {"1": "green", "2": "red", "3": "orange"}
-
-        if self.plot_suffix and self.plot_dir:
-            fig, ax = plt.subplots()
-            y_max = -99
-            for key, binfo in baseline_info.items():
-                if key == "t_peak":
-                    continue
-                # if not 'which_baseline' in binfo or not binfo['which_baseline']:
-                #    continue
-                df_sub = df[((df.fcqfid == int(key)) & (df.n_baseline > 0))]
-                if df_sub.shape[0] == 0:
-                    continue
-
-                if "flux_max" in binfo.keys() and binfo["flux_max"] > y_max:
-                    y_max = binfo["flux_max"]
-                # ax.errorbar(
-                #     df_sub.obsmjd,
-                #     df_sub.ampl,
-                #     df_sub["ampl.err"],
-                #     fmt="^",
-                #     mec="grey",
-                #     ecolor=color_dict[key[-1]],
-                #     mfc="None",
-                # )
-                # ax.errorbar(
-                #     df_sub.obsmjd,
-                #     df_sub.ampl_corr,
-                #     df_sub.ampl_err_corr,
-                #     fmt="o",
-                #     mec=color_dict[key[-1]],
-                #     ecolor=color_dict[key[-1]],
-                #     mfc="None",
-                # )
-                ax.errorbar(
-                    df_sub.obsmjd,
-                    df_sub.ampl_corr,
-                    df_sub["ampl_err_corr"],
-                    fmt="o",
-                    mec=color_dict[key[-1]],
-                    ecolor=color_dict[key[-1]],
-                    mfc="None",
-                    alpha=0.7,
-                    ms=2,
-                    elinewidth=0.8,
-                )
-
-            if y_max == -99:
-                y_max = df.ampl_corr.max()
-
-            peak_times = df[(df["not_baseline"] == 1)].obsmjd
-
-            ax.axhline(y=0, color="0.7", ls="--")
-            ax.axvline(x=peak_times.min(), color="0.5", ls="--")
-            ax.axvline(x=peak_times.max(), color="0.5", ls="--")
-            ax.set_xlabel("Date (MJD)")
-            ax.set_ylabel(f"Flux (ZP = {self.pivot_zeropoint} mag)")
-
-            y_min = 10 ** ((self.pivot_zeropoint - 20) / 2.5)
-            ax.set_ylim([-y_min, y_max * 1.4])  # Bottom limit set based on sample runs
-
-            plt.tight_layout()
-            plt.savefig(
-                os.path.join(
-                    self.plot_dir,
-                    "fpbase_%s.%s" % (headervals["name"], self.plot_suffix),
-                )
+            # Create baseline
+            df, baseline_info = get_fpbot_baseline(
+                df,
+                risetime=self.transient_risetime,
+                falltime=self.transient_falltime,
+                primary_grid_only=self.primary_grid_only,
+                min_det_per_field_band=self.min_det_per_field_band,
+                zp_max_deviation_from_median=self.zp_max_deviation_from_median,
+                reference_days_before_peak=self.reference_days_before_peak,
             )
-            plt.close("fig")
-            plt.close("all")
-            del (fig, ax)
-            gc.collect()
 
-        # Add back zp correction (assumed to be used later)
-        df["ampl"] /= df["ampl_zp_scale"]
-        df["ampl.err"] /= df["ampl_zp_scale"]
-        df["ampl_corr"] /= df["ampl_zp_scale"]
-        df["ampl_err_corr"] /= df["ampl_zp_scale"]
+            self.logger.info("Corrected baseline", extra=baseline_info)
+
+            if df.shape[0] == 0:
+                self.logger.info("No baseline")
+                return self.__next__()
+
+            # Plot
+
+            # color_dict = {"1": "MediumAquaMarine", "2": "Crimson", "3": "Goldenrod"}
+            """
+            Jakob, if you have aesthetic misgivings, feel free to change back to the old color scheme ;)
+            """
+            color_dict = {"1": "green", "2": "red", "3": "orange"}
+
+            if self.plot_suffix and self.plot_dir:
+                fig, ax = plt.subplots()
+                y_max = -99
+                for key, binfo in baseline_info.items():
+                    if key == "t_peak":
+                        continue
+                    # if not 'which_baseline' in binfo or not binfo['which_baseline']:
+                    #    continue
+                    df_sub = df[((df.fcqfid == int(key)) & (df.n_baseline > 0))]
+                    if df_sub.shape[0] == 0:
+                        continue
+
+                    if "flux_max" in binfo.keys() and binfo["flux_max"] > y_max:
+                        y_max = binfo["flux_max"]
+                    # ax.errorbar(
+                    #     df_sub.obsmjd,
+                    #     df_sub.ampl,
+                    #     df_sub["ampl.err"],
+                    #     fmt="^",
+                    #     mec="grey",
+                    #     ecolor=color_dict[key[-1]],
+                    #     mfc="None",
+                    # )
+                    # ax.errorbar(
+                    #     df_sub.obsmjd,
+                    #     df_sub.ampl_corr,
+                    #     df_sub.ampl_err_corr,
+                    #     fmt="o",
+                    #     mec=color_dict[key[-1]],
+                    #     ecolor=color_dict[key[-1]],
+                    #     mfc="None",
+                    # )
+                    ax.errorbar(
+                        df_sub.obsmjd,
+                        df_sub.ampl_corr,
+                        df_sub["ampl_err_corr"],
+                        fmt="o",
+                        mec=color_dict[key[-1]],
+                        ecolor=color_dict[key[-1]],
+                        mfc="None",
+                        alpha=0.7,
+                        ms=2,
+                        elinewidth=0.8,
+                    )
+
+                if y_max == -99:
+                    y_max = df.ampl_corr.max()
+
+                peak_times = df[(df["not_baseline"] == 1)].obsmjd
+
+                ax.axhline(y=0, color="0.7", ls="--")
+                ax.axvline(x=peak_times.min(), color="0.5", ls="--")
+                ax.axvline(x=peak_times.max(), color="0.5", ls="--")
+                ax.set_xlabel("Date (MJD)")
+                ax.set_ylabel(f"Flux (ZP = {self.pivot_zeropoint} mag)")
+
+                y_min = 10 ** ((self.pivot_zeropoint - 20) / 2.5)
+                ax.set_ylim(
+                    [-y_min, y_max * 1.4]
+                )  # Bottom limit set based on sample runs
+
+                plt.tight_layout()
+                plt.savefig(
+                    os.path.join(
+                        self.plot_dir,
+                        "fpbase_%s.%s" % (headervals["name"], self.plot_suffix),
+                    )
+                )
+                plt.close("fig")
+                plt.close("all")
+                del (fig, ax)
+                gc.collect()
+
+            # Add back zp correction (assumed to be used later)
+            df["ampl"] /= df["ampl_zp_scale"]
+            df["ampl.err"] /= df["ampl_zp_scale"]
+            df["ampl_corr"] /= df["ampl_zp_scale"]
+            df["ampl_err_corr"] /= df["ampl_zp_scale"]
 
         # First datapoint assumed to be latest_alert
         df.sort_values("obsmjd", ascending=False, inplace=True)
@@ -573,22 +581,37 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
             if self.excl_baseline_pp and pp["not_baseline"] == 0:
                 continue
-            #            if not pp['ampl'] or pp['ampl'] < 0:
-            #                continue
 
-            if pp["ampl_corr"] > 0:
-                pp["magpsf"] = -2.5 * np.log10(pp["ampl_corr"]) + pp["magzp"]
-                pp["sigmapsf"] = (
-                    1.0857362047581294 * pp["ampl_err_corr"] / pp["ampl_corr"]
-                )
+            if self.correct_baseline:
+
+                if pp["ampl_corr"] > 0:
+                    pp["magpsf"] = -2.5 * np.log10(pp["ampl_corr"]) + pp["magzp"]
+
+                    #
+                    pp["sigmapsf"] = (
+                        1.0857362047581294 * pp["ampl_err_corr"] / pp["ampl_corr"]
+                    )
+
+            else:
+                if not pp["ampl"] or pp["ampl"] < 0:
+                    continue
+                pp["magpsf"] = -2.5 * np.log10(pp["ampl"]) + pp["magzp"]
+                pp["sigmapsf"] = 1.0857362047581294 * pp["ampl.err"] / pp["ampl"]
 
             pp["fid"] = pp.pop("filterid")
             pp["jd"] = pp.pop("obsmjd") + 2400000.5
             pp["programid"] = 1
             pp["sigma_err"] = pp.pop("sigma.err")
             pp["ampl_err"] = pp.pop("ampl.err")
-            pp["ra"] = float(headervals["ra"])
-            pp["dec"] = float(headervals["dec"])
+
+            if headervals["ra"] != "None":
+                pp["ra"] = float(headervals["ra"])
+            else:
+                pp["ra"] = None
+            if headervals["dec"] != "None":
+                pp["dec"] = float(headervals["dec"])
+            else:
+                pp["dec"] = None
 
             pp_hash = blake2b(encode(pp), digest_size=7).digest()
             pp["candid"] = int.from_bytes(pp_hash, byteorder=sys.byteorder)
