@@ -76,70 +76,22 @@ class NeoWisePhotometryAlertSupplier(BaseAlertSupplier):
         df["W2_mag_ul"].replace(1.0, "True", inplace=True)
         df["W1_flux_density_ul"].replace(1.0, "True", inplace=True)
         df["W2_flux_density_ul"].replace(1.0, "True", inplace=True)
- 
-        df_W1 = df[ ['mean_mjd', 'W1_mean_mag', 'W1_mag_rms', 'W1_mag_ul', 'W1_mean_flux_density', 'W1_flux_density_rms', 'W1_flux_density_ul', 'jd'] ].copy()
-        df_W2 = df[ ['mean_mjd', 'W2_mean_mag', 'W2_mag_rms', 'W2_mag_ul', 'W2_mean_flux_density', 'W2_flux_density_rms', 'W2_flux_density_ul', 'jd'] ].copy()
+
+        if 'timewise_metadata' in d[1].keys():
+            df[list(d[1]['timewise_metadata'].keys())] = pd.DataFrame(list([d[1]['timewise_metadata'].values() ]), index=df.index)
+            selected_columns_W1 = ['mean_mjd', 'W1_mean_mag', 'W1_mag_rms', 'W1_mag_ul', 'W1_mean_flux_density', 'W1_flux_density_rms', 'W1_flux_density_ul', 'jd'] + [col for col in list(d[1]['timewise_metadata'])]
+            selected_columns_W2 = ['mean_mjd', 'W2_mean_mag', 'W2_mag_rms', 'W2_mag_ul', 'W2_mean_flux_density', 'W2_flux_density_rms', 'W2_flux_density_ul', 'jd'] + [col for col in list(d[1]['timewise_metadata']) if 'W2' in col]
+        else:
+            selected_columns_W1 = ['mean_mjd', 'W1_mean_mag', 'W1_mag_rms', 'W1_mag_ul', 'W1_mean_flux_density', 'W1_flux_density_rms', 'W1_flux_density_ul', 'jd'] 
+            selected_columns_W2 = ['mean_mjd', 'W2_mean_mag', 'W2_mag_rms', 'W2_mag_ul', 'W2_mean_flux_density', 'W2_flux_density_rms', 'W2_flux_density_ul', 'jd']
+        df_W1 = df[selected_columns_W1].copy()
+        df_W2 = df[selected_columns_W2].copy()
+       
         df_W1.rename(columns={'W1_mean_flux_density': 'mean_flux', 'W1_flux_density_rms': 'flux_rms', 'W1_mean_mag': 'mean_mag', 'W1_mag_rms': 'mag_rms', 'W1_mag_ul': 'mag_ul', 'W1_flux_density_ul': 'flux_ul'}, inplace=True)
         df_W2.rename(columns={'W2_mean_flux_density': 'mean_flux', 'W2_flux_density_rms': 'flux_rms', 'W2_mean_mag': 'mean_mag', 'W2_mag_rms': 'mag_rms', 'W2_mag_ul': 'mag_ul', 'W2_flux_density_ul': 'flux_ul'}, inplace=True)
 
-
-        if 'timewise_metadata' in d[1].keys():
-            df_W1["N_datapoints_mag"] = d[1]['timewise_metadata']["W1_N_datapoints_mag"]
-            df_W1["mean_weighted_ppb_mag"] = d[1]['timewise_metadata']["W1_mean_weighted_ppb_mag"]
-            df_W1["excess_variance__mag"] = d[1]['timewise_metadata']["W1_excess_variance__mag"]
-            df_W1["excess_variance_err__mag"] = d[1]['timewise_metadata']["W1_excess_variance_err__mag"]
-            df_W1["max_dif_mag"] = d[1]['timewise_metadata']["W1_max_dif_mag"]
-            df_W1["min_rms_mag"] = d[1]['timewise_metadata']["W1_min_rms_mag"]
-            df_W1["median_mag"] = d[1]['timewise_metadata']["W1_median_mag"] 
-            df_W1["chi2_to_med_mag"] = d[1]['timewise_metadata']["W1_chi2_to_med_mag"]
-            df_W1["max_deltat_mag"] = d[1]['timewise_metadata']["W1_max_deltat_mag"] 
-            df_W1["N_datapoints_flux"] = d[1]['timewise_metadata']["W1_N_datapoints_flux"] 
-            df_W1["mean_weighted_ppb_flux"] = d[1]['timewise_metadata']["W1_mean_weighted_ppb_flux"]
-            df_W1["excess_variance__flux"] = d[1]['timewise_metadata']["W1_excess_variance__flux"]
-            df_W1["excess_variance_err__flux" ] = d[1]['timewise_metadata']["W1_excess_variance_err__flux"]
-            df_W1["max_dif_flux"] = d[1]['timewise_metadata']["W1_max_dif_flux"]
-            df_W1["min_rms_flux"] = d[1]['timewise_metadata']["W1_min_rms_flux"]
-            df_W1["median_flux"] = d[1]['timewise_metadata']["W1_median_flux"]
-            df_W1["chi2_to_med_flux"] = d[1]['timewise_metadata']["W1_chi2_to_med_flux"]
-            df_W1["max_deltat_flux"] = d[1]['timewise_metadata']["W1_max_deltat_flux"]
-            df_W1["N_datapoints_flux_density"] = d[1]['timewise_metadata']["W1_N_datapoints_flux_density"]
-            df_W1["mean_weighted_ppb_flux_density"] = d[1]['timewise_metadata']["W1_mean_weighted_ppb_flux_density"]
-            df_W1["excess_variance__flux_density"] = d[1]['timewise_metadata']["W1_excess_variance__flux_density"]
-            df_W1["excess_variance_err__flux_density"] = d[1]['timewise_metadata']["W1_excess_variance_err__flux_density"]
-            df_W1["max_dif_flux_density"] = d[1]['timewise_metadata']["W1_max_dif_flux_density"]
-            df_W1["min_rms_flux_density"] = d[1]['timewise_metadata']["W1_min_rms_flux_density"]
-            df_W1["median_flux_density"] = d[1]['timewise_metadata']["W1_median_flux_density"]
-            df_W1["chi2_to_med_flux_density"] = d[1]['timewise_metadata']["W1_chi2_to_med_flux_density"]
-            df_W1["max_deltat_flux_density"] = d[1]['timewise_metadata']["W1_max_deltat_flux_density"]
-
-            df_W2["N_datapoints_mag"] = d[1]['timewise_metadata']["W2_N_datapoints_mag"]
-            df_W2["mean_weighted_ppb_mag"] = d[1]['timewise_metadata']["W2_mean_weighted_ppb_mag"]
-            df_W2["excess_variance__mag"] = d[1]['timewise_metadata']["W2_excess_variance__mag"]
-            df_W2["excess_variance_err__mag"] = d[1]['timewise_metadata']["W2_excess_variance_err__mag"]
-            df_W2["max_dif_mag"] = d[1]['timewise_metadata']["W2_max_dif_mag"]
-            df_W2["min_rms_mag"] = d[1]['timewise_metadata']["W2_min_rms_mag"]
-            df_W2["median_mag"] = d[1]['timewise_metadata']["W2_median_mag"]
-            df_W2["chi2_to_med_mag"] = d[1]['timewise_metadata']["W2_chi2_to_med_mag"]
-            df_W2["max_deltat_mag"] = d[1]['timewise_metadata']["W2_max_deltat_mag"]
-            df_W2["N_datapoints_flux"] = d[1]['timewise_metadata']["W2_N_datapoints_flux"]
-            df_W2["mean_weighted_ppb_flux"] = d[1]['timewise_metadata']["W2_mean_weighted_ppb_flux"]
-            df_W2["excess_variance__flux"] = d[1]['timewise_metadata']["W2_excess_variance__flux"]
-            df_W2["excess_variance_err__flux" ] = d[1]['timewise_metadata']["W2_excess_variance_err__flux"]
-            df_W2["max_dif_flux"] = d[1]['timewise_metadata']["W2_max_dif_flux"]
-            df_W2["min_rms_flux"] = d[1]['timewise_metadata']["W2_min_rms_flux"]
-            df_W2["median_flux"] = d[1]['timewise_metadata']["W2_median_flux"]
-            df_W2["chi2_to_med_flux"] = d[1]['timewise_metadata']["W2_chi2_to_med_flux"]
-            df_W2["max_deltat_flux"] = d[1]['timewise_metadata']["W2_max_deltat_flux"]
-            df_W2["N_datapoints_flux_density"] = d[1]['timewise_metadata']["W2_N_datapoints_flux_density"]
-            df_W2["mean_weighted_ppb_flux_density"] = d[1]['timewise_metadata']["W2_mean_weighted_ppb_flux_density"]
-            df_W2["excess_variance__flux_density"] = d[1]['timewise_metadata']["W2_excess_variance__flux_density"]
-            df_W2["excess_variance_err__flux_density"] = d[1]['timewise_metadata']["W2_excess_variance_err__flux_density"]
-            df_W2["max_dif_flux_density"] = d[1]['timewise_metadata']["W2_max_dif_flux_density"]
-            df_W2["min_rms_flux_density"] = d[1]['timewise_metadata']["W2_min_rms_flux_density"]
-            df_W2["median_flux_density"] = d[1]['timewise_metadata']["W2_median_flux_density"]
-            df_W2["chi2_to_med_flux_density"] = d[1]['timewise_metadata']["W2_chi2_to_med_flux_density"]
-            df_W2["max_deltat_flux_density"] = d[1]['timewise_metadata']["W2_max_deltat_flux_density"]
-
+        df_W1.columns = df_W1.columns.str.replace("W1_", "")
+        df_W2.columns = df_W2.columns.str.replace("W2_", "")
 
         if 'W1_mag_Npoints' in df.columns:
             df_W1['mag_Npoints'] = df['W1_mag_Npoints']
