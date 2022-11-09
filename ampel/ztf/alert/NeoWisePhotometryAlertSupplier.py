@@ -79,7 +79,7 @@ class NeoWisePhotometryAlertSupplier(BaseAlertSupplier):
 
         if 'timewise_metadata' in d[1].keys():
             df[list(d[1]['timewise_metadata'].keys())] = pd.DataFrame(list([d[1]['timewise_metadata'].values() ]), index=df.index)
-            selected_columns_W1 = ['mean_mjd', 'W1_mean_mag', 'W1_mag_rms', 'W1_mag_ul', 'W1_mean_flux_density', 'W1_flux_density_rms', 'W1_flux_density_ul', 'jd'] + [col for col in list(d[1]['timewise_metadata'])]
+            selected_columns_W1 = ['mean_mjd', 'W1_mean_mag', 'W1_mag_rms', 'W1_mag_ul', 'W1_mean_flux_density', 'W1_flux_density_rms', 'W1_flux_density_ul', 'jd'] + [col for col in list(d[1]['timewise_metadata']) if 'W1' in col]
             selected_columns_W2 = ['mean_mjd', 'W2_mean_mag', 'W2_mag_rms', 'W2_mag_ul', 'W2_mean_flux_density', 'W2_flux_density_rms', 'W2_flux_density_ul', 'jd'] + [col for col in list(d[1]['timewise_metadata']) if 'W2' in col]
         else:
             selected_columns_W1 = ['mean_mjd', 'W1_mean_mag', 'W1_mag_rms', 'W1_mag_ul', 'W1_mean_flux_density', 'W1_flux_density_rms', 'W1_flux_density_ul', 'jd'] 
