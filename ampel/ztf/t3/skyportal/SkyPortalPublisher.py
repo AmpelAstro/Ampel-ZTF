@@ -8,7 +8,7 @@
 
 import asyncio, nest_asyncio
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from collections.abc import Generator
 
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
@@ -23,12 +23,34 @@ if TYPE_CHECKING:
 
 
 class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
+    """
+    Publish data at SkyPortal instance.
+
+    Optionally specify to which groups and/or filters.
+
+    Optionally speficy t2 results which (if present) are transferred as
+    comments or annotations:
+    comments: { 'T2 unit name': { 'publish as':'t2.body.path'},
+                'T2RunSncosmo': {'AMPEL SALT lcfit':'sncosmo_result.paramdict'}
+                }
+    annotations: {
+                'T2BrightSNProb': {'SNGuess P(SN)':'SNGuess'}
+                }
+
+    Annotations should have an origin (string) as well as data (json dict)
+    maybe keep current AMPEL:unit as origin?
+
+
+    """
 
     #: Save sources to these groups
     groups: None | list[str] = None
     filters: None | list[str] = None
-    #: Post T2 results as annotations instead of comments
-    annotate: bool = False
+
+    #: Which t2 results to post as comments or annotations
+    comments: dict[str, Any] = {}
+    annotations: dict[str, Any] = {}
+
     #: Explicitly post photometry for each stock. If False, rely on some backend
     #: service (like Kowalski on Fritz) to fill in photometry for sources.
     include_photometry: bool = True
@@ -97,7 +119,8 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
                     view,
                     groups=self.groups,
                     filters=self.filters,
-                    annotate=self.annotate,
+                    annotations=self.annotations,
+                    comments=self.comments,
                     post_photometry=self.include_photometry,
                 )
             )
