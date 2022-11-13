@@ -498,24 +498,37 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             print('XXX posting comment', com_name, com_dict)
             # Check whether previous comment with this text exists
             for comment in previous_comments:
-                if comment["text"] == com_name:
+#                if comment["text"] == com_name:
+#                    break
+                if ":".split(comment["text"])[-1] == com_name:
                     break
             else:
                 # post new comment
                 self.logger.debug(f"posting {com_name} from {unit}")
                 print('YYY what I will transfer', encode_t2_body(com_dict, unit_ts))
+                # TODO: Skyportal cannot seem to display jsons well, so convert to text:
+                mess = ','.join([
+                            f' {k}: {v:.3f}' if isinstance(v, float)
+                            else f' {k}: {v}'
+                            for k, v in
+                            flatten_dict( sanitize_json(com_dict), ".").items()
+                                ])
+                mess = com_name + ': ' + mess
+                print('YYY2 the message', mess)
+
                 try:
                     reply = await self.post(
                         f"sources/{name}/comments",
                         json={
-                            "text": com_name,
+                            "text": mess,
                             # TODO: what happens if no group is set?
                             # Submitted to all or none?
                             "group_ids":list(group_ids),
-                            "attachment": {
-                                "body": encode_t2_body(com_dict, unit_ts),
-                                "name": f"{name}-{unit}-{com_name}.json",
-                            },
+                            # TODO: Disable attachment for now - json kills Fritz
+#                            "attachment": {
+#                                "body": encode_t2_body(com_dict, unit_ts),
+#                                "name": f"{name}-{unit}-{com_name}.json",
+#                            },
                         },
                     )
                     print('JJJ after submit', reply)
@@ -534,14 +547,22 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             if unit_ts > previous_body["ts"]:
                 self.logger.debug(f"updating {com_name} from {unit}")
                 print('VVV updating')
+                # TODO: Skyportal cannot seem to display jsons well, so convert to text:
+                mess = ','.join([
+                            f' {k}: {v:.3f}' if isinstance(v, float)
+                            else f' {k}: {v}'
+                            for k, v in
+                            flatten_dict( sanitize_json(com_dict), ".").items()
+                                ])
+                mess = com_name + ': ' + mess
                 try:
                     await self.put(
                         f"sources/{name}/comment/{comment['id']}",
                         json={
-                            "attachment_bytes": encode_t2_body(com_dict, unit_ts),
+#                            "attachment_bytes": encode_t2_body(com_dict, unit_ts),
                             "author_id": comment["author_id"],
                             "obj_id": name,
-                            "text": comment["text"],
+                            "text": mess,
                         },
                     )
                     ret["comments"] += 1

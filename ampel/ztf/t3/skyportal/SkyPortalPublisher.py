@@ -40,6 +40,9 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
     Annotations should have an origin (string) as well as data (json dict)
     maybe keep current AMPEL:unit as origin?
 
+    Note: Not clear how/what to display as attachement. At this point we
+    assume also comment attachements are str/float dicts.
+
 
     """
 
