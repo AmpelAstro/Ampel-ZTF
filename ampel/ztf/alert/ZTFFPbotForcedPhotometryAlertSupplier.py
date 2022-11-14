@@ -88,7 +88,9 @@ dcast = {
     "pre_or_post": int,
     "not_baseline": int,
     "ampl_corr": float,
-    "ampel_err_corr": float,
+    "ampl_err_corr": float,
+    "flux_Jy": float,
+    "flux_err_Jy": float,
 }
 
 
@@ -567,6 +569,14 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             df["ampl.err"] /= df["ampl_zp_scale"]
             df["ampl_corr"] /= df["ampl_zp_scale"]
             df["ampl_err_corr"] /= df["ampl_zp_scale"]
+            F0 = 10 ** (df.magzp / 2.5)
+            F0_err = F0 / 2.5 * np.log(10) * df.magzpunc
+            Fratio = df.ampl_corr / F0
+            Fratio_err = np.sqrt(
+                (df.ampl_err_corr / F0) ** 2 + (df.ampl_corr * F0_err / F0**2) ** 2
+            )
+            df["flux_Jy"] = Fratio
+            df["flux_err_Jy"] = Fratio_err
 
         # First datapoint assumed to be latest_alert
         df.sort_values("obsmjd", ascending=False, inplace=True)
