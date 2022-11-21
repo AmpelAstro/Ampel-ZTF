@@ -4,8 +4,8 @@
 # License           : BSD-3-Clause
 # Author            : Marcus Fenner <mf@physik.hu-berlin.de>
 # Date              : 26.05.2021
-# Last Modified Date: 05.05.2022
-# Last Modified By  : Marcus Fenner <mf@physik.hu-berlin.de>
+# Last Modified Date: 21.11.2022
+# Last Modified By  : Alice Townsend < @physik.hu-berlin.de>
 
 from typing import Any, Sequence, Iterable
 from ampel.types import StockId
@@ -36,15 +36,15 @@ class ZTFT2Tabulator(AbsT2Tabulator):
         self, dps: Iterable[DataPoint]
     ) -> Iterable[DataPoint]:
         return [dp for dp in dps
-                    if 'ZTF' in dp['tag'] and 'magpsf' in dp['body'].keys() ]
+                     if 'ZTF' in dp['tag'] and 'magpsf' in dp['body'].keys() ]
 
     def get_flux_table(
         self,
         dps: Iterable[DataPoint],
     ) -> Table:
-        magpsf, sigmapsf, jd, fids, magzpsci, isdiffpos = self.get_values(
+        magpsf, sigmapsf, jd, fids, isdiffpos = self.get_values(
             self.filter_detections(dps),
-            ["magpsf", "sigmapsf", "jd", "fid", "magzpsci", "isdiffpos"]
+            ["magpsf", "sigmapsf", "jd", "fid", "isdiffpos"]
         )
         filter_names = [ZTF_BANDPASSES[fid]["name"] for fid in fids]
         signs = [signdict[el] for el in isdiffpos]
@@ -58,7 +58,7 @@ class ZTFT2Tabulator(AbsT2Tabulator):
                 "flux": flux,
                 "fluxerr": fluxerr,
                 "band": filter_names,
-                "zp": magzpsci,
+                "zp": 25,
                 "zpsys": ["ab"] * len(filter_names),
             },
             dtype=("float64", "float64", "float64", "str", "int64", "str"),
