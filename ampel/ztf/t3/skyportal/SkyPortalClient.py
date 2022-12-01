@@ -167,13 +167,12 @@ class SkyPortalClient(AmpelUnit):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
+        self._request_kwargs = {
+            "headers": {"Authorization": f"token {self.token.get()}"}
+        }
         self._ids: dict[str, dict[str, int]] = {}
         self._session: None | aiohttp.ClientSession = None
         self._semaphore: None | asyncio.Semaphore = None
-
-    @property
-    def _request_kwargs(self):
-        return {"headers": {"Authorization": f"token {self.token.get()}"}}
 
     @asynccontextmanager
     async def session(self, limit_per_host=0):
