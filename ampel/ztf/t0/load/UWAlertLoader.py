@@ -12,7 +12,7 @@ import itertools
 import logging
 import uuid
 from collections import defaultdict
-from typing import DefaultDict, Literal
+from typing import Literal, Any
 from collections.abc import Iterator
 
 import fastavro
@@ -36,6 +36,8 @@ class UWAlertLoader(AmpelUnit):
     group_name: str = str(uuid.uuid1())
     #: time to wait for messages before giving up, in seconds
     timeout: int = 1
+    #: extra configuration to pass to confluent_kafka.Consumer
+    kafka_consumer_properties: dict[str,Any] = {}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -43,7 +45,7 @@ class UWAlertLoader(AmpelUnit):
 
         if self.stream == "ztf_uw_private":
             topics.append("^ztf_.*_programid2$")
-        config = {"group.id": f"{self.group_name}-{self.stream}"}
+        config = {"group.id": f"{self.group_name}-{self.stream}"} | self.kafka_consumer_properties
 
         self._consumer = AllConsumingConsumer(
             self.bootstrap, timeout=self.timeout, topics=topics, **config

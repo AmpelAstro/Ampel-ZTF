@@ -34,6 +34,8 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
     timeout: int = 300
     #: Number of alerts to post at once
     chunk_size: int = 1000
+    #: extra configuration to pass to confluent_kafka.Consumer
+    kafka_consumer_properties: dict[str,Any] = {}
 
     @cached_property
     def consumer(self) -> AllConsumingConsumer:
@@ -43,6 +45,7 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
             topics=self.topics,
             auto_commit=False,
             **{"group.id": self.group_name},
+            **self.kafka_consumer_properties,
         )
 
     def _chunks(self) -> Iterator[bytes]:
