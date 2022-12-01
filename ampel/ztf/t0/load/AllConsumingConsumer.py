@@ -16,6 +16,7 @@ import uuid
 import confluent_kafka
 
 from ampel.metrics.AmpelMetricsRegistry import AmpelMetricsRegistry
+from ampel.protocol.LoggerProtocol import LoggerProtocol
 
 
 class KafkaMetrics:
@@ -108,6 +109,7 @@ class AllConsumingConsumer:
         timeout=None,
         topics=["^ztf_.*"],
         auto_commit=True,
+        logger: None | LoggerProtocol=None,
         **consumer_config,
     ):
         """ """
@@ -129,6 +131,7 @@ class AllConsumingConsumer:
         }
         config.update(**consumer_config)
         self._consumer = confluent_kafka.Consumer(**config)
+        self._logger = logger
 
         self._consumer.subscribe(topics)
         if timeout is None:
@@ -139,7 +142,7 @@ class AllConsumingConsumer:
             self._poll_attempts = max((1, int(timeout / self._poll_interval)))
         self._timeout = timeout
 
-        self._offsets = {}
+        self._offsets: dict[tuple[str,int],int] = {}
         self._auto_commit = auto_commit
 
     def __next__(self):
@@ -158,6 +161,8 @@ class AllConsumingConsumer:
                 confluent_kafka.TopicPartition(topic, partition, offset + 1)
                 for (topic, partition), offset in self._offsets.items()
             ]
+            if self._logger:
+                self._logger.debug(f"Storing offsets: {offsets}")
             self._consumer.store_offsets(offsets=offsets)
             self._offsets.clear()
 
@@ -186,6 +191,8 @@ class AllConsumingConsumer:
                         confluent_kafka.KafkaError._MAX_POLL_EXCEEDED,
                     ):
                         # bail on timeouts
+                        if self._logger:
+                            self._logger.debug(f"Got {err}")
                         return None
                 break
 

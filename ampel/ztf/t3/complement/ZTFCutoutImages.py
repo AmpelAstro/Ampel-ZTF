@@ -6,7 +6,7 @@
 # Last Modified Date:  18.09.2020
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import backoff, requests # type: ignore[import]
+import backoff, requests  # type: ignore[import]
 from base64 import b64decode
 from requests_toolbelt.sessions import BaseUrlSession
 from typing import Literal
@@ -31,7 +31,9 @@ class ZTFCutoutImages(AbsBufferComplement):
         super().__init__(**kwargs)
 
         self.session = BaseUrlSession(
-            base_url=context.config.get("resource.ampel-ztf/archive", str, raise_exc=True)
+            base_url=context.config.get(
+                "resource.ampel-ztf/archive", str, raise_exc=True
+            )
         )
 
     @backoff.on_exception(
@@ -43,7 +45,8 @@ class ZTFCutoutImages(AbsBufferComplement):
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup=lambda e: not isinstance(e, requests.HTTPError) or e.response.status_code not in {503, 504, 429, 408},
+        giveup=lambda e: not isinstance(e, requests.HTTPError)
+        or e.response.status_code not in {502, 503, 504, 429, 408},
         max_time=60,
     )
     def get_cutout(self, candid: int) -> None | dict[str, bytes]:

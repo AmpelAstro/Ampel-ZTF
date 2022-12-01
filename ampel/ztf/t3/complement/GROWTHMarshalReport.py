@@ -7,7 +7,7 @@
 # Date:                03.11.2020
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import backoff, requests # type: ignore[import]
+import backoff, requests  # type: ignore[import]
 from typing import Any
 from collections.abc import Sequence, Iterable
 
@@ -40,7 +40,8 @@ class GROWTHMarshalReport(CatalogMatchContextUnit, AbsBufferComplement):
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup=lambda e: not isinstance(e, requests.HTTPError) or e.response.status_code not in {503, 429},
+        giveup=lambda e: not isinstance(e, requests.HTTPError)
+        or e.response.status_code not in {502, 503, 429},
         max_time=60,
     )
     def _lookup(self, name) -> None | dict[str, Any]:

@@ -4,8 +4,8 @@
 # License:             BSD-3-Clause
 # Author:              Jakob van Santen <jakob.van.santen@desy.de>
 # Date:                10.03.2021
-# Last Modified Date:  10.03.2021
-# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
+# Last Modified Date:  30.11.2022
+# Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
 
 from functools import cached_property
 from typing import (
@@ -130,7 +130,8 @@ class CatalogMatchUnitBase:
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup=lambda e: not isinstance(e, requests.HTTPError) or e.response.status_code not in {503, 504, 429, 408},
+        giveup=lambda e: not isinstance(e, requests.HTTPError)
+        or e.response.status_code not in {502, 503, 504, 429, 408},
         max_time=60,
     )
     def _cone_search(

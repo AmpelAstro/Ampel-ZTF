@@ -34,6 +34,8 @@ class ZTFAlertArchiver(AbsOpsUnit):
     topics: list[str] = ["^ztf_.*_programid1$", "^ztf_.*_programid2$"]
     #: Time to wait for messages before giving up, in seconds
     timeout: int = 300
+    #: extra configuration to pass to confluent_kafka.Consumer
+    kafka_consumer_properties: dict[str,Any] = {}
     #: URI of postgres server hosting the archive
     archive_uri: str
     archive_auth: NamedSecret[dict] = NamedSecret(label="ztf/archive/writer")
@@ -50,7 +52,9 @@ class ZTFAlertArchiver(AbsOpsUnit):
             self.bootstrap,
             timeout=self.timeout,
             topics=self.topics,
+            logger=self.logger,
             **{"group.id": self.group_name},
+            **self.kafka_consumer_properties,
         )
 
     def run(self, beacon: None | dict[str, Any] = None) -> None | dict[str, Any]:

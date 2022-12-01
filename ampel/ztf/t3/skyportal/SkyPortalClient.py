@@ -3,8 +3,8 @@
 # File:                Ampel-ZTF/ampel/ztf/t3/skyportal/SkyPortalClient.py
 # Author:              Jakob van Santen <jakob.van.santen@desy.de>
 # Date:                16.09.2020
-# Last Modified Date:  16.09.2020
-# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
+# Last Modified Date:  24.11.2022
+# Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
 
 import asyncio, base64, gzip, io, json, math, time, aiohttp, backoff
 import numpy as np
@@ -90,12 +90,18 @@ def encode_t2_body(t2: "T2DocView") -> str:
     ).decode()
 
 
-def decode_t2_body(blob: str | dict[str,Any]) -> dict[str, Any]:
-    doc = json.loads(base64.b64decode(blob.encode()).decode()) if isinstance(blob, str) else blob
+def decode_t2_body(blob: str | dict[str, Any]) -> dict[str, Any]:
+    doc = (
+        json.loads(base64.b64decode(blob.encode()).decode())
+        if isinstance(blob, str)
+        else blob
+    )
     return {"ts": int(datetime.fromisoformat(doc.pop("timestamp")).timestamp()), **doc}
 
 
-def get_t2_result(t2: "T2DocView") -> tuple[None, None] | tuple[datetime, dict[str, Any]]:
+def get_t2_result(
+    t2: "T2DocView",
+) -> tuple[None, None] | tuple[datetime, dict[str, Any]]:
     assert t2.body is not None
     for meta, record in zip(reversed(t2.meta), reversed(t2.body)):
         if meta.get("code", DocumentCode.OK) == DocumentCode.OK:
@@ -161,12 +167,13 @@ class SkyPortalClient(AmpelUnit):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self._request_kwargs = {
-            "headers": {"Authorization": f"token {self.token.get()}"}
-        }
         self._ids: dict[str, dict[str, int]] = {}
         self._session: None | aiohttp.ClientSession = None
         self._semaphore: None | asyncio.Semaphore = None
+
+    @property
+    def _request_kwargs(self):
+        return {"headers": {"Authorization": f"token {self.token.get()}"}}
 
     @asynccontextmanager
     async def session(self, limit_per_host=0):
@@ -250,7 +257,10 @@ class SkyPortalClient(AmpelUnit):
                         payload = await response.json(content_type=None)
                         if raise_exc:
                             # only check status if endpoint knows it was returning JSON
-                            if response.content_type == "application/json" and payload["status"] != "success":
+                            if (
+                                response.content_type == "application/json"
+                                and payload["status"] != "success"
+                            ):
                                 raise SkyPortalAPIError(payload["message"], url, kwargs)
                             # otherwise, believe status code
                             else:
@@ -570,9 +580,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                     f"sources/{name}/comments/{comment['id']}/attachment",
                 )
             )
-            if (t2.body is not None) and (
-                t2.meta[-1]["ts"] > previous_body["ts"]
-            ):
+            if (t2.body is not None) and (t2.meta[-1]["ts"] > previous_body["ts"]):
                 self.logger.debug(f"updating {t2.unit}")
                 try:
                     await self.put(
@@ -802,7 +810,10 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             if t2.code != DocumentCode.OK or not t2.body:
                 continue
             assert isinstance(t2.unit, str)
-            if t2.unit not in latest_t2 or latest_t2[t2.unit].meta[-1]["ts"] < t2.meta[-1]["ts"]:
+            if (
+                t2.unit not in latest_t2
+                or latest_t2[t2.unit].meta[-1]["ts"] < t2.meta[-1]["ts"]
+            ):
                 latest_t2[t2.unit] = t2
 
         if annotate:
