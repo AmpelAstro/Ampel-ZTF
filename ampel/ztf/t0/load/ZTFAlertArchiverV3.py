@@ -44,6 +44,7 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
             timeout=self.timeout,
             topics=self.topics,
             auto_commit=False,
+            logger=self.logger,
             **{"group.id": self.group_name},
             **self.kafka_consumer_properties,
         )
@@ -81,6 +82,7 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
         yield from emit()
 
     def _post_chunk(self, payload: bytes):
+        self.logger.debug(f"Posting chunk of size {len(payload)}")
         response = self.session.post("alerts", data=payload)
         response.raise_for_status()
 

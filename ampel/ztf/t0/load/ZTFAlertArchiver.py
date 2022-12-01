@@ -52,6 +52,7 @@ class ZTFAlertArchiver(AbsOpsUnit):
             self.bootstrap,
             timeout=self.timeout,
             topics=self.topics,
+            logger=self.logger,
             **{"group.id": self.group_name},
             **self.kafka_consumer_properties,
         )
