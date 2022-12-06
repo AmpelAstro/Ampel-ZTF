@@ -163,8 +163,15 @@ class AllConsumingConsumer:
             ]
             if self._logger:
                 self._logger.debug(f"Storing offsets: {offsets}")
-            self._consumer.store_offsets(offsets=offsets)
-            self._offsets.clear()
+            if self._auto_commit:
+                self._consumer.store_offsets(offsets=offsets)
+                self._offsets.clear()
+            else:
+                for toppar in self._consumer.commit(offsets=offsets, asynchronous=False):
+                    if toppar.error:
+                        self._logger.error(f"Commit {toppar} failed with {toppar.error}")
+                    else:
+                        del self._offsets[(toppar.topic, toppar.partition)]
 
     def consume(self) -> None | confluent_kafka.Message:
         """
