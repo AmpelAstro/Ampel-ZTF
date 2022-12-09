@@ -454,6 +454,10 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         df = pd.read_csv(fileio, sep=",", comment="#")
 
+        if df.shape[0] == 0:
+            self.logger.info("Dataframe is empty, skipping")
+            return self.__next__()
+
         if not "pass" in df.keys():
             self.logger.info("No datapoints surviving quality cuts")
             return self.__next__()
