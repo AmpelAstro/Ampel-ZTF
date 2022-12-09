@@ -454,6 +454,10 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         df = pd.read_csv(fileio, sep=",", comment="#")
 
+        if not "pass" in df.keys():
+            self.logger.info("No datapoints surviving quality cuts")
+            return self.__next__()
+
         if self.correct_baseline:
 
             if self.excl_poor_conditions:
