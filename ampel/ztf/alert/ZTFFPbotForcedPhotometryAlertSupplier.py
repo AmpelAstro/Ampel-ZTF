@@ -18,7 +18,6 @@ import numpy as np
 import pandas as pd
 import gc
 import matplotlib.pyplot as plt
-import ztfquery
 
 # from appdirs import user_cache_dir
 from astropy.time import Time
@@ -414,6 +413,8 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
     plot_suffix: Optional[str]
     plot_dir: Optional[str]
 
+    save_dir: Optional[str]
+
     def __init__(self, **kwargs) -> None:
 
         kwargs["deserialize"] = None
@@ -427,17 +428,15 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         fileio = next(self.alert_loader)
 
-        #        headervals= {}
         headervals: dict[str, Any] = {
+            "name": None,
             "ra": None,
             "dec": None,
-            "name": None,
             "lastobs": None,
             "lastdownload": None,
             "lastfit": None,
         }
 
-        #        ra, dec, snname, lastobs, lastdownload, lastfit = None, None, None, None, None, None
         for byteline in fileio.readlines():
             for headerkey in headervals.keys():
                 m = re.search("#(%s)=(.+)" % (headerkey), str(byteline, "UTF-8"))
@@ -447,7 +446,10 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             if not still_looking:
                 break
 
+        name: str = headervals["name"]
+
         fileio.seek(0)
+
         tags: list[Tag] = ["FPbot", "ZTF", "ZTF_PRIV"]
 
         df = pd.read_csv(fileio, sep=",", comment="#")
@@ -455,8 +457,6 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
         if self.correct_baseline:
 
             if self.excl_poor_conditions:
-                # Should be equivalent
-                #            df = df[(df['ampl.err']>0) & (df['chi2dof']<3) & (df['cloudy']==0) & (df['infobits']==0) & (df['pass']==1)]
                 df = df[(df["pass"] == 1)]
 
             # Correct for common zeropoint
@@ -477,16 +477,19 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
             self.logger.info("Corrected baseline", extra=baseline_info)
 
+            if self.save_dir and df.shape[0] > 0:
+                outpath = os.path.join(self.save_dir, f"{name}_blcorr.csv")
+                with open(outpath, "w") as f:
+                    for key, val in headervals.items():
+                        f.write(f"#{key}={val}\n")
+                    df.to_csv(f)
+                self.logger.info(f"Saved baseline to {outpath}")
+
             if df.shape[0] == 0:
                 self.logger.info("No baseline")
                 return self.__next__()
 
             # Plot
-
-            # color_dict = {"1": "MediumAquaMarine", "2": "Crimson", "3": "Goldenrod"}
-            """
-            Jakob, if you have aesthetic misgivings, feel free to change back to the old color scheme ;)
-            """
             color_dict = {"1": "green", "2": "red", "3": "orange"}
 
             if self.plot_suffix and self.plot_dir:
@@ -503,24 +506,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
                     if "flux_max" in binfo.keys() and binfo["flux_max"] > y_max:
                         y_max = binfo["flux_max"]
-                    # ax.errorbar(
-                    #     df_sub.obsmjd,
-                    #     df_sub.ampl,
-                    #     df_sub["ampl.err"],
-                    #     fmt="^",
-                    #     mec="grey",
-                    #     ecolor=color_dict[key[-1]],
-                    #     mfc="None",
-                    # )
-                    # ax.errorbar(
-                    #     df_sub.obsmjd,
-                    #     df_sub.ampl_corr,
-                    #     df_sub.ampl_err_corr,
-                    #     fmt="o",
-                    #     mec=color_dict[key[-1]],
-                    #     ecolor=color_dict[key[-1]],
-                    #     mfc="None",
-                    # )
+
                     ax.errorbar(
                         df_sub.obsmjd,
                         df_sub.ampl_corr,
