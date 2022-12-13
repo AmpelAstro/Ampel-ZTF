@@ -157,12 +157,13 @@ class SkyPortalClient(AmpelUnit):
 
     @classmethod
     def validate(cls, value: dict) -> Any:
-        super().validate(value)
+        value = super().validate(value)
         url = urlparse(value["base_url"])
         if url.scheme not in ("http", "https"):
             raise ValueError("base_url must be http(s)")
         if value["base_url"].endswith("/"):
             raise ValueError("base_url may not have a path set")
+        return value
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
