@@ -17,13 +17,13 @@ from collections.abc import Iterator
 
 import fastavro
 
-from ampel.base.AmpelUnit import AmpelUnit
+from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.ztf.t0.load.AllConsumingConsumer import AllConsumingConsumer
 
 log = logging.getLogger(__name__)
 
 
-class UWAlertLoader(AmpelUnit):
+class UWAlertLoader(AbsAlertLoader[io.IOBase]):
     """
     Iterable class that loads avro alerts from the Kafka stream 
     provided by University of Washington (UW) 
@@ -50,6 +50,7 @@ class UWAlertLoader(AmpelUnit):
         self._consumer = AllConsumingConsumer(
             self.bootstrap, timeout=self.timeout, topics=topics, **config
         )
+        self._it: Iterator[io.BytesIO] | None = None
 
     def alerts(self, limit: None | int=None) -> Iterator[io.BytesIO]:
         """
@@ -70,5 +71,7 @@ class UWAlertLoader(AmpelUnit):
             yield io.BytesIO(message.value())
         log.info("Got messages from topics: {}".format(dict(topic_stats)))
 
-    def __iter__(self) -> Iterator[io.IOBase]:
-        return self.alerts()
+    def __next__(self) -> io.BytesIO:
+        if self._it is None:
+            self._it = self.alerts()
+        return next(self._it)
