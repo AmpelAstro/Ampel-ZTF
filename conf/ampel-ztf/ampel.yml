@@ -36,7 +36,6 @@ unit:
 - ampel.ztf.alert.ZiTaggedAlertSupplier
 - ampel.ztf.alert.ZTFForcedPhotometryAlertSupplier
 - ampel.ztf.alert.ZTFFPbotForcedPhotometryAlertSupplier
-- ampel.ztf.alert.NeoWisePhotometryAlertSupplier
 - ampel.ztf.t0.load.UWAlertLoader
 - ampel.ztf.t0.load.ZTFArchiveAlertLoader
 - ampel.ztf.util.ZTFIdMapper
