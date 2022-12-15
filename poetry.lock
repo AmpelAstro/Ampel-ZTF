@@ -130,18 +130,18 @@ docs = ["Sphinx (>=5.1.1,<5.2.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)",
 
 [[package]]
 name = "ampel-core"
-version = "0.8.3b10"
+version = "0.8.3b11"
 description = "Alice in Modular Provenance-Enabled Land"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.11"
 files = [
-    {file = "ampel_core-0.8.3b10-py3-none-any.whl", hash = "sha256:5e79472b119ebc7f9bd9da802ffeafbc6e5bcc2ea8362bfb5cdb2ee623f3f257"},
-    {file = "ampel_core-0.8.3b10.tar.gz", hash = "sha256:4e59abf32cd1f14519f40962c20b3ceb58d92119701a0c82f1afef22b94a8bc4"},
+    {file = "ampel_core-0.8.3b11-py3-none-any.whl", hash = "sha256:57f979f730b934115f76adc13893accb19f1c608b14757364b92cd45d97a89a3"},
+    {file = "ampel_core-0.8.3b11.tar.gz", hash = "sha256:4218652f132eb35a54f2c237fef3e4607aeb1b1ac97666a672e3cebff3a11104"},
 ]
 
 [package.dependencies]
-ampel-interface = ">=0.8.3b9,<0.9.0"
+ampel-interface = ">=0.8.3b10,<0.9.0"
 appdirs = ">=1.4.4,<2.0.0"
 prometheus-client = ">=0.10,<0.12"
 psutil = ">=5.8.0,<6.0.0"
@@ -159,14 +159,14 @@ slack = ["slack-sdk (>=3.18.1,<4.0.0)"]
 
 [[package]]
 name = "ampel-interface"
-version = "0.8.3b9"
+version = "0.8.3b10"
 description = "Base classes for the Ampel analysis platform"
 category = "main"
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "ampel_interface-0.8.3b9-py3-none-any.whl", hash = "sha256:db6ef448b184c7da7ecd0c56903c7f24cab74fbafdade77102dd2825d4efe762"},
-    {file = "ampel_interface-0.8.3b9.tar.gz", hash = "sha256:0f7b2c8987385f1d2f3f369b26a25498249d8ab99b218aa21bc5ef8390175b29"},
+    {file = "ampel_interface-0.8.3b10-py3-none-any.whl", hash = "sha256:5a5fd19b78e5ac1eb415ff8cc056364525f50c77d66d6d2e56a19aa1f262bcc4"},
+    {file = "ampel_interface-0.8.3b10.tar.gz", hash = "sha256:2c54bdf090c301905951527c53018e899914d1b0523be622d213bc5dc7131924"},
 ]
 
 [package.dependencies]
@@ -2727,4 +2727,4 @@ plot = ["ampel-plot"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "5e8b4dece0d8e13ec85d0966318cf3aa3722f473c17da3b660ab61216a710f5c"
+content-hash = "568a0d8ecdbb6a26780697163061c529a2e92550688d88cf0ea1596dc0bc2245"
