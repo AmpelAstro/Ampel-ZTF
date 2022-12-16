@@ -130,14 +130,14 @@ docs = ["Sphinx (>=5.1.1,<5.2.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)",
 
 [[package]]
 name = "ampel-core"
-version = "0.8.3b11"
+version = "0.8.3b12"
 description = "Alice in Modular Provenance-Enabled Land"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.11"
 files = [
-    {file = "ampel_core-0.8.3b11-py3-none-any.whl", hash = "sha256:57f979f730b934115f76adc13893accb19f1c608b14757364b92cd45d97a89a3"},
-    {file = "ampel_core-0.8.3b11.tar.gz", hash = "sha256:4218652f132eb35a54f2c237fef3e4607aeb1b1ac97666a672e3cebff3a11104"},
+    {file = "ampel_core-0.8.3b12-py3-none-any.whl", hash = "sha256:63e490e79c4437d9385dabf9c50a72f7a9579b4d584b9cfdbda1c72e896f753f"},
+    {file = "ampel_core-0.8.3b12.tar.gz", hash = "sha256:b03e9101ac2cd5bbb3dbc8b0d9cca2c8cdeaf81ccee2433697da50f055607bb5"},
 ]
 
 [package.dependencies]
@@ -2727,4 +2727,4 @@ plot = ["ampel-plot"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "568a0d8ecdbb6a26780697163061c529a2e92550688d88cf0ea1596dc0bc2245"
+content-hash = "bef35d409014a8aac087384185762596922c4bf4f2061143008aa3445f8179fc"
