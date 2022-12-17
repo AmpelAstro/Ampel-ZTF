@@ -873,6 +873,16 @@ unit:
     distrib: ampel-ztf
     file: /Users/jakob/Documents/ZTF/Ampel-v0.8/Ampel-ZTF/conf/ampel-ztf/ampel.yml
     version: 0.8.0a0
+  ZiCompilerOptions:
+    fqn: ampel.ztf.ingest.ZiCompilerOptions
+    base:
+    - ZiCompilerOptions
+    - CompilerOptions
+    - AuxAliasableModel
+    - AmpelBaseModel
+    distrib: ampel-ztf
+    file: /Users/jakob/Documents/ZTF/Ampel-v0.8.3/Ampel-ZTF/conf/ampel-ztf/ampel.yml
+    version: 0.8.3a2
   ZiHealpixAlertSupplier:
     fqn: ampel.ztf.alert.ZiHealpixAlertSupplier
     base:

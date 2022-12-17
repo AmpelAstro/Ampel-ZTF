@@ -1,3 +1,4 @@
+from ampel.base.AuxUnitRegister import AuxUnitRegister
 from ampel.config.AmpelConfig import AmpelConfig
 from ampel.core.UnitLoader import UnitLoader
 from ampel.model.ingest.FilterModel import FilterModel
@@ -18,8 +19,10 @@ def logger():
 
 @pytest.fixture
 def unit_loader(first_pass_config):
+    config = AmpelConfig(first_pass_config, freeze=True)
+    AuxUnitRegister.initialize(config)
     return UnitLoader(
-        AmpelConfig(first_pass_config, freeze=True), db=None, provenance=False
+        config, db=None, provenance=False
     )
 
 
@@ -55,6 +58,8 @@ def test_alert_only(logger, first_pass_config, unit_loader: UnitLoader):
 
     with unit_loader.validate_unit_models():
         ProcessModel(**(process | {"version": 0}))
+
+    assert process["processor"]["config"]["compiler_opts"], "compiler options set"
 
 
 def test_alert_t2(logger, first_pass_config):
