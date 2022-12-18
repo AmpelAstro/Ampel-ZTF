@@ -12,6 +12,7 @@ from ampel.log.AmpelLogger import AmpelLogger
 from ampel.config.builder.FirstPassConfig import FirstPassConfig
 from ampel.template.AbsEasyChannelTemplate import AbsEasyChannelTemplate
 from ampel.model.ingest.T2Compute import T2Compute
+from ampel.ztf.ingest.ZiCompilerOptions import ZiCompilerOptions
 
 
 class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
@@ -66,7 +67,7 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
 			)
 
 		if not any(model.unit == "T2LightCurveSummary" for model in self.t2_compute):
-			self.t2_compute.append(T2Compute(unit="T2LightCurveSummary"))
+			self.t2_compute.append(T2Compute(unit="T2LightCurveSummary")) # type: ignore[arg-type]
 
 		mongo_muxer = {"unit": "ZiMongoMuxer"} if self.live_history else None
 		archive_muxer = (
@@ -75,7 +76,7 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
 			else None
 		)
 		if mongo_muxer and archive_muxer:
-			muxer: None | dict[str,Any] = {
+			muxer: None | dict[str, Any] = {
 				"unit": "ChainedT0Muxer",
 				"config": {"muxers": [mongo_muxer, archive_muxer]},
 			}
@@ -108,10 +109,8 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
 				shaper="ZiDataPointShaper",
 				muxer=muxer,
 				combiner={"unit": "ZiT1Combiner", "config": {"access": self.access, "policy": self.policy}},
-				compiler_opts="ZiCompilerOptions",
+				compiler_opts=ZiCompilerOptions()
 			),
 		)
-
-
 
 		return ret

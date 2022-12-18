@@ -7,13 +7,12 @@
 # Last Modified Date:  14.11.2018
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-# type: ignore[import]
 # pylint: disable=bad-builtin
 def archive_topic():
 
 	from ampel.ztf.t0.load.AllConsumingConsumer import AllConsumingConsumer
 	from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-	import itertools, tarfile, time, os, pwd, grp, uuid, socket, fastavro, io
+	import tarfile, time, os, pwd, grp, uuid, fastavro, io
 
 	parser = ArgumentParser(description=__doc__, formatter_class=ArgumentDefaultsHelpFormatter)
 	parser.add_argument("--broker", type=str, default="epyc.astro.washington.edu:9092")
@@ -24,7 +23,7 @@ def archive_topic():
 	opts = parser.parse_args()
 
 	consumer = AllConsumingConsumer(
-		opts.broker, topics=[opts.topic], timeout=20, **{'group.id':uuid.uuid1()}
+		opts.broker, topics=[opts.topic], timeout=20, **{'group.id': uuid.uuid1()}
 	)
 
 	def trim_alert(payload):
@@ -65,16 +64,16 @@ def archive_topic():
 			num_bytes += len(message.value())
 			if num % 1000 == 0:
 				# consumer.commit_offsets()
-				elapsed = time.time()-t0
+				elapsed = time.time() - t0
 				print('{} messages in {:.1f} seconds ({:.1f}/s, {:.2f} Mbps)'.format(
-					num, elapsed, num/elapsed, num_bytes*8/2.**20/elapsed)
+					num, elapsed, num / elapsed, num_bytes*8/2.**20/elapsed)
 				)
 
 
 def list_kafka():
 	
 	from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-	from pykafka import KafkaClient
+	from pykafka import KafkaClient # type: ignore[import]
 
 	parser = ArgumentParser(description=__doc__, formatter_class=ArgumentDefaultsHelpFormatter)
 	parser.add_argument("--broker", type=str, default="epyc.astro.washington.edu:9092")

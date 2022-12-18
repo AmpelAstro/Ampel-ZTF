@@ -25,8 +25,8 @@ log = logging.getLogger(__name__)
 
 class UWAlertLoader(AbsAlertLoader[io.IOBase]):
     """
-    Iterable class that loads avro alerts from the Kafka stream 
-    provided by University of Washington (UW) 
+    Iterable class that loads avro alerts from the Kafka stream
+    provided by University of Washington (UW)
     """
     #: Address of Kafka broker
     bootstrap: str = "partnership.alerts.ztf.uw.edu:9092"
@@ -37,9 +37,11 @@ class UWAlertLoader(AbsAlertLoader[io.IOBase]):
     #: time to wait for messages before giving up, in seconds
     timeout: int = 1
     #: extra configuration to pass to confluent_kafka.Consumer
-    kafka_consumer_properties: dict[str,Any] = {}
+    kafka_consumer_properties: dict[str, Any] = {}
 
-    def __init__(self, **kwargs):
+
+    def __init__(self, **kwargs) -> None:
+
         super().__init__(**kwargs)
         topics = ["^ztf_.*_programid1$"]
 
@@ -48,11 +50,12 @@ class UWAlertLoader(AbsAlertLoader[io.IOBase]):
         config = {"group.id": f"{self.group_name}-{self.stream}"} | self.kafka_consumer_properties
 
         self._consumer = AllConsumingConsumer(
-            self.bootstrap, timeout=self.timeout, topics=topics, **config
+            self.bootstrap, timeout=self.timeout, topics=topics, logger=None, **config
         )
         self._it: Iterator[io.BytesIO] | None = None
 
-    def alerts(self, limit: None | int=None) -> Iterator[io.BytesIO]:
+
+    def alerts(self, limit: None | int = None) -> Iterator[io.BytesIO]:
         """
         Generate alerts until timeout is reached
         :returns: dict instance of the alert content

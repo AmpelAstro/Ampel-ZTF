@@ -7,7 +7,7 @@
 # Last Modified Date:  25.05.2021
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Any, Tuple
+from typing import Any
 from bisect import bisect_right
 from pymongo import UpdateOne
 from ampel.types import DataPointId, StockId
@@ -59,8 +59,8 @@ class ZiMongoMuxer(AbsT0Muxer):
 		# used to check potentially already inserted pps
 		self._photo_col = self.context.db.get_collection("t0")
 		self._projection_spec = unflatten_dict(self.projection)
-
-		self._run_id = self.updates_buffer.run_id[0] if isinstance(self.updates_buffer.run_id, list) else self.updates_buffer.run_id
+		self._run_id = self.updates_buffer.run_id[0] if isinstance(self.updates_buffer.run_id, list) \
+			else self.updates_buffer.run_id
 
 
 	def process(self,
@@ -268,7 +268,10 @@ class ZiMongoMuxer(AbsT0Muxer):
 				} \
 				- (ids_dps_db | ids_dps_alert)
 			):
-				raise ConcurrentUpdateError(f"t0 collection contains {len(concurrent_updates)} extra photopoints: {concurrent_updates}")
+				raise ConcurrentUpdateError(
+					f"T0 collection contains {len(concurrent_updates)} "
+					f"extra photopoints: {concurrent_updates}"
+				)
 
 		# The union of the datapoints drawn from the db and
 		# from the alert will be part of the t1 document
@@ -293,7 +296,7 @@ class ZiMongoMuxer(AbsT0Muxer):
 		return [dp for dp in dps if dp['id'] in ids_dps_to_insert], dps_combine
 
 
-	def _project(self, doc, projection):
+	def _project(self, doc, projection) -> DataPoint:
 
 		out: dict[str, Any] = {}
 		for key, spec in projection.items():
@@ -310,4 +313,4 @@ class ZiMongoMuxer(AbsT0Muxer):
 			else:
 				out[key] = doc[key]
 
-		return out
+		return out # type: ignore[return-value]
