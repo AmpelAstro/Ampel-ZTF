@@ -24,10 +24,9 @@ extras_require = {
 
 setup(
     name = 'ampel-ztf',
-    version = '0.8.1a2',
+    version = '0.8.3a9',
     description = 'Zwicky Transient Facility support for the Ampel system',
     author = 'Valery Brinnel',
-    author_email = None,
     maintainer = 'Jakob van Santen',
     maintainer_email = 'jakob.van.santen@desy.de',
     url = 'https://ampelproject.github.io',
