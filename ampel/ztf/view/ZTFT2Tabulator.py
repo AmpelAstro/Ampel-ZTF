@@ -12,9 +12,9 @@ from ampel.types import StockId
 
 import numpy as np
 from ampel.content.DataPoint import DataPoint
-from astropy.table import Table
+from astropy.table import Table # type: ignore[import]
 
-from ampel.abstract.AbsT2Tabulator import AbsT2Tabulator
+from ampel.abstract.AbsT2Tabulator import AbsT2Tabulator # type: ignore[import]
 from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 
 ZTF_BANDPASSES = {
@@ -32,11 +32,14 @@ signdict = {
 
 
 class ZTFT2Tabulator(AbsT2Tabulator):
+
     def filter_detections(
         self, dps: Iterable[DataPoint]
     ) -> Iterable[DataPoint]:
-        return [dp for dp in dps
-                    if 'ZTF' in dp['tag'] and 'magpsf' in dp['body'].keys() ]
+        return [
+            dp for dp in dps
+            if 'ZTF' in dp['tag'] and 'magpsf' in dp['body'].keys()
+        ]
 
     def get_flux_table(
         self,
@@ -83,7 +86,7 @@ class ZTFT2Tabulator(AbsT2Tabulator):
             sum(
                 [
                     list(stockid)
-                    if isinstance(stockid := el["stock"], Sequence) and not isinstance(stockid, (str,bytes))
+                    if isinstance(stockid := el["stock"], Sequence) and not isinstance(stockid, (str, bytes))
                     else [stockid]
                     for el in dps
                     if "ZTF" in el["tag"]
