@@ -15,7 +15,7 @@ from ampel.struct.AmpelBuffer import AmpelBuffer
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
 from ampel.ztf.base.CatalogMatchUnit import CatalogMatchContextUnit
 from ampel.enum.DocumentCode import DocumentCode
-from ampel.view.T3Store import T3Store
+from ampel.struct.T3Store import T3Store
 
 
 class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):

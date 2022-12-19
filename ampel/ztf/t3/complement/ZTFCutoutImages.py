@@ -12,7 +12,7 @@ from requests_toolbelt.sessions import BaseUrlSession
 from typing import Literal
 from collections.abc import Iterable
 
-from ampel.view.T3Store import T3Store
+from ampel.struct.T3Store import T3Store
 from ampel.struct.AmpelBuffer import AmpelBuffer
 from ampel.core.AmpelContext import AmpelContext
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement

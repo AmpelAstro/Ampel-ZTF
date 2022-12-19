@@ -11,7 +11,7 @@ import asyncio, nest_asyncio
 from typing import Any, Tuple
 from collections.abc import Iterable
 
-from ampel.view.T3Store import T3Store
+from ampel.struct.T3Store import T3Store
 from ampel.struct.AmpelBuffer import AmpelBuffer
 from ampel.secret.NamedSecret import NamedSecret
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement

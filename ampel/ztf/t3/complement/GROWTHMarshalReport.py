@@ -12,7 +12,7 @@ from typing import Any
 from collections.abc import Sequence, Iterable
 
 from ampel.types import StockId
-from ampel.view.T3Store import T3Store
+from ampel.struct.T3Store import T3Store
 from ampel.struct.AmpelBuffer import AmpelBuffer
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
 from ampel.ztf.base.CatalogMatchUnit import CatalogMatchContextUnit

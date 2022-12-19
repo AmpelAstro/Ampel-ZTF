@@ -3,7 +3,7 @@ from ampel.base.LogicalUnit import LogicalUnit
 from ampel.core.AmpelContext import AmpelContext
 from ampel.model.UnitModel import UnitModel
 from ampel.protocol.LoggerProtocol import LoggerProtocol
-from ampel.view.T3Store import T3Store
+from ampel.struct.T3Store import T3Store
 import pytest
 from pathlib import Path
 import yaml
