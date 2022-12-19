@@ -24,7 +24,7 @@ extras_require = {
 
 setup(
     name = 'ampel-ztf',
-    version = '0.8.3a9',
+    version = '0.8.3a10',
     description = 'Zwicky Transient Facility support for the Ampel system',
     author = 'Valery Brinnel',
     maintainer = 'Jakob van Santen',
