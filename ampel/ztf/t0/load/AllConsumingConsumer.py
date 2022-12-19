@@ -94,7 +94,7 @@ class KafkaError(RuntimeError):
     """Picklable wrapper for cimpl.KafkaError"""
 
     def __init__(self, kafka_err):
-        super().__init__(kafka_err.args[0])
+        super().__init__(kafka_err.str())
         self.code = KafkaErrorCode(kafka_err.code())
 
 
