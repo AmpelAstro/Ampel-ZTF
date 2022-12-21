@@ -126,7 +126,7 @@ def test_tnsnames(
                 T2Document(
                     {
                         "unit": "T2LightCurveSummary",
-                        "meta": [{"code": DocumentCode.OK}],
+                        "meta": [{"code": DocumentCode.OK, "tier": 2}, {"tier": 0}],
                         "body": [{"ra": 0.518164, "dec": 0.361964}],
                     }
                 )
