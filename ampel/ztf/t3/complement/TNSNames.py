@@ -89,7 +89,10 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
             raise ValueError(f"{type(self).__name__} requires T2 records be loaded")
         for t2_doc in reversed(t2_documents):
             if t2_doc["unit"] == unit_id and (body := t2_doc.get("body")):
-                for meta, result in zip(reversed(t2_doc["meta"]), reversed(body)):
+                for meta, result in zip(
+                    (m for m in reversed(t2_doc["meta"]) if m["tier"] == 2),
+                    reversed(body),
+                ):
                     if meta["code"] == DocumentCode.OK:
                         assert isinstance(result, dict)
                         return result
