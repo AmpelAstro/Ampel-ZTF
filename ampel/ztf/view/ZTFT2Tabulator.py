@@ -12,9 +12,9 @@ from ampel.types import StockId
 
 import numpy as np
 from ampel.content.DataPoint import DataPoint
-from astropy.table import Table # type: ignore[import]
+from astropy.table import Table
 
-from ampel.abstract.AbsT2Tabulator import AbsT2Tabulator # type: ignore[import]
+from ampel.abstract.AbsT2Tabulator import AbsT2Tabulator
 from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 
 ZTF_BANDPASSES = {
@@ -32,40 +32,47 @@ signdict = {
 
 
 class ZTFT2Tabulator(AbsT2Tabulator):
+    reject_outlier_sigma: float = 10**30   # Immediately reject flux outliers beyond. 0 means none
+    flux_max: float = 10**30         # Cut flux above this 0 means none
 
     def filter_detections(
         self, dps: Iterable[DataPoint]
     ) -> Iterable[DataPoint]:
-        return [
-            dp for dp in dps
-            if 'ZTF' in dp['tag'] and 'magpsf' in dp['body'].keys()
-        ]
+        return [dp for dp in dps
+                     if 'ZTF' in dp['tag'] and 'magpsf' in dp['body'].keys() ]
 
     def get_flux_table(
         self,
         dps: Iterable[DataPoint],
     ) -> Table:
-        magpsf, sigmapsf, jd, fids, magzpsci, isdiffpos = self.get_values(
+        magpsf, sigmapsf, jd, fids = self.get_values(
             self.filter_detections(dps),
-            ["magpsf", "sigmapsf", "jd", "fid", "magzpsci", "isdiffpos"]
+            ["magpsf", "sigmapsf", "jd", "fid"]
         )
         filter_names = [ZTF_BANDPASSES[fid]["name"] for fid in fids]
-        signs = [signdict[el] for el in isdiffpos]
-        flux = signs * np.asarray(
+        #signs = [signdict[el] for el in isdiffpos]
+        flux = np.asarray(
             [10 ** (-((mgpsf) - 25) / 2.5) for mgpsf in magpsf]
         )
         fluxerr = np.abs(flux * (-np.asarray(sigmapsf) / 2.5 * np.log(10)))
+
+        # Mask data
+        bMask = (
+                    ((np.abs(flux)/fluxerr) < self.reject_outlier_sigma) &
+                    ( np.abs(flux) < self.flux_max)
+                )
+
         return Table(
             {
                 "time": jd,
                 "flux": flux,
                 "fluxerr": fluxerr,
                 "band": filter_names,
-                "zp": magzpsci,
+                "zp": [25] * len(filter_names),
                 "zpsys": ["ab"] * len(filter_names),
             },
             dtype=("float64", "float64", "float64", "str", "int64", "str"),
-        )
+        )[bMask]
 
     def get_positions(
         self, dps: Iterable[DataPoint]
@@ -86,7 +93,7 @@ class ZTFT2Tabulator(AbsT2Tabulator):
             sum(
                 [
                     list(stockid)
-                    if isinstance(stockid := el["stock"], Sequence) and not isinstance(stockid, (str, bytes))
+                    if isinstance(stockid := el["stock"], Sequence) and not isinstance(stockid, (str,bytes))
                     else [stockid]
                     for el in dps
                     if "ZTF" in el["tag"]
