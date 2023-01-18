@@ -53,10 +53,10 @@ ampel-interface = "^0.8.3-beta.14"
 ampel-core = "^0.8.3-beta.20"
 ampel-photometry = "^0.8.3-alpha.2"
 ampel-alerts = "^0.8.3-beta.4"
-ampel-plot = {version = "0.8.3", optional = true}
+ampel-plot = {version = "0.8.3-1", optional = true}
 pandas = {version = "^1.5.2", optional = true}
 scipy = "^1.9.3"
-planobs = {version = "^0.5.4", optional = true}
+planobs = {version = "^0.6.1", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.0"
