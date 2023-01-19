@@ -3031,4 +3031,4 @@ plot = ["ampel-plot"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "772624dbff3b967a56e21ea51e93cce4681d88db5a76e1131ba3a526d3f3ab8c"
+content-hash = "7175b8be11a692f1897e6b437251b4db5cf0af4d566f3c88935c3adc55d25e61"
