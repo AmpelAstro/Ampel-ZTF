@@ -239,7 +239,7 @@ class SkyPortalClient(AmpelUnit):
             with stat_http_time.labels(*labels).time(), stat_http_errors.labels(
                 *labels
             ).count_exceptions(
-                (
+                ( # type: ignore[arg-type]
                     aiohttp.ClientResponseError,
                     aiohttp.ClientConnectionError,
                     asyncio.TimeoutError,
