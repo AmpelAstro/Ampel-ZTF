@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ampel.alert.AlertConsumer import AlertConsumer
 from ampel.alert.AlertConsumerError import AlertConsumerError
-from ampel.alert.AlertConsumerMetrics import stat_accepted, stat_alerts, stat_time
+from ampel.alert.AlertConsumerMetrics import AlertConsumerMetrics, stat_time
 from ampel.core.EventHandler import EventHandler
 from ampel.ingest.ChainedIngestionHandler import ChainedIngestionHandler
 from ampel.log import VERBOSE, LogFlag
@@ -44,10 +44,7 @@ class T0HealpixProcessor(AlertConsumer):
         super().__init__(**kwargs)
 
     def proceed(self, event_hdlr: EventHandler) -> int:
-        stats = {
-            "alerts": stat_alerts,
-            "accepted": stat_accepted.labels("any"),
-        }
+        stats = AlertConsumerMetrics(self._fbh.chan_names)
         run_id = self.context.new_run_id()
         logger = AmpelLogger.from_profile(
             self.context,
@@ -80,12 +77,6 @@ class T0HealpixProcessor(AlertConsumer):
             max_size=self.updates_buffer_size,
         )
         any_filter = any([fb.filter_model for fb in self._fbh.filter_blocks])
-        # if bypassing filters, track passing rates at top level
-        if not any_filter:
-            stats["filter_accepted"] = [
-                stat_accepted.labels(channel)
-                for channel in self._fbh.chan_names
-            ]
 
         # Setup ingesters
         ing_hdlr = ChainedIngestionHandler(
@@ -201,12 +192,12 @@ class T0HealpixProcessor(AlertConsumer):
                                     )
                 else:
                     # if bypassing filters, track passing rates at top level
-                    for counter in stats["filter_accepted"]:
+                    for counter in stats.filter_accepted:
                         counter.inc()
 
                 if filter_results:
 
-                    stats["accepted"].inc()
+                    stats.accepted.inc()
 
                     # Determine p-value for being associated with Healpix map
                     # Should this be located here, in filter or loader?
@@ -284,7 +275,7 @@ class T0HealpixProcessor(AlertConsumer):
                         db_logging_handler.handle(lr)
 
                 iter_count += 1
-                stats["alerts"].inc()
+                stats.alerts.inc()
 
                 updates_buffer.check_push()
                 if db_logging_handler:
