@@ -20,7 +20,7 @@ from ampel.alert.AlertConsumer import AlertConsumer
 from ampel.alert.AlertConsumerError import AlertConsumerError
 from ampel.alert.AlertConsumerMetrics import AlertConsumerMetrics, stat_time
 from ampel.core.EventHandler import EventHandler
-from ampel.ingest.ChainedIngestiπonHandler import ChainedIngestionHandler
+from ampel.ingest.ChainedIngestionHandler import ChainedIngestionHandler
 from ampel.log import VERBOSE, LogFlag
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.log.AmpelLoggingError import AmpelLoggingError
