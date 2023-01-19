@@ -50,8 +50,8 @@ healpy = {version = "^1.15", optional = true}
 light-curve = {version = ">=0.6,<0.7", optional = true}
 ampel-ztf-archive = {version = "^0.8.0-alpha.0", optional = true}
 ampel-interface = "^0.8.3-beta.14"
-ampel-core = "^0.8.3-beta.20"
-ampel-photometry = "^0.8.3-alpha.2"
+ampel-core = "^0.8.3-beta.21"
+ampel-photometry = "^0.8.3-alpha.3"
 ampel-alerts = "^0.8.3-beta.5"
 ampel-plot = {version = "^0.8.3", optional = true}
 pandas = {version = "^1.5.2", optional = true}
