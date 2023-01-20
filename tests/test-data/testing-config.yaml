@@ -1006,6 +1006,29 @@ unit:
     distrib: ampel-core
     file: /Users/jakob/Documents/ZTF/Ampel-v0.8/ampel-core/conf/ampel-core/ampel.yaml
     version: 0.8.0a2
+  T3ZTFArchiveTokenGenerator:
+    fqn: ampel.ztf.t3.resource.T3ZTFArchiveTokenGenerator
+    base:
+    - T3ZTFArchiveTokenGenerator
+    - AbsT3PlainUnit
+    - LogicalUnit
+    xxh64: 14920228502975638399
+    distrib: ampel-ztf
+    version: 0.8.3a2
+    source: /Users/jakob/Documents/ZTF/Ampel-v0.8.3/Ampel-ZTF/conf/ampel-ztf/ampel.yml
+  T3PlainUnitExecutor:
+    fqn: ampel.t3.T3PlainUnitExecutor
+    base:
+    - T3PlainUnitExecutor
+    - AbsT3ControlUnit
+    - T3DocBuilder
+    - ContextUnit
+    - T3DocBuilderModel
+    - AmpelBaseModel
+    xxh64: 10881006563445784382
+    distrib: ampel-core
+    version: 0.8.3a22
+    source: /Users/jakob/Documents/ZTF/Ampel-v0.8.3/Ampel-core/conf/ampel-core/ampel.yaml
 process:
   t0: {}
   t1: {}
