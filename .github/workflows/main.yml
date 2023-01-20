@@ -42,6 +42,8 @@ jobs:
     - run: poetry run pytest --cov=ampel -v -rsx
       env:
         MONGO_PORT: ${{ job.services.mongo.ports[27017] }}
+        ARCHIVE_TOKEN: ${{ secrets.ARCHIVE_TOKEN }}
+        ARCHIVE_TOPIC_TOKEN: ${{ secrets.ARCHIVE_TOPIC_TOKEN }}
   
   mypy:
     runs-on: ubuntu-latest
