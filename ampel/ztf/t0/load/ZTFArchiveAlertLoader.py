@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 
 class ZTFSource(AmpelBaseModel):
     ztf_name: str
+    programid: None | int = None
     jd_start: None | float = None
     jd_end: None | float = None
     with_history: bool = True
@@ -97,7 +98,7 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
 
         if isinstance(self.stream, ZTFSource):
             params = {"with_history": self.stream.with_history}
-            for k in ("jd_start", "jd_end"):
+            for k in ("jd_start", "jd_end", "programid"):
                 if (x := getattr(self.stream, k)) is not None:
                     params[k] = x
             response = session.get(

@@ -239,6 +239,7 @@ def test_archive_source_for_objectid(archive_api_token):
             "archive_token": archive_api_token,
             "jd_start": 2459352,
             "jd_end": 2459366,
+            "programid": 1,
         }
     )
     alerts = list(iter(source))
