@@ -15,6 +15,11 @@ from ampel.template.ZTFLegacyChannelTemplate import ZTFLegacyChannelTemplate
 from ampel.util import concurrent
 from ampel.ztf.t0.ZTFAlertStreamController import ZTFAlertStreamController
 from ampel.ztf.t0.load.ZTFArchiveAlertLoader import ZTFArchiveAlertLoader
+from ampel.dev.DevAmpelContext import DevAmpelContext
+from ampel.log.AmpelLogger import AmpelLogger
+from ampel.secret.DictSecretProvider import DictSecretProvider
+from ampel.secret.AmpelVault import AmpelVault
+from ampel.core.EventHandler import EventHandler
 
 
 def t0_process(kwargs, first_pass_config):
@@ -26,9 +31,7 @@ def t0_process(kwargs, first_pass_config):
     template = ZTFLegacyChannelTemplate(**kwargs)
     return ProcessModel(
         **(
-            template.get_processes(
-                AmpelLogger.get_logger(), first_pass_config
-            )[0]
+            template.get_processes(AmpelLogger.get_logger(), first_pass_config)[0]
             | {"version": template.version}
         )
     )
@@ -193,6 +196,14 @@ async def test_stop(potemkin_controller):
 
 
 @pytest.fixture
+def archive_api_token() -> str:
+    try:
+        return os.environ["ARCHIVE_TOKEN"]
+    except KeyError:
+        pytest.skip("archive test requires api token")
+
+
+@pytest.fixture
 def topic_stream_token() -> str:
     if not (token := os.environ.get("ARCHIVE_TOPIC_TOKEN")):
         pytest.skip("archive test requires stream token")
@@ -220,15 +231,56 @@ def test_archive_source(topic_stream_token: str):
     assert len(alerts) == 8
 
 
-def test_archive_source_for_objectid():
-    if not (token := os.environ.get("ARCHIVE_TOKEN")):
-        pytest.skip("archive test requires api token")
-    source = ZTFArchiveAlertLoader(stream={
-        "ztf_name": "ZTF21abbxdcm",
-        "with_history": False,
-        "archive_token": token,
-        "jd_start": 2459352,
-        "jd_end": 2459366
-    })
+def test_archive_source_for_objectid(archive_api_token):
+    source = ZTFArchiveAlertLoader(
+        stream={
+            "ztf_name": "ZTF21abbxdcm",
+            "with_history": False,
+            "archive_token": archive_api_token,
+            "jd_start": 2459352,
+            "jd_end": 2459366,
+        }
+    )
     alerts = list(iter(source))
     assert len(alerts) == 10
+
+
+def test_T3ZTFArchiveTokenGenerator(
+    mock_context: DevAmpelContext, archive_api_token
+):
+    mock_context.loader.vault = AmpelVault(
+        [DictSecretProvider({"archive_token": archive_api_token})]
+    )
+
+    t3 = mock_context.new_context_unit(
+        "T3Processor",
+        process_name="foo",
+        raise_exc=True,
+        execute=[
+            {
+                "unit": "T3PlainUnitExecutor",
+                "config": {
+                    "target": {
+                        "unit": "T3ZTFArchiveTokenGenerator",
+                        "config": {
+                            "resource_name": "stream_token",
+                            "archive_token": {"label": "archive_token"},
+                        },
+                    },
+                },
+            }
+        ],
+    )
+
+    # generated resources are stored in event handler
+    event_handler = EventHandler(t3.process_name, mock_context.get_database())
+    event_handler.register(run_id=mock_context.new_run_id(), tier=3)
+    t3.proceed(event_handler)
+    assert "stream_token" in event_handler.resources
+
+    # use generated resources to configure an alert loader
+    source = ZTFArchiveAlertLoader(resource_name="stream_token")
+    for k, v in event_handler.resources.items():
+        source.add_resource(k, v)
+    alerts = list(iter(source))
+    assert len(alerts) == 27

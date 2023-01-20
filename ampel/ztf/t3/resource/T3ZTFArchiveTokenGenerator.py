@@ -7,10 +7,13 @@
 # Last Modified Date:  21.12.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-import requests
+import random
+import time
 from typing import Any
 from astropy.time import Time  # type: ignore
 from datetime import datetime
+
+from requests_toolbelt.sessions import BaseUrlSession
 
 from ampel.types import UBson
 from ampel.struct.T3Store import T3Store
@@ -23,7 +26,9 @@ from ampel.abstract.AbsT3PlainUnit import AbsT3PlainUnit
 class T3ZTFArchiveTokenGenerator(AbsT3PlainUnit):
 
 	archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
-	archive_stream_endpoint: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3/streams/from_query?"
+
+	#: Base URL of archive service
+	archive: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3/"
 	resource_name: str = 'ztf_stream_token'
 
 	max_dist_ps1_src: float = 0.5
@@ -35,6 +40,9 @@ class T3ZTFArchiveTokenGenerator(AbsT3PlainUnit):
 
 	#: overrides max_dist_ps1_src & min_detections
 	candidate: None | dict[str, Any] = None
+
+	#: seconds to wait for query to complete
+	timeout: float = 60
 
 	debug: bool = False
 
@@ -71,9 +79,11 @@ class T3ZTFArchiveTokenGenerator(AbsT3PlainUnit):
 				"nmtchps": {"$lte": 100},
 			}
 
-		response = requests.post(
-			self.archive_stream_endpoint,
-			headers = {"Authorization": f"bearer {self.archive_token}"},
+		session = BaseUrlSession(self.archive if self.archive.endswith("/") else self.archive + "/")
+		session.headers["authorization"] = f"bearer {self.archive_token.get()}"
+
+		response = session.post(
+			"streams/from_query",
 			json = {
 				"jd": {"$gt": start_jd, "$lt": end_jd},
 				"candidate": candidate
@@ -81,10 +91,26 @@ class T3ZTFArchiveTokenGenerator(AbsT3PlainUnit):
 		)
 
 		rd = response.json()
-		if "resume_token" not in rd:
-			raise ValueError(f"Unexpected response: {rd}")
+		try:
+			token = rd.pop("resume_token")
+		except KeyError as exc:
+			raise ValueError(f"Unexpected response: {rd}") from exc
 
-		r = Resource(name=self.resource_name, value=rd["resume_token"])
+		# wait for query to finish
+		t0 = time.time()
+		delay = 1
+		while time.time() - t0 < self.timeout:
+			response = session.get(f"stream/{token}")
+			if response.status_code != 423:
+				break
+			time.sleep(random.uniform(0, delay))
+			delay *= 2
+		else:
+			raise RuntimeError(f"{session.base_url}stream/{token} still locked after {time.time() - t0:.0f} s")
+		response.raise_for_status()
+		self.logger.info("Stream created", extra=response.json())
+
+		r = Resource(name=self.resource_name, value=token)
 		t3s.add_resource(r)
 
 		if self.debug:
