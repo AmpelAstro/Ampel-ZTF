@@ -441,10 +441,8 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 break
             key = line.split(",", 2)[0].split("=")[0].lstrip("#")
             headerkeys.append(key)
-            val = line.split(",", 2)[0].split("=")[1]  # [:-1]
+            val = line.split(",", 2)[0].split("=")[1].rstrip("\n")  # [:-1]
             headervals.append(val)
-
-        print(headervals)
 
         headerdict = {}
         for i, key in enumerate(headerkeys):
@@ -455,8 +453,6 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             headerdict.update({key: returnval})
 
         headerdict["ztfid"] = headerdict.get("name")
-
-        print(headerdict)
 
         name: str = headerdict["name"]
 
@@ -630,9 +626,6 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             if "sigma.err" in list(df.keys()):
                 pp["sigma_err"] = pp.pop("sigma.err")
             pp["ampl_err"] = pp.pop(ampl_err_col)
-
-            # print(type(headervals["ra"]))
-            # print(headervals["ra"])
 
             if headerdict["ra"] != "None":
                 pp["ra"] = float(headerdict["ra"])
