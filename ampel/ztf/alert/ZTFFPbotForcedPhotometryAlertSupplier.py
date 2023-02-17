@@ -26,7 +26,7 @@ from scipy.stats import median_abs_deviation
 # Only works directly on filenames
 # from bts_phot.calibrate_fps import get_baseline # type: ignore[import]
 
-from ampel.ztf.util.ZTFIdMapper import to_ampel_id
+from ampel.ztf.util.ZTFIdMapper import ZTFNoisifiedIdMapper, ZTFIdMapper
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.types import Tag
 from ampel.view.ReadOnlyDict import ReadOnlyDict
@@ -651,13 +651,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
         if not pps:
             return self.__next__()
 
-        if (parent_ztifd := headerdict.get("parent_ztfid")) is not None:
-            print("name", headerdict["name"])
-            print("parent_id", parent_ztifd)
-            stock = to_ampel_id(parent_ztifd)
-            stock = stock + 1
-        else:
-            stock = to_ampel_id(headerdict["name"])
+        stock = ZTFNoisifiedIdMapper().to_ampel_id(headerdict["name"])
 
         return AmpelAlert(
             id=int.from_bytes(  # alert id
