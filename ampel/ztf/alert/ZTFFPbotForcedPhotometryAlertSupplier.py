@@ -199,7 +199,6 @@ def get_fpbot_baseline(
     For all field/ccd/fid combination where we have determined a peak, we can now check if the reference image end date is comfortably prior to the peak and remove this combo if not
     """
     if reference_days_before_peak:
-
         ufids_to_check = []
 
         for ufid, res in fcqfid_dict.items():
@@ -207,7 +206,6 @@ def get_fpbot_baseline(
                 ufids_to_check.append(ufid)
 
         if ufids_to_check:
-
             ref_mjd_dict = get_reference_mjds(fcqfid_list=ufids_to_check)
 
             for ufid, ref_end_mjd in ref_mjd_dict.items():
@@ -395,6 +393,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
     correct_baseline: bool = True
 
+    do_quality_cuts: bool = True
     flux_unc_floor: float = 0.02
     excl_poor_conditions: bool = True
     excl_baseline_pp: bool = False
@@ -418,7 +417,6 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
     save_dir: Optional[str]
 
     def __init__(self, **kwargs) -> None:
-
         kwargs["deserialize"] = None
         super().__init__(**kwargs)
 
@@ -460,12 +458,11 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             self.logger.info("Dataframe is empty, skipping")
             return self.__next__()
 
-        if not "pass" in df.keys():
+        if not "pass" in df.keys() and self.do_quality_cuts:
             self.logger.info("No datapoints surviving quality cuts")
             return self.__next__()
 
         if self.correct_baseline:
-
             if self.excl_poor_conditions:
                 df = df[(df["pass"] == 1)]
 
@@ -587,7 +584,6 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 continue
 
             if self.correct_baseline:
-
                 if pp["ampl_corr"] > 0:
                     pp["magpsf"] = -2.5 * np.log10(pp["ampl_corr"]) + pp["magzp"]
 
