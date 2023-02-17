@@ -165,7 +165,7 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
 
         if len(split_str) > 1:
             sub_id = split_str[1]
-            return int(str(ampel_id) + "00000000" + sub_id)
+            return int(str(ampel_id) + "000000" + sub_id)
 
         else:
             return ampel_id
@@ -175,7 +175,7 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
         """
         Return the original name of the noisified lightcurve
         """
-        both_ids = str(ampel_id_with_sub_id).split("00000000")
+        both_ids = str(ampel_id_with_sub_id).split("000000")
         ampel_id = int(both_ids[0])
 
         ztfid = ZTFIdMapper.to_ext_id(ampel_id)
