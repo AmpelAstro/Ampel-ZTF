@@ -4,7 +4,7 @@
 # License           : BSD-3-Clause
 # Author            : jno <jnordin@physik.hu-berlin.de>
 # Date              : 14.03.2022
-# Last Modified Date: 18.08.2022
+# Last Modified Date: 17.02.2023
 # Last Modified By  : sr <simeon.reusch@desy.de>
 
 import sys, re, os
@@ -428,25 +428,37 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         fileio = next(self.alert_loader)
 
-        headervals: dict[str, Any] = {
-            "name": None,
-            "ra": None,
-            "dec": None,
-            "lastobs": None,
-            "lastdownload": None,
-            "lastfit": None,
-        }
+        headerkeys = []
+        headervals = []
 
-        for byteline in fileio.readlines():
-            for headerkey in headervals.keys():
-                m = re.search("#(%s)=(.+)" % (headerkey), str(byteline, "UTF-8"))
-                if m:
-                    headervals[headerkey] = m.group(2)
-            still_looking = None in headervals.values()
-            if not still_looking:
+        for i, byteline in enumerate(fileio.readlines()):
+            line = str(byteline, "UTF-8")
+            if len(line) >= 300:
                 break
+            if line == "\n":
+                break
+            if ",ampl_corr" in line:
+                break
+            key = line.split(",", 2)[0].split("=")[0].lstrip("#")
+            headerkeys.append(key)
+            val = line.split(",", 2)[0].split("=")[1]  # [:-1]
+            headervals.append(val)
 
-        name: str = headervals["name"]
+        print(headervals)
+
+        headerdict = {}
+        for i, key in enumerate(headerkeys):
+            if headervals[i] == "-":
+                returnval = None
+            else:
+                returnval = headervals[i]
+            headerdict.update({key: returnval})
+
+        headerdict["ztfid"] = headerdict.get("name")
+
+        print(headerdict)
+
+        name: str = headerdict["name"]
 
         fileio.seek(0)
 
@@ -487,7 +499,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             if self.save_dir and df.shape[0] > 0:
                 outpath = os.path.join(self.save_dir, f"{name}_blcorr.csv")
                 with open(outpath, "w") as f:
-                    for key, val in headervals.items():
+                    for key, val in headerdict.items():
                         f.write(f"#{key}={val}\n")
                     df.to_csv(f)
                 self.logger.info(f"Saved baseline to {outpath}")
@@ -547,7 +559,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 plt.savefig(
                     os.path.join(
                         self.plot_dir,
-                        "fpbase_%s.%s" % (headervals["name"], self.plot_suffix),
+                        "fpbase_%s.%s" % (headerdict["name"], self.plot_suffix),
                     )
                 )
                 plt.close("fig")
@@ -560,14 +572,27 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             df["ampl.err"] /= df["ampl_zp_scale"]
             df["ampl_corr"] /= df["ampl_zp_scale"]
             df["ampl_err_corr"] /= df["ampl_zp_scale"]
-            F0 = 10 ** (df.magzp / 2.5)
-            F0_err = F0 / 2.5 * np.log(10) * df.magzpunc
-            Fratio = df.ampl_corr / F0
-            Fratio_err = np.sqrt(
-                (df.ampl_err_corr / F0) ** 2 + (df.ampl_corr * F0_err / F0**2) ** 2
-            )
-            df["flux_Jy"] = Fratio
-            df["flux_err_Jy"] = Fratio_err
+
+        if "ampl_corr" in list(df.keys()):
+            ampl_col = "ampl_corr"
+            ampl_err_col = "ampl_err_corr"
+        else:
+            ampl_col = "ampl"
+            ampl_err_col = "ampl.err"
+
+        if "fid" in list(df.keys()):
+            filter_col = "fid"
+        else:
+            filter_col = "filterid"
+
+        F0 = 10 ** (df.magzp / 2.5)
+        F0_err = F0 / 2.5 * np.log(10) * df.magzpunc
+        Fratio = df[ampl_col] / F0
+        Fratio_err = np.sqrt(
+            (df[ampl_err_col] / F0) ** 2 + (df[ampl_col] * F0_err / F0**2) ** 2
+        )
+        df["flux_Jy"] = Fratio
+        df["flux_err_Jy"] = Fratio_err
 
         # First datapoint assumed to be latest_alert
         df.sort_values("obsmjd", ascending=False, inplace=True)
@@ -584,32 +609,37 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 continue
 
             if self.correct_baseline:
-                if pp["ampl_corr"] > 0:
-                    pp["magpsf"] = -2.5 * np.log10(pp["ampl_corr"]) + pp["magzp"]
+                if pp[ampl_col] > 0:
+                    pp["magpsf"] = -2.5 * np.log10(pp[ampl_col]) + pp["magzp"]
 
                     #
                     pp["sigmapsf"] = (
-                        1.0857362047581294 * pp["ampl_err_corr"] / pp["ampl_corr"]
+                        1.0857362047581294 * pp[ampl_err_col] / pp[ampl_col]
                     )
 
             else:
-                if not pp["ampl"] or pp["ampl"] < 0:
+                if not pp[ampl_col] or pp[ampl_col] < 0:
                     continue
-                pp["magpsf"] = -2.5 * np.log10(pp["ampl"]) + pp["magzp"]
-                pp["sigmapsf"] = 1.0857362047581294 * pp["ampl.err"] / pp["ampl"]
+                pp["magpsf"] = -2.5 * np.log10(pp[ampl_col]) + pp["magzp"]
+                pp["sigmapsf"] = 1.0857362047581294 * pp[ampl_err_col] / pp[ampl_col]
 
-            pp["fid"] = pp.pop("filterid")
+            pp["fid"] = pp.pop(filter_col)
             pp["jd"] = pp.pop("obsmjd") + 2400000.5
             pp["programid"] = 1
-            pp["sigma_err"] = pp.pop("sigma.err")
-            pp["ampl_err"] = pp.pop("ampl.err")
+            pp["rcid"] = 1
+            if "sigma.err" in list(df.keys()):
+                pp["sigma_err"] = pp.pop("sigma.err")
+            pp["ampl_err"] = pp.pop(ampl_err_col)
 
-            if headervals["ra"] != "None":
-                pp["ra"] = float(headervals["ra"])
+            # print(type(headervals["ra"]))
+            # print(headervals["ra"])
+
+            if headerdict["ra"] != "None":
+                pp["ra"] = float(headerdict["ra"])
             else:
                 pp["ra"] = None
-            if headervals["dec"] != "None":
-                pp["dec"] = float(headervals["dec"])
+            if headerdict["dec"] != "None":
+                pp["dec"] = float(headerdict["dec"])
             else:
                 pp["dec"] = None
 
@@ -621,12 +651,20 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
         if not pps:
             return self.__next__()
 
+        if (parent_ztifd := headerdict.get("parent_ztfid")) is not None:
+            print("name", headerdict["name"])
+            print("parent_id", parent_ztifd)
+            stock = to_ampel_id(parent_ztifd)
+            stock = stock + 1
+        else:
+            stock = to_ampel_id(headerdict["name"])
+
         return AmpelAlert(
             id=int.from_bytes(  # alert id
                 blake2b(all_ids, digest_size=7).digest(), byteorder=sys.byteorder
             ),
-            stock=to_ampel_id(headervals["name"]),  # internal ampel id
+            stock=stock,  # internal ampel id
             datapoints=tuple(pps),
-            extra={**headervals},
+            extra={**headerdict},
             tag=tags,
         )
