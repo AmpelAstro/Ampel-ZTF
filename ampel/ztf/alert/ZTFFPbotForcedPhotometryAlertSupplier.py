@@ -441,7 +441,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 break
             key = line.split(",", 2)[0].split("=")[0].lstrip("#")
             headerkeys.append(key)
-            val = line.split(",", 2)[0].split("=")[1].rstrip("\n")  # [:-1]
+            val = line.split(",", 2)[0].split("=")[1].rstrip("\n")
             headervals.append(val)
 
         headerdict = {}
@@ -513,8 +513,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 for key, binfo in baseline_info.items():
                     if key == "t_peak":
                         continue
-                    # if not 'which_baseline' in binfo or not binfo['which_baseline']:
-                    #    continue
+
                     df_sub = df[((df.fcqfid == int(key)) & (df.n_baseline > 0))]
                     if df_sub.shape[0] == 0:
                         continue
@@ -608,7 +607,6 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 if pp[ampl_col] > 0:
                     pp["magpsf"] = -2.5 * np.log10(pp[ampl_col]) + pp["magzp"]
 
-                    #
                     pp["sigmapsf"] = (
                         1.0857362047581294 * pp[ampl_err_col] / pp[ampl_col]
                     )
@@ -644,13 +642,14 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
         if not pps:
             return self.__next__()
 
+        # internal ampel id
         stock = ZTFNoisifiedIdMapper().to_ampel_id(headerdict["name"])
 
         return AmpelAlert(
             id=int.from_bytes(  # alert id
                 blake2b(all_ids, digest_size=7).digest(), byteorder=sys.byteorder
             ),
-            stock=stock,  # internal ampel id
+            stock=stock,
             datapoints=tuple(pps),
             extra={**headerdict},
             tag=tags,
