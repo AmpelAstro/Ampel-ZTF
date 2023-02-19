@@ -3391,6 +3391,7 @@ archive = ["ampel-ztf-archive"]
 bayes = ["pandas", "planobs", "ampel-hu-astro", "ampel-plot"]
 fp = ["pandas", "planobs"]
 healpix = ["healpy"]
+hu = ["ampel-hu-astro"]
 kafka = ["confluent-kafka"]
 light-curve = ["light-curve"]
 plot = ["ampel-plot"]
@@ -3398,4 +3399,4 @@ plot = ["ampel-plot"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "16d4bdb905a34f832084a9643dd26ef6cbe6817e5e2aed961373e13d686ca442"
+content-hash = "42868986f4d07d4fb2736bee3f36c25fd953f6a89695c62538ec1c170f2a3288"

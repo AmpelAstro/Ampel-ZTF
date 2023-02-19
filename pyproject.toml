@@ -77,6 +77,7 @@ light-curve = ["light-curve"]
 kafka = ["confluent-kafka"]
 plot = ["ampel-plot"]
 fp = ["pandas", "planobs"]
+hu = ["ampel-hu-astro", "sncosmo"]
 bayes = ["pandas", "planobs", "ampel-hu-astro", "ampel-plot"]
 
 [build-system]
