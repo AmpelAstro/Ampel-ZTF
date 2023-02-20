@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ampel-ztf"
-version = "0.8.3"
+version = "0.8.4"
 description = "Zwicky Transient Facility support for the Ampel system"
 authors = [
     "Valery Brinnel",
