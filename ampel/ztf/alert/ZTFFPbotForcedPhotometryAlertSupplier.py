@@ -26,6 +26,7 @@ from ampel.types import Tag
 from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 from ampel.ztf.util.ZTFNoisifiedIdMapper import ZTFNoisifiedIdMapper
+
 # from appdirs import user_cache_dir
 from astropy.time import Time
 from bson import encode
@@ -33,7 +34,6 @@ from scipy.stats import median_abs_deviation
 
 # Only works directly on filenames
 # from bts_phot.calibrate_fps import get_baseline # type: ignore[import]
-
 
 
 dcast = {
@@ -455,6 +455,10 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         headerdict["ztfid"] = headerdict.get("name")
 
+        if headerdict["name"] is None:
+            raise ValueError(
+                "You need a name for the object (needs to be included in your csv as #name=NAME)"
+            )
         name: str = headerdict["name"]
 
         fileio.seek(0)
@@ -496,8 +500,14 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             if self.save_dir and df.shape[0] > 0:
                 outpath = os.path.join(self.save_dir, f"{name}_blcorr.csv")
                 with open(outpath, "w") as f:
-                    for key, val in headerdict.items():
-                        f.write(f"#{key}={val}\n")
+                    # ugly mypy-fix
+                    dict_keys = list(headerdict.keys())
+                    dict_vals = list(headerdict.values())
+                    for i, key in enumerate(dict_keys):
+                        if key is not None and dict_vals[i] is not None:
+                            f.write(f"#{key}={dict_vals[i]}\n")
+                    # for key, val in headerdict.items():
+                    # f.write(f"#{key}={val}\n")
                     df.to_csv(f)
                 self.logger.info(f"Saved baseline to {outpath}")
 
@@ -626,11 +636,11 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 pp["sigma_err"] = pp.pop("sigma.err")
             pp["ampl_err"] = pp.pop(ampl_err_col)
 
-            if headerdict["ra"] != "None":
+            if headerdict["ra"] != "None" and headerdict["ra"] is not None:
                 pp["ra"] = float(headerdict["ra"])
             else:
                 pp["ra"] = None
-            if headerdict["dec"] != "None":
+            if headerdict["dec"] != "None" and headerdict["dec"] is not None:
                 pp["dec"] = float(headerdict["dec"])
             else:
                 pp["dec"] = None
