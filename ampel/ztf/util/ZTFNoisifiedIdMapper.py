@@ -51,3 +51,7 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
 
         else:
             return ztfid
+
+# backward compatibility shortcuts
+to_ampel_id = ZTFNoisifiedIdMapper.to_ampel_id
+to_ztf_id = ZTFNoisifiedIdMapper.to_ext_id
