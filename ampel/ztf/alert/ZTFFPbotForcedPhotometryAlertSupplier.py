@@ -650,6 +650,8 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
         # internal ampel id
         stock = ZTFNoisifiedIdMapper().to_ampel_id(headerdict["name"])
 
+        assert isinstance(stock, int)
+
         return AmpelAlert(
             id=int.from_bytes(  # alert id
                 blake2b(all_ids, digest_size=7).digest(), byteorder=sys.byteorder
