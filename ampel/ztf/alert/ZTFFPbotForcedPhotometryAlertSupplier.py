@@ -500,14 +500,8 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             if self.save_dir and df.shape[0] > 0:
                 outpath = os.path.join(self.save_dir, f"{name}_blcorr.csv")
                 with open(outpath, "w") as f:
-                    # ugly mypy-fix
-                    dict_keys = list(headerdict.keys())
-                    dict_vals = list(headerdict.values())
-                    for i, key in enumerate(dict_keys):
-                        if key is not None and dict_vals[i] is not None:
-                            f.write(f"#{key}={dict_vals[i]}\n")
-                    # for key, val in headerdict.items():
-                    # f.write(f"#{key}={val}\n")
+                    for k, v in headerdict.items():
+                        f.write(f"#{k}={v}\n")
                     df.to_csv(f)
                 self.logger.info(f"Saved baseline to {outpath}")
 
