@@ -147,3 +147,7 @@ class ZTFIdMapper(AbsIdMapper):
 			return f"ZTF{year}{''.join(l)}"
 		else:
 			raise TypeError(f"Ampel ids for ZTF transients should be ints (got {type(ampel_id)} {ampel_id})")
+
+# backward compatibility shortcuts
+to_ampel_id = ZTFIdMapper.to_ampel_id
+to_ztf_id = ZTFIdMapper.to_ext_id
