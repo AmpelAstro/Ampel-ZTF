@@ -9,7 +9,7 @@
 
 from ampel.abstract.AbsIdMapper import AbsIdMapper
 from ampel.types import StockId
-from ampel.ztf.utils.ZTFIdMapper import ZTFIdMapper
+from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 
 
 class ZTFNoisifiedIdMapper(AbsIdMapper):
