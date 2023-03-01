@@ -7,32 +7,33 @@
 # Last Modified Date: 17.02.2023
 # Last Modified By  : sr <simeon.reusch@desy.de>
 
-import sys, re, os
-
-from os.path import basename
-from bson import encode
+import gc
+import os
+import re
+import sys
 from hashlib import blake2b
-from typing import Optional, Literal, Union, Any
+from os.path import basename
+from typing import Any, Literal, Optional, Union
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import gc
-import matplotlib.pyplot as plt
-
+from ampel.alert.AmpelAlert import AmpelAlert
+from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
+from ampel.model.PlotProperties import PlotProperties
+from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
+from ampel.types import Tag
+from ampel.view.ReadOnlyDict import ReadOnlyDict
+from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
+from ampel.ztf.util.ZTFNoisifiedIdMapper import ZTFNoisifiedIdMapper
 # from appdirs import user_cache_dir
 from astropy.time import Time
+from bson import encode
 from scipy.stats import median_abs_deviation
 
 # Only works directly on filenames
 # from bts_phot.calibrate_fps import get_baseline # type: ignore[import]
 
-from ampel.ztf.util.ZTFIdMapper import ZTFNoisifiedIdMapper, ZTFIdMapper
-from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
-from ampel.types import Tag
-from ampel.view.ReadOnlyDict import ReadOnlyDict
-from ampel.alert.AmpelAlert import AmpelAlert
-from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
-from ampel.model.PlotProperties import PlotProperties
 
 
 dcast = {
