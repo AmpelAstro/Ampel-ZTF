@@ -40,8 +40,8 @@ unit:
 - ampel.ztf.t0.load.UWAlertLoader
 - ampel.ztf.t0.load.ZTFArchiveAlertLoader
 - ampel.ztf.util.ZTFIdMapper
+- ampel.ztf.util.ZTFNoisifiedIdMapper
 - ampel.ztf.ingest.ZiCompilerOptions
-
 - ampel.ztf.t0.T0HealpixPathProcessor
 - ampel.ztf.t0.T0HealpixProcessor
 - ampel.ztf.alert.load.ZTFHealpixAlertLoader
