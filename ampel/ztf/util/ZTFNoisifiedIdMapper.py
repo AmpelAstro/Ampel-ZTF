@@ -7,6 +7,9 @@
 # Last Modified Date:  01.03.2023
 # Last Modified By:    Simeon Reusch <simeon.reusch@desy.de
 
+from collections.abc import Iterable
+from typing import cast, overload
+
 from ampel.abstract.AbsIdMapper import AbsIdMapper
 from ampel.types import StockId, StrictIterable
 from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
@@ -15,6 +18,16 @@ from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 class ZTFNoisifiedIdMapper(AbsIdMapper):
     def __init__(self):
         ZTFIdMapper.__init__(self)
+
+    @overload
+    @classmethod
+    def to_ampel_id(cls, ztf_id: str) -> int:
+        ...
+
+    @overload
+    @classmethod
+    def to_ampel_id(cls, ztf_id: StrictIterable[str]) -> list[int]:
+        ...
 
     @classmethod
     def to_ampel_id(cls, ztf_id: str | StrictIterable[str]) -> int | list[int]:
@@ -36,35 +49,42 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
                 return ampel_id
 
         else:
-            ampel_ids = []
-            for _ztfid in ztf_id:
-                split_str = _ztfid.split("_")
-                ampel_id_part = split_str[0]
-                ampel_id = ZTFIdMapper.to_ampel_id(_ztfid)
-                if len(split_str) > 1:
-                    sub_id = split_str[1]
-                    ampel_ids.append(int(str(ampel_id) + "000000" + sub_id))
-                else:
-                    ampel_ids.append(ampel_id)
+            return [cast(int, cls.to_ampel_id(name)) for name in ztf_id]
 
-            return ampel_ids
+    @overload
+    @classmethod
+    def to_ext_id(cls, ampel_id: StockId) -> str:
+        ...
+
+    @overload
+    @classmethod
+    def to_ext_id(cls, ampel_id: StrictIterable[StockId]) -> list[str]:
+        ...
 
     @classmethod
-    def to_ext_id(cls, ampel_id_with_sub_id: StockId) -> str:
+    def to_ext_id(cls, ampel_id: StockId | StrictIterable[StockId]) -> str | list[str]:  # type: ignore[override]
         """
         Return the original name of the noisified lightcurve
         """
-        both_ids = str(ampel_id_with_sub_id).split("000000")
-        ampel_id = int(both_ids[0])
+        if isinstance(ampel_id, Iterable) and not isinstance(ampel_id, str):
+            return [cast(str, cls.to_ext_id(l)) for l in ampel_id]
 
-        ztfid = ZTFIdMapper.to_ext_id(ampel_id)
+        elif isinstance(ampel_id, int):
+            both_ids = str(ampel_id).split("000000")
+            ampel_id = int(both_ids[0])
 
-        if len(both_ids) > 1:
-            sub_id = int(both_ids[1])
-            return ztfid + "_" + str(sub_id)
+            ztfid = ZTFIdMapper.to_ext_id(ampel_id)
 
+            if len(both_ids) > 1:
+                sub_id = int(both_ids[1])
+                return ztfid + "_" + str(sub_id)
+
+            else:
+                return ztfid
         else:
-            return ztfid
+            raise TypeError(
+                f"Ampel ids for ZTF transients should be ints (got {type(ampel_id)} {ampel_id})"
+            )
 
 
 # backward compatibility shortcuts
