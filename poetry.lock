@@ -145,23 +145,24 @@ docs = ["Sphinx (>=6.1.2,<6.2.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)",
 
 [[package]]
 name = "ampel-core"
-version = "0.8.4"
+version = "0.8.5"
 description = "Alice in Modular Provenance-Enabled Land"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.12"
 files = [
-    {file = "ampel_core-0.8.4-py3-none-any.whl", hash = "sha256:07a83dfdc8c7e4e58c918498e4ea86dab92b22536437c6be7b68998969b60504"},
-    {file = "ampel_core-0.8.4.tar.gz", hash = "sha256:49bbcc0e533f31497a5f531fdcd05447f29dff6b2a45d0d1928f11ff0f92344e"},
+    {file = "ampel_core-0.8.5-py3-none-any.whl", hash = "sha256:10d21ec55a17c8327e6a72fc747f31e706fa5a2d820a2a4353b9d161fd06dbd8"},
+    {file = "ampel_core-0.8.5.tar.gz", hash = "sha256:f3aa65578a7abee50d07068436156c03f1b59a2613a91813a8ff0ece6bc25994"},
 ]
 
 [package.dependencies]
-ampel-interface = ">=0.8.3,<0.9.0"
+ampel-interface = ">=0.8.7,<0.9.0"
 appdirs = ">=1.4.4,<2.0.0"
 prometheus-client = ">=0.16,<0.17"
 psutil = ">=5.8.0,<6.0.0"
 pydantic = ">=1.9.0,<2.0.0"
 pymongo = ">=4.0,<5.0"
+requests = ">=2.0,<3.0"
 schedule = ">=1.0.0,<2.0.0"
 sjcl = ">=0.2.1,<0.3.0"
 xxhash = ">=3.0.0,<4.0.0"
@@ -3048,4 +3049,4 @@ plot = ["ampel-plot"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "f053ec1cddcc9937dec2d8089903d53c178be5234300bc8d99e6137ea69315ee"
+content-hash = "7f6628a3050114318556bd7dbbbb34e0084de373a6b7ebaabf852c65b9ee1d13"
