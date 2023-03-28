@@ -769,7 +769,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 "instrument_id": instrument_id,
                 **self.make_photometry(dps),
             }
-            datapoint_ids = photometry.pop("_id")
+            datapoint_ids = photometry.pop("id")
             try:
                 photometry_response = await self.put("photometry", json=photometry)
                 photometry_ids = photometry_response["data"]["ids"]
