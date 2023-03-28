@@ -705,8 +705,8 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         # finding the time and alert id at which each filter passed for the
         # first time. If the candidate has not yet been posted, do so for the
         # first alert that passes a filter.
-        for jentry in view.get_journal_entries(tier=0) or []:
-            if jentry["extra"] is None or jentry["extra"].get("ac", False):
+        for jentry in view.get_journal_entries(tier=0):
+            if jentry.get("extra", {}).get("ac", False):
                 continue
             # no more filters left to update
             if not new_filters:
