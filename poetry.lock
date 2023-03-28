@@ -145,14 +145,14 @@ docs = ["Sphinx (>=6.1.2,<6.2.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)",
 
 [[package]]
 name = "ampel-core"
-version = "0.8.5"
+version = "0.8.6"
 description = "Alice in Modular Provenance-Enabled Land"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.12"
 files = [
-    {file = "ampel_core-0.8.5-py3-none-any.whl", hash = "sha256:10d21ec55a17c8327e6a72fc747f31e706fa5a2d820a2a4353b9d161fd06dbd8"},
-    {file = "ampel_core-0.8.5.tar.gz", hash = "sha256:f3aa65578a7abee50d07068436156c03f1b59a2613a91813a8ff0ece6bc25994"},
+    {file = "ampel_core-0.8.6-py3-none-any.whl", hash = "sha256:c3132fbe9b585a33c4e747d4d79e4ba454368ecb38e917ddc6b9c01c196c89d4"},
+    {file = "ampel_core-0.8.6.tar.gz", hash = "sha256:d0fca9bc7ef33223f962da275b7008aad89355e3d20d5294b97ab8cb02e38126"},
 ]
 
 [package.dependencies]
@@ -170,7 +170,7 @@ yq = ">=3.0.0,<4.0.0"
 
 [package.extras]
 docs = ["Sphinx (>=6.1.2,<6.2.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "sphinx-press-theme (>=0.5.1,<0.9.0)", "tomlkit (>=0.11.0,<0.12.0)"]
-server = ["fastapi (>=0.92,<0.93)", "uvicorn[standard] (>=0.20.0,<0.21.0)"]
+server = ["fastapi (>=0.95,<0.96)", "uvicorn[standard] (>=0.21.1,<0.22.0)"]
 slack = ["slack-sdk (>=3.18.1,<4.0.0)"]
 
 [[package]]
@@ -1164,12 +1164,14 @@ optional = true
 python-versions = ">=3.7"
 files = [
     {file = "light_curve-0.7.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4aee8f3f093d8d3d00183aa385471ccc7e74cb4567d6139d4b442b3874e631c0"},
+    {file = "light_curve-0.7.1-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:2e847dc8de16e2d1f3d35c87ee66c33ceb6c0c5b17f5aa2df8e7f7146d922cee"},
     {file = "light_curve-0.7.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:13f6a4ca746fe65c5113f46961e97e5a130d316108d0dd0719aa0835f7cf7bad"},
     {file = "light_curve-0.7.1-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:0a466f3637b361826b5407b754618955ab799fdfc7a34aa2107a72f47d9b6e65"},
     {file = "light_curve-0.7.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ca4074e6ec53f2680f3b5ea6855de70fb6d55cf0cc4fae1a61e8b1d31b778a35"},
     {file = "light_curve-0.7.1-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:edcea718703d278d16b61073e92fe2d1b04dce2d651b9ccf9b11f80979f2a457"},
     {file = "light_curve-0.7.1-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:2af7f1d77705668b36608b2a584240855f8449628b626e05c38e654ac3bf27cc"},
     {file = "light_curve-0.7.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:07845bff092fcef196a87ed779ea2866847ebc0c00b4021c1a199cd4d75c6ca7"},
+    {file = "light_curve-0.7.1-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:e140293b1d730bca2e9d7d51ae78de144792349e18521c403de59fdfb4d8dbe3"},
     {file = "light_curve-0.7.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c9fe0b571424e32197b9f467521ecb91aa70d78d0ef726ab23132e8252cd4aea"},
     {file = "light_curve-0.7.1-cp311-cp311-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:d61a776b8ec70fed049d293a02468ee6c65e4f5595ce38db7fef228855ab7ff8"},
     {file = "light_curve-0.7.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a8cfe0a91e4464ba9c0349be594c7f55357b42605e82b3a24cee0f40bb2e0582"},
@@ -1182,12 +1184,14 @@ files = [
     {file = "light_curve-0.7.1-cp37-cp37m-musllinux_1_1_aarch64.whl", hash = "sha256:de3f5f0aed861eac051d0e8fbdc1eeff82f4cb3200078841333b2686ac90c0bb"},
     {file = "light_curve-0.7.1-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:79b25995af1f5e0ad3c6a4e2d92094f069be758d883ad51174d1c0cd03eb1b27"},
     {file = "light_curve-0.7.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:4104399d81f9122e27f7b2ab8bf912697aad54d0e483c863b090b1835d990996"},
+    {file = "light_curve-0.7.1-cp38-cp38-macosx_12_0_arm64.whl", hash = "sha256:1851e7f35a99bc58036523af64fba94e2e72bc78e0ab4aaa7f4ef2ff8e784bd5"},
     {file = "light_curve-0.7.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:100349dd9168ed38db1360e7885900695ef498f07cbcbc9e510273e40c69bb01"},
     {file = "light_curve-0.7.1-cp38-cp38-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:3bc5c19d7df69be78a395c5797de11baef7fbb239a9a833295f58986a84dbd7c"},
     {file = "light_curve-0.7.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:504a58190f8136022871f15415af84417a604d7acc9e25ea2f5015ebaa624b89"},
     {file = "light_curve-0.7.1-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:fb610a08c625325aaee4df97dad954df8e06100157bb203392d381dea7e7707b"},
     {file = "light_curve-0.7.1-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:413e933804a1793480f63d7582eca8dcd310240ea3bcadb13b8768116f63f60b"},
     {file = "light_curve-0.7.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:81409750f0d8d06a399da6a6d230b9a36e072f8aec95cdbb1e5c7ac8ecea7a8b"},
+    {file = "light_curve-0.7.1-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:48190237f69dfe2141dd615fe120577b80229dfea4d3fe0f898a19bf62eb80ed"},
     {file = "light_curve-0.7.1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5c31bb63d8163a1176be4a103142a31f1a4acdd2e432799eb8afc2c8b4033c13"},
     {file = "light_curve-0.7.1-cp39-cp39-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:70147743ca0a9059984bd5a0688424d0a325bb4aa2ba137aa16198c725a90df9"},
     {file = "light_curve-0.7.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:543b81bb7aeda0221d964a04c0d6121dfcaa998595466243437a32e144329b18"},
@@ -3045,4 +3049,4 @@ plot = ["ampel-plot"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "4ecd4233b361216090c9816ac8685b2debba0b55fe6f83c02f2ae45f172be6b4"
+content-hash = "f8a90deea33c02f8a70853cbb2f7269ab079daced34c7ec2a4449cc16b177971"
