@@ -732,7 +732,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                     json={
                         "id": name,
                         "filter_ids": fids,
-                        "passing_alert_id": jentry["extra"]["alert"],
+                        "passing_alert_id": jentry["alert"], # type: ignore[typeddict-item]
                         "passed_at": datetime.fromtimestamp(jentry["ts"]).isoformat(),
                         **candidate,
                     },
