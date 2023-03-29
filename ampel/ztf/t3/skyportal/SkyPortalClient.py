@@ -693,7 +693,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
 
         if (
             response := await self.get(
-                f"candidates/{name}", params={"includeComments": 1}, raise_exc=False
+                f"candidates/{name}", params={"includeComments": 1, "includeAlerts": 1}, raise_exc=False
             )
         )["status"] == "success":
             # Only update filters, not the candidate itself
@@ -705,8 +705,8 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         # finding the time and alert id at which each filter passed for the
         # first time. If the candidate has not yet been posted, do so for the
         # first alert that passes a filter.
-        for jentry in view.get_journal_entries(tier=0) or []:
-            if jentry["extra"] is None or jentry["extra"].get("ac", False):
+        for jentry in view.get_journal_entries(tier=0):
+            if jentry.get("extra", {}).get("ac", False):
                 continue
             # no more filters left to update
             if not new_filters:
@@ -732,7 +732,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                     json={
                         "id": name,
                         "filter_ids": fids,
-                        "passing_alert_id": jentry["extra"]["alert"],
+                        "passing_alert_id": jentry["alert"], # type: ignore[typeddict-item]
                         "passed_at": datetime.fromtimestamp(jentry["ts"]).isoformat(),
                         **candidate,
                     },
@@ -769,7 +769,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 "instrument_id": instrument_id,
                 **self.make_photometry(dps),
             }
-            datapoint_ids = photometry.pop("_id")
+            datapoint_ids = photometry.pop("id")
             try:
                 photometry_response = await self.put("photometry", json=photometry)
                 photometry_ids = photometry_response["data"]["ids"]
