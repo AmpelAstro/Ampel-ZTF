@@ -20,7 +20,7 @@ from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
-from ampel.model.PlotProperties import PlotProperties
+from ampel.model.PlotProperties import PlotProperties, FormatModel
 from ampel.plot.create import create_plot_record
 
 dcast = {
@@ -101,14 +101,14 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
 	plot_props: PlotProperties = PlotProperties(
 		tags = ["IFP", "BASELINE"],
-		file_name = {
-			"format_str": "ifp_raw_%s.svg",
-			"arg_keys": ["sn_name"]
-		},
-		title = {
-			"format_str": "IFP - %s",
-			"arg_keys": ["sn_name"]
-		}
+		file_name = FormatModel(
+			format_str = "ifp_raw_%s.svg",
+			arg_keys = ["sn_name"]
+		),
+		title = FormatModel(
+			format_str = "IFP - %s",
+			arg_keys = ["sn_name"]
+		)
 	)
 
 
