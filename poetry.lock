@@ -126,19 +126,19 @@ frozenlist = ">=1.1.0"
 
 [[package]]
 name = "ampel-alerts"
-version = "0.8.3"
+version = "0.8.4"
 description = "Alert support for the Ampel system"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.12"
 files = [
-    {file = "ampel_alerts-0.8.3-py3-none-any.whl", hash = "sha256:c396e6a8b8ce239e09162095729c64ab7608486bc612b8c38bcc2eb1a9bfe575"},
-    {file = "ampel_alerts-0.8.3.tar.gz", hash = "sha256:fd8079c40a69fd7b49d7b0c911fcc3f454dbb2b93e87d7d8eb2cc6c5d381200b"},
+    {file = "ampel_alerts-0.8.4-py3-none-any.whl", hash = "sha256:e5fafef4bd5a580b432a19b78a8a81b556b9dbe6ec91ccd18352024d3ef11cb9"},
+    {file = "ampel_alerts-0.8.4.tar.gz", hash = "sha256:c94682ec261ec5c6e17668a9073fbdc38fcca04bfb70ff0e491ee18e717c67d5"},
 ]
 
 [package.dependencies]
-ampel-core = ">=0.8.3,<0.9.0"
-ampel-interface = ">=0.8.3,<0.9.0"
+ampel-core = ">=0.8.6,<0.9.0"
+ampel-interface = ">=0.8.7,<0.9.0"
 
 [package.extras]
 docs = ["Sphinx (>=6.1.2,<6.2.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "tomlkit (>=0.11.0,<0.12.0)"]
@@ -3022,4 +3022,4 @@ plot = ["ampel-plot"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "c5a5b4a21b5598e92e080d9655791b6bb7a9ad135d01789a8875306586027945"
+content-hash = "57e54424367bb91f243b946f11ceb6ec9aa8d03afcefd9c046969a47774d9703"
