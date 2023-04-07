@@ -4,7 +4,7 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                Unspecified
-# Last Modified Date:  02.01.2022
+# Last Modified Date:  07.04.2023
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from setuptools import setup, find_namespace_packages
@@ -24,7 +24,7 @@ extras_require = {
 
 setup(
     name = 'ampel-ztf',
-    version = '0.8.3a10',
+    version = '0.9.0',
     description = 'Zwicky Transient Facility support for the Ampel system',
     author = 'Valery Brinnel',
     maintainer = 'Jakob van Santen',
