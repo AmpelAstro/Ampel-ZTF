@@ -71,6 +71,9 @@ mongo:
     - name: t3
       indexes:
       - field: process
+    - name: t4
+      indexes:
+      - field: process
     role:
       r: logger
       w: writer
@@ -230,6 +233,15 @@ unit:
     distrib: ampel-core
     file: /Users/jakob/Documents/ZTF/Ampel-v0.8/ampel-core/conf/ampel-core/ampel.yaml
     version: 0.8.0a2
+  T4Processor:
+    fqn: ampel.t4.T4Processor
+    base:
+    - T4Processor
+    - AbsEventUnit
+    - ContextUnit
+    distrib: ampel-core
+    file: /dev/null
+    version: '0.9'
   AmpelExceptionPublisher:
     fqn: ampel.ops.AmpelExceptionPublisher
     base:
@@ -1006,29 +1018,27 @@ unit:
     distrib: ampel-core
     file: /Users/jakob/Documents/ZTF/Ampel-v0.8/ampel-core/conf/ampel-core/ampel.yaml
     version: 0.8.0a2
-  T3ZTFArchiveTokenGenerator:
-    fqn: ampel.ztf.t3.resource.T3ZTFArchiveTokenGenerator
+  T4ZTFArchiveTokenGenerator:
+    fqn: ampel.ztf.t4.T4ZTFArchiveTokenGenerator
     base:
-    - T3ZTFArchiveTokenGenerator
-    - AbsT3PlainUnit
+    - T4ZTFArchiveTokenGenerator
+    - AbsT4Unit
     - LogicalUnit
-    xxh64: 14920228502975638399
+    xxh64: 1
     distrib: ampel-ztf
     version: 0.8.3a2
-    source: /Users/jakob/Documents/ZTF/Ampel-v0.8.3/Ampel-ZTF/conf/ampel-ztf/ampel.yml
-  T3PlainUnitExecutor:
-    fqn: ampel.t3.T3PlainUnitExecutor
+    source: /dev/null
+  T4RunTimeContextUpdater:
+    fqn: ampel.t4.T4RunTimeContextUpdater
     base:
-    - T3PlainUnitExecutor
-    - AbsT3ControlUnit
-    - T3DocBuilder
+    - T4RunTimeContextUpdater
+    - AbsT4ControlUnit
+    - DocBuilder
     - ContextUnit
-    - T3DocBuilderModel
-    - AmpelBaseModel
-    xxh64: 10881006563445784382
+    xxh64: 0
     distrib: ampel-core
-    version: 0.8.3a22
-    source: /Users/jakob/Documents/ZTF/Ampel-v0.8.3/Ampel-core/conf/ampel-core/ampel.yaml
+    version: 0.9.a1
+    source: /dev/null
 process:
   t0: {}
   t1: {}
@@ -1131,3 +1141,4 @@ template:
   ztf_uw_caltech: ampel.template.ZTFLegacyChannelTemplate
   ztf_periodic_summary: ampel.template.ZTFPeriodicSummaryT3
   ztf_local_alerts: ampel.template.ZTFProcessLocalAlerts
+  resolve_run_time_aliases: ampel.config.alter.ResolveRunTimeAliases
