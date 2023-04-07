@@ -26,7 +26,7 @@ unit:
 - ampel.ztf.t2.T2CatalogMatch
 - ampel.ztf.t2.T2LightCurveFeatures
 - ampel.ztf.t3.skyportal.SkyPortalPublisher
-- ampel.ztf.t3.resource.T3ZTFArchiveTokenGenerator
+- ampel.ztf.t4.T4ZTFArchiveTokenGenerator
 
 # Ops units
 - ampel.ztf.t0.load.ZTFAlertArchiverV3
