@@ -11,7 +11,6 @@ import logging, backoff, requests
 from typing import Any
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.base.AmpelBaseModel import AmpelBaseModel
-from ampel.struct.Resource import Resource
 
 log = logging.getLogger(__name__)
 
@@ -39,25 +38,11 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     archive: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3"
 
     #: A stream identifier, created via POST /api/ztf/archive/streams/, or a query
-    stream: None | str | ZTFSource
-
-    #: Name of dynamic resource, fetched by a T3 process and forwarded
-    #: to suppliers/loaders by AlertConsumer via their methods add_resource
-    resource_name: str = 'ztf_stream_token'
+    stream: None | str | ZTFSource = '%%ztf_stream_token'
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._it = None
-
-    # override
-    def add_resource(self, name: str, resource: Resource) -> None:
-        if name == self.resource_name:
-            if not isinstance(resource.value, str):
-                raise ValueError(
-                    f"Unexpected {self.resource_name} resource "
-                    f"value type: {type(resource.value)}"
-                )
-            self.stream = resource.value
 
     def __iter__(self):
         return self.get_alerts()
