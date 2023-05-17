@@ -7,14 +7,14 @@
 # Last Modified Date:  10.03.2021
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import numpy as np
 from typing import Any
-from astropy.table import Table
-from astropy.coordinates import SkyCoord
 
+import numpy as np
 from ampel.abstract.AbsAlertFilter import AbsAlertFilter
-from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
+from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
+from astropy.coordinates import SkyCoord
+from astropy.table import Table
 
 
 class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
@@ -36,8 +36,10 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
     min_ndet: int  # number of previous detections
     min_tspan: float  # minimum duration of alert detection history [days]
     max_tspan: float  # maximum duration of alert detection history [days]
-    min_archive_tspan: float = 0. # minimum duration of alert detection history [days]
-    max_archive_tspan: float = 10**5. # maximum duration of alert detection history [days]
+    min_archive_tspan: float = 0.0  # minimum duration of alert detection history [days]
+    max_archive_tspan: float = (
+        10**5.0
+    )  # maximum duration of alert detection history [days]
 
     # Image quality
     min_drb: float = 0.0  # deep learning real bogus score
@@ -66,7 +68,6 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
     gaia_excessnoise_sig_max: float  # maximum allowed noise (expressed as significance) for Gaia match to be trusted.
 
     def post_init(self):
-
         # feedback
         for k in self.__annotations__:
             self.logger.info(f"Using {k}={getattr(self, k)}")
@@ -184,7 +185,6 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
         )[0]
 
         if srcs:
-
             gaia_tab = Table(
                 [
                     {k: np.nan if v is None else v for k, v in src["body"].items()}
@@ -227,7 +227,7 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
             # among the remaining sources there is anything with
             # significant proper motion or parallax measurement
             if (
-                any(gaia_tab["FLAG_PMRA"] == True) # noqa
+                any(gaia_tab["FLAG_PMRA"] == True)  # noqa
                 or any(gaia_tab["FLAG_PMDec"] == True)
                 or any(gaia_tab["FLAG_Plx"] == True)
             ):
@@ -255,7 +255,7 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
             return None
 
         # cut on length of detection history
-        detections_jds = [el['jd'] for el in pps]
+        detections_jds = [el["jd"] for el in pps]
         det_tspan = max(detections_jds) - min(detections_jds)
         if not (self.min_tspan <= det_tspan <= self.max_tspan):
             # self.logger.debug("rejected: detection history is %.3f d long, \
@@ -301,12 +301,11 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
             return None
 
         # cut on archive length
-        if 'jdendhist' in latest.keys() and 'jdstarthist' in latest.keys():
-            archive_tspan = latest['jdendhist'] - latest['jdstarthist']
+        if "jdendhist" in latest.keys() and "jdstarthist" in latest.keys():
+            archive_tspan = latest["jdendhist"] - latest["jdstarthist"]
             if not (self.min_archive_tspan < archive_tspan < self.max_archive_tspan):
-                self.logger.info(None, extra={'archive_tspan': archive_tspan})
+                self.logger.info(None, extra={"archive_tspan": archive_tspan})
                 return None
-
 
         # ASTRONOMY
         ###########
@@ -345,6 +344,6 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
         self.logger.debug("Alert accepted", extra={"latestPpId": latest["candid"]})
 
         # for key in self.keys_to_check:
-        # 	self.logger.debug("{}: {}".format(key, latest[key]))
+        #   self.logger.debug("{}: {}".format(key, latest[key]))
 
         return True
