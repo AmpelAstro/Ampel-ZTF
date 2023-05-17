@@ -7,8 +7,11 @@
 # Last Modified Date:  22.12.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-import logging, backoff, requests
+import logging
 from typing import Any
+
+import backoff
+import requests
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.struct.Resource import Resource
@@ -43,7 +46,7 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
 
     #: Name of dynamic resource, fetched by a T3 process and forwarded
     #: to suppliers/loaders by AlertConsumer via their methods add_resource
-    resource_name: str = 'ztf_stream_token'
+    resource_name: str = "ztf_stream_token"
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -78,7 +81,8 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
                 if "chunk" in chunk:
                     self._acknowledge_chunk(session, chunk["chunk"])
                     log.info(
-                        None, extra={"streamToken": self.stream, "chunk": chunk["chunk"]}
+                        None,
+                        extra={"streamToken": self.stream, "chunk": chunk["chunk"]},
                     )
                 if isinstance(self.stream, ZTFSource) or (
                     len(chunk["alerts"]) == 0 and chunk["remaining"]["chunks"] == 0
@@ -88,14 +92,13 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup = lambda e: (
-            not isinstance(e, requests.HTTPError) or
-            e.response.status_code not in {502, 503, 504, 429, 408}
+        giveup=lambda e: (
+            not isinstance(e, requests.HTTPError)
+            or e.response.status_code not in {502, 503, 504, 429, 408}
         ),
-        max_time = 600,
+        max_time=600,
     )
     def _get_chunk(self, session: requests.Session) -> dict[str, Any]:
-
         if isinstance(self.stream, ZTFSource):
             params = {"with_history": self.stream.with_history}
             for k in ("jd_start", "jd_end", "programid"):
@@ -103,8 +106,8 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
                     params[k] = x
             response = session.get(
                 f"{self.archive}/object/{self.stream.ztf_name}/alerts",
-                headers = {"Authorization": f"bearer {self.stream.archive_token}"},
-                params = params
+                headers={"Authorization": f"bearer {self.stream.archive_token}"},
+                params=params,
             )
         else:
             response = session.get(f"{self.archive}/stream/{self.stream}/chunk")
@@ -114,12 +117,14 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup = (
-            lambda e: not isinstance(e, requests.HTTPError) or
-            e.response.status_code not in {502, 503, 504, 429, 408}
+        giveup=(
+            lambda e: not isinstance(e, requests.HTTPError)
+            or e.response.status_code not in {502, 503, 504, 429, 408}
         ),
-        max_time = 600,
+        max_time=600,
     )
     def _acknowledge_chunk(self, session: requests.Session, chunk_id: int) -> None:
-        response = session.post(f"{self.archive}/stream/{self.stream}/chunk/{chunk_id}/acknowledge")
+        response = session.post(
+            f"{self.archive}/stream/{self.stream}/chunk/{chunk_id}/acknowledge"
+        )
         response.raise_for_status()
