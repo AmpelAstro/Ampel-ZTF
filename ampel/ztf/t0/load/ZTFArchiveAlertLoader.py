@@ -4,8 +4,8 @@
 # License:             BSD-3-Clause
 # Author:              jvs
 # Date:                20.10.2021
-# Last Modified Date:  22.12.2022
-# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
+# Last Modified Date:  17.05.2023
+# Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
 
 import logging
 from typing import Any
@@ -47,6 +47,8 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     #: Name of dynamic resource, fetched by a T3 process and forwarded
     #: to suppliers/loaders by AlertConsumer via their methods add_resource
     resource_name: str = "ztf_stream_token"
+
+    with_history: bool = True
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -94,7 +96,7 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
         requests.HTTPError,
         giveup=lambda e: (
             not isinstance(e, requests.HTTPError)
-            or e.response.status_code not in {502, 503, 504, 429, 408}
+            or e.response.status_code not in {502, 503, 504, 429, 408, 423}
         ),
         max_time=600,
     )
@@ -110,7 +112,11 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
                 params=params,
             )
         else:
-            response = session.get(f"{self.archive}/stream/{self.stream}/chunk")
+            response = session.get(
+                f"{self.archive}/stream/{self.stream}/chunk",
+                params={"with_history": self.with_history},
+            )
+
         response.raise_for_status()
         return response.json()
 
