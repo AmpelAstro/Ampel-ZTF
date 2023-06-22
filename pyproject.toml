@@ -56,7 +56,7 @@ ampel-alerts = "^0.9.0"
 ampel-plot = {version = "^0.8.3-3", optional = true}
 pandas = {version = "^1.5.2", optional = true}
 scipy = "^1.9.3"
-planobs = {version = "^0.6.1", optional = true}
+planobs = {version = "^0.7.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.3.2"
