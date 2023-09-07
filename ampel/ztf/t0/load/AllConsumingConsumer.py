@@ -12,6 +12,7 @@ import json
 import sys
 import time
 import uuid
+from typing import Collection
 
 import confluent_kafka
 
@@ -109,7 +110,7 @@ class AllConsumingConsumer:
         timeout=None,
         topics=["^ztf_.*"],
         auto_commit=True,
-        logger: None | LoggerProtocol=None,
+        logger: None | LoggerProtocol = None,
         **consumer_config,
     ):
         """ """
@@ -142,7 +143,7 @@ class AllConsumingConsumer:
             self._poll_attempts = max((1, int(timeout / self._poll_interval)))
         self._timeout = timeout
 
-        self._offsets: dict[tuple[str,int],int] = {}
+        self._offsets: dict[tuple[str, int], int] = {}
         self._auto_commit = auto_commit
 
     def __next__(self):
@@ -155,22 +156,31 @@ class AllConsumingConsumer:
     def __iter__(self):
         return self
 
-    def commit(self):
-        if self._offsets:
-            offsets = [
-                confluent_kafka.TopicPartition(topic, partition, offset + 1)
-                for (topic, partition), offset in self._offsets.items()
-            ]
+    def commit(
+        self,
+        offsets_to_commit: None | Collection[confluent_kafka.TopicPartition] = None,
+    ):
+        offsets = offsets_to_commit or [
+            confluent_kafka.TopicPartition(topic, partition, offset + 1)
+            for (topic, partition), offset in self._offsets.items()
+        ]
+
+        if offsets:
             if self._logger:
                 self._logger.debug(f"Storing offsets: {offsets}")
             if self._auto_commit:
                 self._consumer.store_offsets(offsets=offsets)
                 self._offsets.clear()
             else:
-                for toppar in self._consumer.commit(offsets=offsets, asynchronous=False):
+                for toppar in self._consumer.commit(
+                    offsets=offsets, asynchronous=False
+                ):
                     if toppar.error:
-                        self._logger.error(f"Commit {toppar} failed with {toppar.error}")
-                    else:
+                        if self._logger:
+                            self._logger.error(
+                                f"Commit {toppar} failed with {toppar.error}"
+                            )
+                    elif not offsets_to_commit:
                         del self._offsets[(toppar.topic, toppar.partition)]
 
     def consume(self) -> None | confluent_kafka.Message:
