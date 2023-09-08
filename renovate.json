@@ -1,5 +1,5 @@
 {
   "extends": ["github>AmpelProject/renovate-config"],
   "enabledManagers": ["github-actions", "poetry"],
-  "ignoreDeps": ["fastavro"]
+  "baseBranches": ["master", "v0.8.x"]
 }
