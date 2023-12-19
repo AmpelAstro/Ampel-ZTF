@@ -132,7 +132,9 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     @backoff.on_exception(
         backoff.expo,
         requests.exceptions.HTTPError,
-        giveup=lambda e: not isinstance(e, requests.HTTPError) or e.response.status_code not in {500, 502, 503, 504, 429, 408},
+        giveup=lambda e: not isinstance(e, requests.HTTPError)
+        or e.response is None
+        or e.response.status_code not in {500, 502, 503, 504, 429, 408},
         max_time=600,
     )
     def _get_chunk(self) -> dict[str, Any]:
