@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ampel-ztf"
-version = "0.8.9"
+version = "0.9.0"
 description = "Zwicky Transient Facility support for the Ampel system"
 authors = [
     "Valery Brinnel",
@@ -44,19 +44,19 @@ nest-asyncio = "^1.4.3"
 backoff = "^2.0.0"
 fastavro = "~1.6.0"
 requests = "^2.25.1"
-requests-toolbelt = "^0.10.0"
+requests-toolbelt = "^1.0.0"
 confluent-kafka = {version = "^2.0.0", optional = true}
 healpy = {version = "^1.15", optional = true}
 light-curve = {version = ">=0.7,<0.8", optional = true}
 ampel-ztf-archive = {version = "^0.8.0-alpha.0", optional = true}
-ampel-interface = "^0.8.7"
-ampel-core = "^0.8.6"
-ampel-photometry = "^0.8.3"
-ampel-alerts = "^0.8.4"
+ampel-interface = "^0.9.0"
+ampel-core = "^0.9.0"
+ampel-photometry = "^0.9.0"
+ampel-alerts = "^0.9.0"
 ampel-plot = {version = "^0.8.3-3", optional = true}
 pandas = {version = "^1.5.2", optional = true}
 scipy = "^1.9.3"
-planobs = {version = "^0.6.1", optional = true}
+planobs = {version = "^0.7.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.2"

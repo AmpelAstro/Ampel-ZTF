@@ -1,35 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File:                Ampel-ZTF/ampel/ztf/t3/resource/T3ZTFArchiveTokenGenerator.py
+# File:                Ampel-ZTF/ampel/ztf/t4/T4ZTFArchiveTokenGenerator.py
 # License:             BSD-3-Clause
 # Author:              valery brinnel & Simeon Reusch
 # Date:                21.12.2022
-# Last Modified Date:  21.12.2022
+# Last Modified Date:  07.04.2023
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import random
 import time
 from typing import Any
-from astropy.time import Time  # type: ignore
+from astropy.time import Time  # type: ignore[import]
 from datetime import datetime
-
-from requests_toolbelt.sessions import BaseUrlSession
+from requests_toolbelt.sessions import BaseUrlSession # type: ignore[import]
 
 from ampel.types import UBson
-from ampel.struct.T3Store import T3Store
-from ampel.struct.Resource import Resource
 from ampel.struct.UnitResult import UnitResult
 from ampel.secret.NamedSecret import NamedSecret
-from ampel.abstract.AbsT3PlainUnit import AbsT3PlainUnit
+from ampel.abstract.AbsT4Unit import AbsT4Unit
 
 
-class T3ZTFArchiveTokenGenerator(AbsT3PlainUnit):
+class T4ZTFArchiveTokenGenerator(AbsT4Unit):
 
 	archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
 
 	#: Base URL of archive service
 	archive: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3/"
-	resource_name: str = 'ztf_stream_token'
+	resource_name: str = '%%ztf_stream_token'
 
 	max_dist_ps1_src: float = 0.5
 	min_detections: int = 3
@@ -47,7 +44,7 @@ class T3ZTFArchiveTokenGenerator(AbsT3PlainUnit):
 	debug: bool = False
 
 
-	def process(self, t3s: T3Store) -> UBson | UnitResult:
+	def do(self) -> UBson | UnitResult:
 
 		if self.date_str:
 			start_jd = Time(
@@ -110,10 +107,4 @@ class T3ZTFArchiveTokenGenerator(AbsT3PlainUnit):
 		response.raise_for_status()
 		self.logger.info("Stream created", extra=response.json())
 
-		r = Resource(name=self.resource_name, value=token)
-		t3s.add_resource(r)
-
-		if self.debug:
-			return r.dict()
-
-		return None
+		return {self.resource_name: token}

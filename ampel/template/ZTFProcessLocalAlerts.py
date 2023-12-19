@@ -4,19 +4,21 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                16.07.2021
-# Last Modified Date:  24.11.2021
+# Last Modified Date:  07.04.2023
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from typing import Any, Literal
 from ampel.types import ChannelId
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.model.UnitModel import UnitModel
+from ampel.model.job.JobTaskModel import JobTaskModel
 from ampel.model.ingest.T2Compute import T2Compute
-from ampel.abstract.AbsProcessorTemplate import AbsProcessorTemplate
+from ampel.abstract.AbsConfigMorpher import AbsConfigMorpher
 from ampel.template.AbsEasyChannelTemplate import AbsEasyChannelTemplate
 
 
-class ZTFProcessLocalAlerts(AbsProcessorTemplate):
+# Inheritance orders matters in this case
+class ZTFProcessLocalAlerts(JobTaskModel, AbsConfigMorpher): # type: ignore[misc]
 	"""
 	Returns adequate config for an alert consumer configured to process local alerts
 	"""
@@ -39,13 +41,13 @@ class ZTFProcessLocalAlerts(AbsProcessorTemplate):
 
 
 	# Mandatory override
-	def get_model(self, config: dict[str, Any], logger: AmpelLogger) -> UnitModel:
+	def morph(self, ampel_config: dict[str, Any], logger: AmpelLogger) -> dict[str, Any]:
 
-		return UnitModel(
+		return self.dict(include=JobTaskModel.__fields__.keys()) | dict(
 			unit = 'AlertConsumer',
 			config = self.extra | AbsEasyChannelTemplate.craft_t0_processor_config(
 				channel = self.channel,
-				config = config,
+				alconf = ampel_config,
 				t2_compute = self.t2_compute,
 				supplier = self._get_supplier(),
 				shaper = "ZiDataPointShaper",

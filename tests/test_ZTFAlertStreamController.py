@@ -1,25 +1,18 @@
-import asyncio
-import copy
-import os
-import time
-
-import pytest
-import requests
-
+import asyncio, os, time, pytest, requests
 from ampel.config.AmpelConfig import AmpelConfig
-from ampel.config.builder.FirstPassConfig import FirstPassConfig
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.metrics.AmpelMetricsRegistry import AmpelMetricsRegistry
 from ampel.model.ProcessModel import ProcessModel
 from ampel.template.ZTFLegacyChannelTemplate import ZTFLegacyChannelTemplate
-from ampel.util import concurrent
 from ampel.ztf.t0.ZTFAlertStreamController import ZTFAlertStreamController
 from ampel.ztf.t0.load.ZTFArchiveAlertLoader import ZTFArchiveAlertLoader
 from ampel.dev.DevAmpelContext import DevAmpelContext
-from ampel.log.AmpelLogger import AmpelLogger
 from ampel.secret.DictSecretProvider import DictSecretProvider
 from ampel.secret.AmpelVault import AmpelVault
 from ampel.core.EventHandler import EventHandler
+from ampel.abstract.AbsEventUnit import AbsEventUnit
+from ampel.util.template import apply_templates
+from ampel.util import concurrent
 
 
 def t0_process(kwargs, first_pass_config):
@@ -246,42 +239,42 @@ def test_archive_source_for_objectid(archive_api_token):
     assert len(alerts) == 10
 
 
-def test_T3ZTFArchiveTokenGenerator(
+def test_T4ZTFArchiveTokenGenerator(
     mock_context: DevAmpelContext, archive_api_token
 ):
     mock_context.loader.vault = AmpelVault(
         [DictSecretProvider({"archive_token": archive_api_token})]
     )
 
-    t3 = mock_context.new_context_unit(
-        "T3Processor",
+    t4: AbsEventUnit = mock_context.new_context_unit( # type: ignore[assignment]
+        "T4Processor",
         process_name="foo",
         raise_exc=True,
         execute=[
             {
-                "unit": "T3PlainUnitExecutor",
+                "unit": "T4RunTimeContextUpdater",
                 "config": {
-                    "target": {
-                        "unit": "T3ZTFArchiveTokenGenerator",
-                        "config": {
-                            "resource_name": "stream_token",
-                            "archive_token": {"label": "archive_token"},
-                        },
-                    },
-                },
+                    "execute": [
+                        {
+                            "unit": "T4ZTFArchiveTokenGenerator",
+                            "config": {
+                                "resource_name": "%%ztf_stream_token",
+                                "archive_token": {"label": "archive_token"},
+                            }
+                        }
+                    ]
+                }
             }
         ],
     )
 
-    # generated resources are stored in event handler
-    event_handler = EventHandler(t3.process_name, mock_context.get_database())
-    event_handler.register(run_id=mock_context.new_run_id(), tier=3)
-    t3.proceed(event_handler)
-    assert "stream_token" in event_handler.resources
+    event_handler = EventHandler(t4.process_name, mock_context.get_database())
+    event_handler.register(run_id=mock_context.new_run_id(), tier=4)
+    t4.proceed(event_handler)
+    assert "%%ztf_stream_token" in mock_context.run_time_aliases
 
-    # use generated resources to configure an alert loader
-    source = ZTFArchiveAlertLoader(resource_name="stream_token")
-    for k, v in event_handler.resources.items():
-        source.add_resource(k, v)
+    unit_conf = {'stream': '%%ztf_stream_token'}
+    apply_templates(mock_context, 'resolve_run_time_aliases', unit_conf, AmpelLogger.get_logger())
+    source = ZTFArchiveAlertLoader(**unit_conf)
     alerts = list(iter(source))
     assert len(alerts) == 27
