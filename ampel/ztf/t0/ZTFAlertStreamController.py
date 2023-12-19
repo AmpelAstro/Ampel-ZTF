@@ -91,7 +91,7 @@ class ZTFAlertStreamController(AbsProcessController):
         self.multiplier = multiplier
         self._scale_event.set()
 
-    async def run(self) -> Sequence[bool]:
+    async def run(self) -> Sequence[bool | BaseException]:
         """
         Keep `self.multiplier` instances of this process alive until:
           
