@@ -43,6 +43,8 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     #: A stream identifier, created via POST /api/ztf/archive/streams/, or a query
     stream: None | str | ZTFSource = '%%ztf_stream_token'
 
+    with_history: bool = True
+
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._it = None
