@@ -79,6 +79,7 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
         requests.HTTPError,
         giveup=lambda e: (
             not isinstance(e, requests.HTTPError)
+            or e.response is None
             or e.response.status_code not in {502, 503, 504, 429, 408, 423}
         ),
         max_time=600,
@@ -113,6 +114,7 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
         requests.HTTPError,
         giveup=(
             lambda e: not isinstance(e, requests.HTTPError)
+            or e.response is None
             or e.response.status_code not in {502, 503, 504, 429, 408}
         ),
         max_time=600,
