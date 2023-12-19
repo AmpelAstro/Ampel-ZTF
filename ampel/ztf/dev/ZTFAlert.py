@@ -123,4 +123,10 @@ class ZTFAlert:
 	def _deserialize(f) -> None | dict:
 		""" """
 		reader = fastavro.reader(f)
-		return next(reader, None)
+		alert = next(reader, None)
+		if alert is None:
+			return alert
+		else:
+			assert isinstance(alert, dict)
+			return alert
+		
