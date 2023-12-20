@@ -12,6 +12,7 @@ import json
 import sys
 import time
 import uuid
+from collections.abc import Collection
 
 import confluent_kafka
 
@@ -112,7 +113,10 @@ class AllConsumingConsumer:
         logger: None | LoggerProtocol=None,
         **consumer_config,
     ):
-        """ """
+        """
+        :param auto_commit: implicitly store the offset of the last emitted
+            message on the next call to consume()
+        """
 
         self._metrics = KafkaMetrics.instance()
         config = {
@@ -155,6 +159,26 @@ class AllConsumingConsumer:
     def __iter__(self):
         return self
 
+    def store_offsets(
+        self,
+        offsets: Collection[confluent_kafka.TopicPartition],
+    ):
+        if self._logger:
+            self._logger.debug(f"Storing offsets: {offsets}")
+        try:
+            self._consumer.store_offsets(offsets=offsets)
+        except confluent_kafka.KafkaException as exc:
+            # librdkafka will refuse to store offsets on a partition that is not
+            # currently assigned. this can happen if the group is rebalanced
+            # while a batch of messages is in flight. see also:
+            # https://github.com/confluentinc/confluent-kafka-dotnet/issues/1861
+            err = exc.args[0]
+            if err.code() == confluent_kafka.KafkaError._STATE:
+                ...
+            else:
+                raise KafkaError(err)
+
+
     def commit(self):
         if self._offsets:
             offsets = [
@@ -182,7 +206,13 @@ class AllConsumingConsumer:
         """
         # mark the last emitted message for committal
         if self._auto_commit:
-            self.commit()
+            self.store_offsets(
+                [
+                    confluent_kafka.TopicPartition(topic, partition, offset + 1)
+                    for (topic, partition), offset in self._offsets.items()
+                ]
+            )
+            self._offsets.clear()
 
         message = None
         for _ in range(self._poll_attempts):

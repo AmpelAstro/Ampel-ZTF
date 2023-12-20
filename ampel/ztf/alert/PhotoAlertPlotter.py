@@ -274,18 +274,18 @@ class PhotoAlertPlotter:
 
 		# set figure and axis
 		plt.close('all')
-		fig = plt.figure(figsize=[9, 5])
+		fig = plt.figure(figsize=(9, 5))
 		ref, width, heigh = 0.1, 0.15, 0.25
 		span = 0.05
 		ypos = 0.65
 		cutout_axes = {
-			'cutoutScience': fig.add_axes([ref, ypos, width, heigh]),
-			'cutoutTemplate': fig.add_axes([ref + (width + span), ypos, width, heigh]),
-			'cutoutDifference': fig.add_axes([ref + (width + span) * 2, ypos, width, heigh])
+			'cutoutScience': fig.add_axes((ref, ypos, width, heigh)),
+			'cutoutTemplate': fig.add_axes((ref + (width + span), ypos, width, heigh)),
+			'cutoutDifference': fig.add_axes((ref + (width + span) * 2, ypos, width, heigh))
 		}
-		axlc = fig.add_axes([ref, 0.1, (width + span) * 2 + width, 0.5])
+		axlc = fig.add_axes((ref, 0.1, (width + span) * 2 + width, 0.5))
 		if ps1_cutout:
-			fig.add_axes([ref + (width + span * 1.5) * 3, ypos, width, heigh])
+			fig.add_axes((ref + (width + span * 1.5) * 3, ypos, width, heigh))
 
 		# plot the cutouts
 		for which in ('cutoutScience', 'cutoutTemplate', 'cutoutDifference'):
@@ -306,7 +306,7 @@ class PhotoAlertPlotter:
 			for k in [k for k in candidate.keys() if kk in k]:
 				info.append("%s : %.2f" % (k, float(candidate.get(k, np.nan))))
 		fig.text(0.68, 0.6, " \n".join(info), va="top", fontsize="medium", color="0.3")
-		fig.text(0.01, 0.99, alert.stock, fontsize="x-large", color="k", va="top", ha="left")
+		fig.text(0.01, 0.99, str(alert.stock), fontsize="x-large", color="k", va="top", ha="left")
 
 		# now go back to previous state
 		if self.interactive:

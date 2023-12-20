@@ -65,6 +65,7 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
             if not alerts:
                 return
             chunk = io.BytesIO()
+            assert schema is not None
             fastavro.writer(chunk, schema, alerts)
             yield chunk.getvalue()
             alerts.clear()

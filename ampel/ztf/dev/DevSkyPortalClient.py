@@ -33,7 +33,7 @@ def render_thumbnail(cutout_data: bytes) -> bytes:
     mask = np.isfinite(img)
 
     fig = Figure(figsize=(1, 1))
-    ax = fig.add_axes([0.0, 0.0, 1.0, 1.0])
+    ax = fig.add_axes((0.0, 0.0, 1.0, 1.0))
     ax.set_axis_off()
     ax.imshow(
         img,

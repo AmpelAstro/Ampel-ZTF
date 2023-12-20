@@ -4,17 +4,17 @@
 # License:             BSD-3-Clause
 # Author:              m. giomi <matteo.giomi@desy.de>
 # Date:                06.06.2018
-# Last Modified Date:  10.03.2021
-# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
+# Last Modified Date:  17.05.2023
+# Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
+
+from typing import Any
 
 import numpy as np
-from typing import Any
-from astropy.table import Table
-from astropy.coordinates import SkyCoord
-
 from ampel.abstract.AbsAlertFilter import AbsAlertFilter
-from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
+from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
+from astropy.coordinates import SkyCoord
+from astropy.table import Table
 
 
 class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
@@ -36,8 +36,10 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
     min_ndet: int  # number of previous detections
     min_tspan: float  # minimum duration of alert detection history [days]
     max_tspan: float  # maximum duration of alert detection history [days]
-    min_archive_tspan: float = 0. # minimum duration of alert detection history [days]
-    max_archive_tspan: float = 10**5. # maximum duration of alert detection history [days]
+    min_archive_tspan: float = 0.0  # minimum duration of alert detection history [days]
+    max_archive_tspan: float = (
+        10**5.0
+    )  # maximum duration of alert detection history [days]
 
     # Image quality
     min_drb: float = 0.0  # deep learning real bogus score
@@ -66,10 +68,9 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
     gaia_excessnoise_sig_max: float  # maximum allowed noise (expressed as significance) for Gaia match to be trusted.
 
     def post_init(self):
-
         # feedback
         for k in self.__annotations__:
-            self.logger.info(f"Using {k}={getattr(self, k)}")
+            self.logger.debug(f"Using {k}={getattr(self, k)}")
 
         # To make this tenable we should create this list dynamically depending on what entries are required
         # by the filter. Now deciding not to include drb in this list, eg.
@@ -97,10 +98,10 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
         """
         for el in self.keys_to_check:
             if el not in photop:
-                self.logger.info(None, extra={"missing": el})
+                self.logger.debug(None, extra={"missing": el})
                 return False
             if photop[el] is None:
-                self.logger.info(None, extra={"isNone": el})
+                self.logger.debug(None, extra={"isNone": el})
                 return False
         return True
 
@@ -184,7 +185,6 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
         )[0]
 
         if srcs:
-
             gaia_tab = Table(
                 [
                     {k: np.nan if v is None else v for k, v in src["body"].items()}
@@ -227,7 +227,7 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
             # among the remaining sources there is anything with
             # significant proper motion or parallax measurement
             if (
-                any(gaia_tab["FLAG_PMRA"] == True) # noqa
+                any(gaia_tab["FLAG_PMRA"] == True)  # noqa
                 or any(gaia_tab["FLAG_PMDec"] == True)
                 or any(gaia_tab["FLAG_Plx"] == True)
             ):
@@ -251,16 +251,16 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
         pps = [el for el in alert.datapoints if el.get("candid") is not None]
         if len(pps) < self.min_ndet:
             # self.logger.debug("rejected: %d photopoints in alert (minimum required %d)"% (npp, self.min_ndet))
-            self.logger.info(None, extra={"nDet": len(pps)})
+            self.logger.debug(None, extra={"nDet": len(pps)})
             return None
 
         # cut on length of detection history
-        detections_jds = [el['jd'] for el in pps]
+        detections_jds = [el["jd"] for el in pps]
         det_tspan = max(detections_jds) - min(detections_jds)
         if not (self.min_tspan <= det_tspan <= self.max_tspan):
             # self.logger.debug("rejected: detection history is %.3f d long, \
             # requested between %.3f and %.3f d"% (det_tspan, self.min_tspan, self.max_tspan))
-            self.logger.info(None, extra={"tSpan": det_tspan})
+            self.logger.debug(None, extra={"tSpan": det_tspan})
             return None
 
         # IMAGE QUALITY CUTS
@@ -272,41 +272,40 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
 
         if latest["isdiffpos"] == "f" or latest["isdiffpos"] == "0":
             # self.logger.debug("rejected: 'isdiffpos' is %s", latest['isdiffpos'])
-            self.logger.info(None, extra={"isdiffpos": latest["isdiffpos"]})
+            self.logger.debug(None, extra={"isdiffpos": latest["isdiffpos"]})
             return None
 
         if latest["rb"] < self.min_rb:
             # self.logger.debug("rejected: RB score %.2f below threshod (%.2f)"% (latest['rb'], self.min_rb))
-            self.logger.info(None, extra={"rb": latest["rb"]})
+            self.logger.debug(None, extra={"rb": latest["rb"]})
             return None
 
         if self.min_drb > 0.0 and latest["drb"] < self.min_drb:
             # self.logger.debug("rejected: RB score %.2f below threshod (%.2f)"% (latest['rb'], self.min_rb))
-            self.logger.info(None, extra={"drb": latest["drb"]})
+            self.logger.debug(None, extra={"drb": latest["drb"]})
             return None
 
         if latest["fwhm"] > self.max_fwhm:
             # self.logger.debug("rejected: fwhm %.2f above threshod (%.2f)"% (latest['fwhm'], self.max_fwhm))
-            self.logger.info(None, extra={"fwhm": latest["fwhm"]})
+            self.logger.debug(None, extra={"fwhm": latest["fwhm"]})
             return None
 
         if latest["elong"] > self.max_elong:
             # self.logger.debug("rejected: elongation %.2f above threshod (%.2f)"% (latest['elong'], self.max_elong))
-            self.logger.info(None, extra={"elong": latest["elong"]})
+            self.logger.debug(None, extra={"elong": latest["elong"]})
             return None
 
         if abs(latest["magdiff"]) > self.max_magdiff:
             # self.logger.debug("rejected: magdiff (AP-PSF) %.2f above threshod (%.2f)"% (latest['magdiff'], self.max_magdiff))
-            self.logger.info(None, extra={"magdiff": latest["magdiff"]})
+            self.logger.debug(None, extra={"magdiff": latest["magdiff"]})
             return None
 
         # cut on archive length
-        if 'jdendhist' in latest.keys() and 'jdstarthist' in latest.keys():
-            archive_tspan = latest['jdendhist'] - latest['jdstarthist']
+        if "jdendhist" in latest.keys() and "jdstarthist" in latest.keys():
+            archive_tspan = latest["jdendhist"] - latest["jdstarthist"]
             if not (self.min_archive_tspan < archive_tspan < self.max_archive_tspan):
-                self.logger.info(None, extra={'archive_tspan': archive_tspan})
+                self.logger.debug(None, extra={"archive_tspan": archive_tspan})
                 return None
-
 
         # ASTRONOMY
         ###########
@@ -314,37 +313,37 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
         # check for closeby ss objects
         if 0 <= latest["ssdistnr"] < self.min_sso_dist:
             # self.logger.debug("rejected: solar-system object close to transient (max allowed: %d)."% (self.min_sso_dist))
-            self.logger.info(None, extra={"ssdistnr": latest["ssdistnr"]})
+            self.logger.debug(None, extra={"ssdistnr": latest["ssdistnr"]})
             return None
 
         # cut on galactic latitude
         b = self.get_galactic_latitude(latest)
         if abs(b) < self.min_gal_lat:
             # self.logger.debug("rejected: b=%.4f, too close to Galactic plane (max allowed: %f)."% (b, self.min_gal_lat))
-            self.logger.info(None, extra={"galPlane": abs(b)})
+            self.logger.debug(None, extra={"galPlane": abs(b)})
             return None
 
         # check ps1 star-galaxy score
         if self.is_star_in_PS1(latest):
             # self.logger.debug("rejected: closest PS1 source %.2f arcsec away with sgscore of %.2f"% (latest['distpsnr1'], latest['sgscore1']))
-            self.logger.info(None, extra={"distpsnr1": latest["distpsnr1"]})
+            self.logger.debug(None, extra={"distpsnr1": latest["distpsnr1"]})
             return None
 
         if self.is_confused_in_PS1(latest):
             # self.logger.debug("rejected: three confused PS1 sources within %.2f arcsec from alert."% (self.ps1_confusion_rad))
-            self.logger.info(None, extra={"ps1Confusion": True})
+            self.logger.debug(None, extra={"ps1Confusion": True})
             return None
 
         # check with gaia
         if self.gaia_rs > 0 and self.is_star_in_gaia(latest):
             # self.logger.debug("rejected: within %.2f arcsec from a GAIA start (PM of PLX)" % (self.gaia_rs))
-            self.logger.info(None, extra={"gaiaIsStar": True})
+            self.logger.debug(None, extra={"gaiaIsStar": True})
             return None
 
         # self.logger.debug("Alert %s accepted. Latest pp ID: %d"%(alert.tran_id, latest['candid']))
         self.logger.debug("Alert accepted", extra={"latestPpId": latest["candid"]})
 
         # for key in self.keys_to_check:
-        # 	self.logger.debug("{}: {}".format(key, latest[key]))
+        #   self.logger.debug("{}: {}".format(key, latest[key]))
 
         return True

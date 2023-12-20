@@ -65,6 +65,7 @@ class UWAlertLoader(AbsAlertLoader[io.IOBase]):
         for message in itertools.islice(self._consumer, limit):
             reader = fastavro.reader(io.BytesIO(message.value()))
             alert = next(reader)  # raise StopIteration
+            assert isinstance(alert, dict)
             stats = topic_stats[message.topic()]
             if alert["candidate"]["jd"] < stats[0]:
                 stats[0] = alert["candidate"]["jd"]

@@ -4,11 +4,14 @@
 # License:             BSD-3-Clause
 # Author:              jvs
 # Date:                20.10.2021
-# Last Modified Date:  22.12.2022
-# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
+# Last Modified Date:  17.05.2023
+# Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
 
-import logging, backoff, requests
+import logging
 from typing import Any
+
+import backoff
+import requests
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 
@@ -40,6 +43,8 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     #: A stream identifier, created via POST /api/ztf/archive/streams/, or a query
     stream: None | str | ZTFSource = '%%ztf_stream_token'
 
+    with_history: bool = True
+
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._it = None
@@ -63,7 +68,8 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
                 if "chunk" in chunk:
                     self._acknowledge_chunk(session, chunk["chunk"])
                     log.info(
-                        None, extra={"streamToken": self.stream, "chunk": chunk["chunk"]}
+                        None,
+                        extra={"streamToken": self.stream, "chunk": chunk["chunk"]},
                     )
                 if isinstance(self.stream, ZTFSource) or (
                     len(chunk["alerts"]) == 0 and chunk["remaining"]["chunks"] == 0
@@ -73,14 +79,14 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup = lambda e: (
-            not isinstance(e, requests.HTTPError) or
-            e.response.status_code not in {502, 503, 504, 429, 408}
+        giveup=lambda e: (
+            not isinstance(e, requests.HTTPError)
+            or e.response is None
+            or e.response.status_code not in {502, 503, 504, 429, 408, 423}
         ),
-        max_time = 600,
+        max_time=600,
     )
     def _get_chunk(self, session: requests.Session) -> dict[str, Any]:
-
         if isinstance(self.stream, ZTFSource):
             params = {"with_history": self.stream.with_history}
             for k in ("jd_start", "jd_end", "programid"):
@@ -88,23 +94,35 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
                     params[k] = x
             response = session.get(
                 f"{self.archive}/object/{self.stream.ztf_name}/alerts",
-                headers = {"Authorization": f"bearer {self.stream.archive_token}"},
-                params = params
+                headers={"Authorization": f"bearer {self.stream.archive_token}"},
+                params=params,
             )
         else:
-            response = session.get(f"{self.archive}/stream/{self.stream}/chunk")
+            response = session.get(
+                f"{self.archive}/stream/{self.stream}/chunk",
+                params={"with_history": self.with_history},
+            )
+            remaining_chunks: int | None = (
+                response.json().get("remaining", {}).get("chunks")
+            )
+            if remaining_chunks is not None:
+                self.logger.info(f"Remaining chunks: {remaining_chunks}")
+
         response.raise_for_status()
         return response.json()
 
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup = (
-            lambda e: not isinstance(e, requests.HTTPError) or
-            e.response.status_code not in {502, 503, 504, 429, 408}
+        giveup=(
+            lambda e: not isinstance(e, requests.HTTPError)
+            or e.response is None
+            or e.response.status_code not in {502, 503, 504, 429, 408}
         ),
-        max_time = 600,
+        max_time=600,
     )
     def _acknowledge_chunk(self, session: requests.Session, chunk_id: int) -> None:
-        response = session.post(f"{self.archive}/stream/{self.stream}/chunk/{chunk_id}/acknowledge")
+        response = session.post(
+            f"{self.archive}/stream/{self.stream}/chunk/{chunk_id}/acknowledge"
+        )
         response.raise_for_status()
