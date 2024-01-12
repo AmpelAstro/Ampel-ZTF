@@ -31,8 +31,10 @@ class T4ZTFArchiveTokenGenerator(AbsT4Unit):
 	max_dist_ps1_src: float = 0.5
 	min_detections: int = 3
 
-	date_str: None | str = None
+	date_str: None | str = None  # Start from a particular date
 	date_format: str = "%Y-%m-%d"
+	delta_t: float = 1.0         # Length of time window from start date (days)
+	
 	days_ago: None | int = None
 
 	#: overrides max_dist_ps1_src & min_detections
@@ -51,8 +53,7 @@ class T4ZTFArchiveTokenGenerator(AbsT4Unit):
 				str(datetime.strptime(self.date_str, self.date_format)),
 				format="iso", scale="utc"
 			).jd
-			delta_t = 1
-			end_jd = start_jd + delta_t
+			end_jd = start_jd + self.delta_t
 
 		elif self.days_ago:
 			end_jd = Time.now().jd
