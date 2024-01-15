@@ -43,7 +43,7 @@ class ZTFProcessLocalAlerts(JobTaskModel, AbsConfigMorpher): # type: ignore[misc
 	# Mandatory override
 	def morph(self, ampel_config: dict[str, Any], logger: AmpelLogger) -> dict[str, Any]:
 
-		return self.dict(include=JobTaskModel.__fields__.keys()) | dict(
+		return self.dict(include=JobTaskModel.get_model_keys()) | dict(
 			unit = 'AlertConsumer',
 			config = self.extra | AbsEasyChannelTemplate.craft_t0_processor_config(
 				channel = self.channel,
