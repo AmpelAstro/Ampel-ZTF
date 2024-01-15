@@ -83,9 +83,6 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
         self.logger: AmpelLogger = AmpelLogger.get_logger()
         self._it: None | Iterator[dict[str, Any]] = None
 
-    def set_logger(self, logger: AmpelLogger) -> None:
-        self.logger = logger
-
     def set_source(
         self,
         nside: int,
