@@ -70,17 +70,9 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
         )
         session.auth = BearerAuth(self.archive_token.get())
         return session
-    
-    class Config:
-        """
-        This is needed to not get pickle errors with python3.10
-        see https://github.com/samuelcolvin/pydantic/issues/1241
-        """
-        keep_untouched = (cached_property,)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.logger: AmpelLogger = AmpelLogger.get_logger()
         self._it: None | Iterator[dict[str, Any]] = None
 
     def set_source(
