@@ -219,7 +219,7 @@ def test_integration(patch_mongo, dev_context, mock_get_photopoints, alerts):
     )
     handler.updates_buffer.push_updates()
 
-    assert ZiArchiveMuxer.get_photopoints.called_once()
+    ZiArchiveMuxer.get_photopoints.assert_called_once()
 
     # note lack of handler.updates_buffer.push_updates() here;
     # ZiAlertContentIngester has to be synchronous to deal with superseded
