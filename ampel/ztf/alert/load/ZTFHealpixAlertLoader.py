@@ -53,7 +53,7 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     source: None | HealpixSource = None
     # If not set at init, needs to be set by alert proceessor
 
-    archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
+    archive_token: NamedSecret[str] = NamedSecret[str](label="ztf/archive/token")
 
     # NB: init lazily, as Secret properties are not resolved until after __init__()
     @cached_property

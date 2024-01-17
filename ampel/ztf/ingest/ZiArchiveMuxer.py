@@ -31,7 +31,7 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
 
 
     shaper: UnitModel | str = "ZiDataPointShaper"
-    archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
+    archive_token: NamedSecret[str] = NamedSecret[str](label="ztf/archive/token")
 
     # Standard projection used when checking DB for existing PPS/ULS
     projection: dict[str, int] = {

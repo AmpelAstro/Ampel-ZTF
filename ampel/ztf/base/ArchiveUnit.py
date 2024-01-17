@@ -21,7 +21,7 @@ class ArchiveUnit(ContextUnit):
     Base class for interacting with the DESY ZTF alert archive
     """
 
-    archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
+    archive_token: NamedSecret[str] = NamedSecret[str](label="ztf/archive/token")
 
     # NB: init lazily, as Secret properties are not resolved until after __init__()
     @cached_property

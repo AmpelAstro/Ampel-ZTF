@@ -26,7 +26,7 @@ class FritzReport(SkyPortalClient, AbsBufferComplement):
     #: Base URL of SkyPortal server
     base_url: str = "https://fritz.science"
     #: API token
-    token: NamedSecret[str] = NamedSecret(label="fritz/jno/ampelbot")
+    token: NamedSecret[str] = NamedSecret[str](label="fritz/jno/ampelbot")
 
     async def get_catalog_item(
         self, names: tuple[str, ...]
