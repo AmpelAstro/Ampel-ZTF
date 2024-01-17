@@ -36,7 +36,7 @@ include = [
 
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
+python = ">=3.10,<3.13"
 astropy = "^5.0"
 matplotlib = "^3.3.4"
 aiohttp = "^3.7.3"
@@ -47,7 +47,7 @@ requests = "^2.25.1"
 requests-toolbelt = "^0.10.0"
 confluent-kafka = {version = "^2.0.0", optional = true}
 healpy = {version = "^1.15", optional = true}
-light-curve = {version = ">=0.7,<0.8", optional = true}
+light-curve = {version = ">=0.7,<0.9", optional = true}
 ampel-ztf-archive = {version = "^0.8.0-alpha.0", optional = true}
 ampel-interface = "^0.8.7,<0.9"
 ampel-core = "^0.8.6,<0.9"
@@ -56,16 +56,16 @@ ampel-alerts = "^0.8.4,<0.9"
 ampel-plot = {version = "^0.8.3-3,<0.9", optional = true}
 pandas = {version = "^1.5.2", optional = true}
 scipy = "^1.9.3"
-planobs = {version = "^0.6.1", optional = true}
+planobs = {version = "^0.6.1 || ^0.7.0", optional = true}
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.4.2"
+pytest = "^7.4.4"
 pytest-cov = "^4.1.0"
-pytest-mock = "^3.11.1"
+pytest-mock = "^3.12.0"
 mongomock = "^4.1.2"
-mypy = "^1.6.0"
+mypy = "^1.8.0"
 pytest-timeout = "^2.2.0"
-pytest-asyncio = "^0.21.1"
+pytest-asyncio = "^0.23.3"
 types-requests = "^2.25.9"
 before_after = "^1.0.1"
 
