@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ampel-ztf"
-version = "0.9.1a0"
+version = "0.10.0a0"
 description = "Zwicky Transient Facility support for the Ampel system"
 authors = [
     "Valery Brinnel",
@@ -49,10 +49,10 @@ confluent-kafka = {version = "^2.0.0", optional = true}
 healpy = {version = "^1.15", optional = true}
 light-curve = {version = ">=0.7,<0.9", optional = true}
 ampel-ztf-archive = {version = "^0.8.0-alpha.0", optional = true}
-ampel-core = "^0.9.1a0"
-ampel-photometry = "^0.9.1a0"
-ampel-alerts = "^0.9.1a0"
-ampel-plot = {version = "^0.8.3-3", optional = true, python = "<3.12"}
+ampel-core = ">=0.10.0a2,<0.11"
+ampel-alerts = ">=0.10.0a0,<0.11"
+ampel-photometry = ">=0.10.0a0,<0.11"
+ampel-plot = {version = "^0.9.0a2", optional = true}
 pandas = {version = "^1.5.2", optional = true}
 scipy = "^1.9.3"
 planobs = {version = "^0.7.0", optional = true}
@@ -62,6 +62,8 @@ pytest = "^7.4.4"
 pytest-cov = "^4.1.0"
 pytest-mock = "^3.12.0"
 mongomock = "^4.1.2"
+# mongomock uses pkg_resources
+setuptools = {version = "*", python = ">=3.12"}
 mypy = "^1.8.0"
 pytest-timeout = "^2.2.0"
 pytest-asyncio = "^0.23.3"
@@ -77,6 +79,9 @@ plot = ["ampel-plot"]
 fp = ["pandas", "planobs"]
 bayes = ["pandas", "planobs", "ampel-plot"]
 
+[tool.poetry.group.dev.dependencies]
+types-pytz = "^2023.3.1.1"
+
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools >= 40.6.0", "wheel"]
 build-backend = "poetry.core.masonry.api"
@@ -85,7 +90,19 @@ build-backend = "poetry.core.masonry.api"
 relative_files = true
 
 [tool.pytest.ini_options]
-addopts = "--showlocals -rsx"
+minversion = "6.0"
+addopts = "--showlocals -ra"
+filterwarnings = [
+    "error",
+    # pulled in by matplotlib
+    "ignore:datetime.datetime.utcfromtimestamp\\(\\) is deprecated:DeprecationWarning:dateutil",
+    # Expected `list[definition-ref]` but got `tuple` - serialized value may not be as expected
+    "ignore:Pydantic serializer warnings:UserWarning",
+    # UserWarning: Field name "job_sig" shadows an attribute in parent "AbsEventUnit"
+    "ignore:Field name \".*\" shadows an attribute in parent:UserWarning",
+    "ignore:pkg_resources is deprecated:DeprecationWarning",
+    "ignore:Deprecated call to `pkg_resources:DeprecationWarning",
+]
 
 [tool.mypy]
 namespace_packages = true
@@ -94,14 +111,13 @@ show_error_codes = true
 [[tool.mypy.overrides]]
 module = [
   "astropy.*",
-  "fastavro.*",
   "confluent_kafka.*",
-  "ampel.ztf.t0.ArchiveUpdater",
+  #"ampel.ztf.t0.ArchiveUpdater",
   "pandas.*",
-  "matplotlib.*",
+  #"matplotlib.*",
   "requests_toolbelt.*",
   "scipy.*",
-  "ztfquery",
+  #"ztfquery",
   "nest_asyncio",
   "healpy",
   "light_curve",
