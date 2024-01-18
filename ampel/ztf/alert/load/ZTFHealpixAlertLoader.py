@@ -53,7 +53,7 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     source: None | HealpixSource = None
     # If not set at init, needs to be set by alert proceessor
 
-    archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
+    archive_token: NamedSecret[str] = NamedSecret[str](label="ztf/archive/token")
 
     # NB: init lazily, as Secret properties are not resolved until after __init__()
     @cached_property
@@ -70,21 +70,10 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
         )
         session.auth = BearerAuth(self.archive_token.get())
         return session
-    
-    class Config:
-        """
-        This is needed to not get pickle errors with python3.10
-        see https://github.com/samuelcolvin/pydantic/issues/1241
-        """
-        keep_untouched = (cached_property,)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.logger: AmpelLogger = AmpelLogger.get_logger()
         self._it: None | Iterator[dict[str, Any]] = None
-
-    def set_logger(self, logger: AmpelLogger) -> None:
-        self.logger = logger
 
     def set_source(
         self,

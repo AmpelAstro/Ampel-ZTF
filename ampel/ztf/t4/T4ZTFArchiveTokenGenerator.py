@@ -22,7 +22,7 @@ from ampel.abstract.AbsT4Unit import AbsT4Unit
 
 class T4ZTFArchiveTokenGenerator(AbsT4Unit):
 
-	archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
+	archive_token: NamedSecret[str] = NamedSecret[str](label="ztf/archive/token")
 
 	#: Base URL of archive service
 	archive: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3/"
