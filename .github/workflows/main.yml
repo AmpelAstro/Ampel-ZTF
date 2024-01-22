@@ -11,7 +11,7 @@ on:
   pull_request:
     branches:
       - master
-      - v0.8.x
+      - stable/*
 
 jobs:
   test:
