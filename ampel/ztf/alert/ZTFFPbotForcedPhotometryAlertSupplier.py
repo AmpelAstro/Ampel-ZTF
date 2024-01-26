@@ -11,7 +11,7 @@ import gc
 import os
 import sys
 from hashlib import blake2b
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -103,7 +103,7 @@ def get_fpbot_baseline(
     primary_grid_only: bool = False,
     min_det_per_field_band: int = 10,
     zp_max_deviation_from_median: float = 0.5,
-    reference_days_before_peak: Optional[float] = 50.0,
+    reference_days_before_peak: None | float = 50.0,
 ) -> pd.DataFrame:
     """
     For each unique baseline combination, estimate and store baseline.
@@ -238,7 +238,7 @@ def get_fpbot_baseline(
                 t_faded = t_peak + (22.5 - mag_min) / 0.009
             else:
                 t_faded = t_peak + 611  # catch strange cases where t_gmax != t_rmax
-        elif isinstance(falltime, (float, int)):
+        elif isinstance(falltime, float | int):
             t_faded = t_peak + falltime
         t_risetime = t_peak - risetime
         outside_baseline = np.where(
@@ -256,7 +256,7 @@ def get_fpbot_baseline(
                 fcqf_df = df.iloc[this_fcqfid].copy()
 
                 # measure the baseline pre-peak
-                pre_bl = np.where((t_peak - fcqf_df.obsmjd.values > 100))
+                pre_bl = np.where(t_peak - fcqf_df.obsmjd.values > 100)
                 fcqfid_dict[str(ufid)]["N_pre_peak"] = 0
                 if len(pre_bl[0]) > 1:
                     # base_mjd = fcqf_df.obsmjd.values[pre_bl]
@@ -280,7 +280,7 @@ def get_fpbot_baseline(
                         fcqfid_dict[str(ufid)]["N_pre_peak"] = len(mask[0])
 
                 # measure the baseline post-peak
-                post_bl = np.where((fcqf_df.obsmjd.values > t_faded))
+                post_bl = np.where(fcqf_df.obsmjd.values > t_faded)
                 fcqfid_dict[str(ufid)]["N_post_peak"] = 0
                 if len(post_bl[0]) > 1:
                     # local variable 'base_jd' is assigned to but never used
@@ -397,7 +397,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
     pivot_zeropoint: float = 28.0
 
     transient_risetime: float = 100.0
-    transient_falltime: Union[Literal["co"], float] = 365.0
+    transient_falltime: Literal["co"] | float = 365.0
 
     primary_grid_only: bool = False
 
@@ -405,12 +405,12 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
     zp_max_deviation_from_median: float = 0.5
 
-    reference_days_before_peak: Optional[float] = 50.0
+    reference_days_before_peak: None | float = 50.0
 
-    plot_suffix: Optional[str]
-    plot_dir: Optional[str]
+    plot_suffix: None | str = None
+    plot_dir: None | str = None
 
-    save_dir: Optional[str]
+    save_dir: None | str = None
 
     def __init__(self, **kwargs) -> None:
         kwargs["deserialize"] = None
@@ -554,7 +554,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 plt.savefig(
                     os.path.join(
                         self.plot_dir,
-                        "fpbase_%s.%s" % (headerdict["name"], self.plot_suffix),
+                        f'fpbase_{headerdict["name"]}.{self.plot_suffix}',
                     )
                 )
                 plt.close("fig")

@@ -162,7 +162,7 @@ class PhotoAlertPlotter:
         ax.set_ylabel(p2)
         ax.grid(True)
 
-        return self.exit(alert, "scatter_%s_%s" % (p1, p2), ax_given, ax, **kwargs)
+        return self.exit(alert, f"scatter_{p1}_{p2}", ax_given, ax, **kwargs)
 
     def plot_lc(
         self, alert: AmpelAlertProtocol, ax=None, time_format="datetime", **kwargs
@@ -172,7 +172,7 @@ class PhotoAlertPlotter:
         """
 
         # dectections
-        mag, mag_err, jd, fid = [
+        mag, mag_err, jd, fid = (
             np.array(x)
             for x in zip(
                 *alert.get_ntuples(
@@ -182,14 +182,14 @@ class PhotoAlertPlotter:
                     ],
                 )
             )
-        ]
+        )
 
         has_ulim = False
         if r := alert.get_ntuples(
             ["diffmaglim", "jd", "fid"],
             filters=[{"attribute": "magpsf", "operator": "is", "value": None}],
         ):
-            ul_mag_lim, ul_jd, ul_fid = [np.array(x) for x in zip(*r)]
+            ul_mag_lim, ul_jd, ul_fid = (np.array(x) for x in zip(*r))
             has_ulim = True
 
         # convert the time
@@ -338,12 +338,12 @@ class PhotoAlertPlotter:
         info = []
         for k in ["rb", "fwhm", "nbad", "elong", "isdiffpos", "ssdistnr"]:
             try:
-                info.append("%s : %.3f" % (k, candidate.get(k, np.nan)))
-            except Exception:
-                info.append("%s : %s" % (k, candidate.get(k)))
+                info.append(f"{k} : {candidate.get(k, np.nan):.3f}")
+            except ValueError:
+                info.append(f"{k} : {candidate.get(k)}")
         for kk in ["objectidps", "sgscore", "distpsnr", "srmag"]:
             for k in [k for k in candidate.keys() if kk in k]:
-                info.append("%s : %.2f" % (k, float(candidate.get(k, np.nan))))
+                info.append(f"{k} : {candidate.get(k, np.nan):.2f}")
         fig.text(0.68, 0.6, " \n".join(info), va="top", fontsize="medium", color="0.3")
         fig.text(
             0.01,

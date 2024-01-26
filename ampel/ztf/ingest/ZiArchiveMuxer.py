@@ -62,11 +62,7 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
           - the smallest jd of any photopoint in t0 from the same stock
         """
         from_alert = min(
-            (
-                dp["body"]["jd"]
-                for dp in datapoints
-                if dp["id"] > 0 and "ZTF" in dp["tag"]
-            )
+            dp["body"]["jd"] for dp in datapoints if dp["id"] > 0 and "ZTF" in dp["tag"]
         )
         if (
             from_db := next(
@@ -96,11 +92,7 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
         Note: Not checking the DB - thought the window should be rel to alert?
         """
         return max(
-            (
-                dp["body"]["jd"]
-                for dp in datapoints
-                if dp["id"] > 0 and "ZTF" in dp["tag"]
-            )
+            dp["body"]["jd"] for dp in datapoints if dp["id"] > 0 and "ZTF" in dp["tag"]
         )
 
     @backoff.on_exception(
@@ -140,7 +132,7 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
 
         # Alert jd, assumed to be latest dp
         alert_jd = max(
-            (dp["body"]["jd"] for dp in dps if dp["id"] > 0 and "ZTF" in dp["tag"])
+            dp["body"]["jd"] for dp in dps if dp["id"] > 0 and "ZTF" in dp["tag"]
         )
 
         # Obtain archive alert based on this

@@ -75,7 +75,7 @@ class UWAlertLoader(AbsAlertLoader[io.IOBase]):
                 stats[1] = alert["candidate"]["jd"]
             stats[2] += 1
             yield io.BytesIO(message.value())
-        log.info("Got messages from topics: {}".format(dict(topic_stats)))
+        log.info(f"Got messages from topics: {dict(topic_stats)}")
 
     def __next__(self) -> io.BytesIO:
         if self._it is None:

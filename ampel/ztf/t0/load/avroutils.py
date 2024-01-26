@@ -11,7 +11,7 @@ from pathlib import Path
 import fastavro
 
 
-@lru_cache()
+@lru_cache
 def schema(version):
     base = Path(__file__).parents[2] / "test" / "test-data"
     with open(base / f"schema_{version}.json") as f:

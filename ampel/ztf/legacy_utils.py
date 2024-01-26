@@ -117,18 +117,19 @@ def to_ztf_id(ampel_id: int | list[int] | tuple[int, ...]) -> str | list[str]:
     :returns: ZTF ID (string).
     """
     # Handle sequences
-    if isinstance(ampel_id, (list, tuple)):
+    if isinstance(ampel_id, list | tuple):
         return [to_ztf_id(l) for l in ampel_id]
 
     str_long = str(ampel_id)
 
-    return "ZTF%s%s%s%s%s%s%s%s" % (
-        str_long[0:2],
-        number_map[str_long[2:4]],
-        number_map[str_long[4:6]],
-        number_map[str_long[6:8]],
-        number_map[str_long[8:10]],
-        number_map[str_long[10:12]],
-        number_map[str_long[12:14]],
-        number_map[str_long[14:16]],
+    return (
+        "ZTF"
+        f"{str_long[0:2]}"
+        f"{number_map[str_long[2:4]]}"
+        f"{number_map[str_long[4:6]]}"
+        f"{number_map[str_long[6:8]]}"
+        f"{number_map[str_long[8:10]]}"
+        f"{number_map[str_long[10:12]]}"
+        f"{number_map[str_long[12:14]]}"
+        f"{number_map[str_long[14:16]]}"
     )

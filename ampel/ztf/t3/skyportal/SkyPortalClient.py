@@ -75,7 +75,7 @@ stat_concurrent_requests = AmpelMetricsRegistry.gauge(
 def sanitize_json(obj):
     if isinstance(obj, dict):
         return {k: sanitize_json(v) for k, v in obj.items()}
-    elif isinstance(obj, (tuple, list)):
+    elif isinstance(obj, tuple | list):
         return [sanitize_json(v) for v in obj]
     elif isinstance(obj, float) and math.isnan(obj):
         return None

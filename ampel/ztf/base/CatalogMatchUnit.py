@@ -7,11 +7,11 @@
 # Last Modified Date:  30.11.2022
 # Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
 
+from collections.abc import Sequence
 from functools import cached_property
 from typing import (
     Any,
     Literal,
-    Sequence,
     TypedDict,
     overload,
 )

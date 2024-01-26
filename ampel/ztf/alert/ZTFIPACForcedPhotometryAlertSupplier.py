@@ -117,7 +117,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         """
 
         fpath = next(self.alert_loader)  # type: ignore
-        with open(fpath, "r") as f:  # type: ignore
+        with open(fpath) as f:  # type: ignore
             li = iter(f)
             for l in li:
                 if "# Requested input R.A." in l:

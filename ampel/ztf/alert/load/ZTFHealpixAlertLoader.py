@@ -7,12 +7,11 @@
 # Last Modified Date: 05.05.2022
 # Last Modified By  : Marcus Fenner <mf@physik.hu-berlin.de>
 
+from collections.abc import Generator, Iterator
 from datetime import datetime
 from functools import cached_property
 from typing import (
     Any,
-    Generator,
-    Iterator,
 )
 
 import backoff

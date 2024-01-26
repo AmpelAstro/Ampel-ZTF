@@ -62,7 +62,7 @@ def archive_topic():
         num_bytes = 0
         for message in consumer:
             candid, payload = trim_alert(message.value())
-            ti = tarfile.TarInfo("{}/{}.avro".format(opts.topic, candid))
+            ti = tarfile.TarInfo(f"{opts.topic}/{candid}.avro")
             ti.size = len(payload)
             ti.mtime = time.time()
             ti.uid = os.geteuid()
@@ -102,5 +102,5 @@ def list_kafka():
         num = 0
         for p in topic.partitions.values():
             num += p.latest_available_offset() - p.earliest_available_offset()
-        print("{}: {} messages".format(name, num))
+        print(f"{name}: {num} messages")
     # print(client.topics.keys())

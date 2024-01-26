@@ -82,7 +82,7 @@ class ZTFForcedPhotometryAlertSupplier(BaseAlertSupplier):
         """
 
         fpath = next(self.alert_loader)  # type: ignore
-        with open(fpath, "r") as fd:  # type: ignore
+        with open(fpath) as fd:  # type: ignore
             # Convert first line comment "# key1: val1, key2: val2" into dict (requires loader binary_mode=False)
             cdict = {
                 (x := el.split(":"))[0].strip(): x[1].strip()

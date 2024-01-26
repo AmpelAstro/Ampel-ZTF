@@ -102,8 +102,7 @@ class Observatory:
         self.has_atmo = False  # use set_atmosphere to set conditions and consider atmospheric refraction
 
         self.logger.info(
-            "Initialized Observatory %s at position (lon %.2f deg, lat %.2f deg, alt: %.1f m)"
-            % (name, latitude, longitude, altitude)
+            f"Initialized Observatory {name} at position (lon {longitude:.2f} deg, lat {latitude:.2f} deg, alt: {altitude:.1f} m)"
         )
 
     def set_atmosphere(self, pressure, temperature, rel_humidity, wlength):
@@ -223,13 +222,7 @@ class Observatory:
         mask = sun_skypos.alt.to("deg").value < sun_alt_th
         dark_times = times[mask]
         self.logger.info(
-            "computed dark times (sun_alt: %.2f) between %s and %s. Total of %.2f hours of dark"
-            % (
-                sun_alt_th,
-                times.min().iso,
-                times.max().iso,
-                len(dark_times) * dt_min / 60.0,
-            )
+            f"computed dark times (sun_alt: {sun_alt_th:.2f}) between {times.min().iso} and {times.max().iso}. Total of {len(dark_times) * dt_min / 60.0:.2f} hours of dark"
         )
         if return_mask:
             return dark_times, mask
@@ -295,8 +288,7 @@ class Observatory:
         # create the sky coordinate object for the target
         target_skypos = SkyCoord(ra=ra * u.deg, dec=dec * u.deg)
         self.logger.info(
-            "computing visibility of source at (ra: %f, dec: %f) from observatory %s"
-            % (ra, dec, self.name)
+            f"computing visibility of source at (ra: {ra:f}, dec: {dec:f}) from observatory {self.name}"
         )
         mssg = "\t\t\t\t\t-Time resolution: %.2f min\n" % dt_min
         mssg += "\t\t\t\t\t-Airmass limit: %.2f\n" % airmass_th
@@ -331,7 +323,6 @@ class Observatory:
         tot_vis_time = len(times_when_visible) * dt_min
         end = time.time()
         self.logger.info(
-            "source is visible for a total of %.3f hours. Took %.2e sec"
-            % (tot_vis_time / 60.0, (end - start))
+            f"source is visible for a total of {tot_vis_time / 60.0:.3f} hours. Took {end-start:.2e} sec"
         )
         return times_when_visible

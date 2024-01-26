@@ -7,7 +7,8 @@
 # Last Modified Date: 05.05.2022
 # Last Modified By  : Marcus Fenner <mf@physik.hu-berlin.de>
 
-from typing import Any, Iterable, Sequence
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 import numpy as np
 from astropy.table import Table
@@ -91,7 +92,7 @@ class ZTFT2Tabulator(AbsT2Tabulator):
                 [
                     list(stockid)
                     if isinstance(stockid := el["stock"], Sequence)
-                    and not isinstance(stockid, (str, bytes))
+                    and not isinstance(stockid, str | bytes)
                     else [stockid]
                     for el in dps
                     if "ZTF" in el["tag"]
