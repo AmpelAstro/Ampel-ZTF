@@ -94,5 +94,3 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
                 self._post_chunk(chunk)
         except KeyboardInterrupt:
             ...
-
-        return

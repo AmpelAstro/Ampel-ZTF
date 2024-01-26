@@ -210,7 +210,7 @@ def get_fpbot_baseline(
                 t_max = fcqfid_dict[ufid]["t_max"]
 
                 if (t_max - ref_end_mjd) < reference_days_before_peak:
-                    ufid = int(ufid)
+                    ufid = int(ufid)  # noqa: PLW2901
                     df.query("fcqfid != @ufid", inplace=True)
 
     # should we not first convert to a common zeropoint or flux scale (jansky?)

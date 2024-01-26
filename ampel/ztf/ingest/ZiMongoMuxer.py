@@ -94,10 +94,9 @@ class ZiMongoMuxer(AbsT0Muxer):
                 return self._process(dps, stock_id)
             except ConcurrentUpdateError:
                 continue
-        else:
-            raise ConcurrentUpdateError(
-                f"More than 10 iterations ingesting alert {dps[0]['id']}"
-            )
+        raise ConcurrentUpdateError(
+            f"More than 10 iterations ingesting alert {dps[0]['id']}"
+        )
 
     # NB: this 1-liner is a separate method to provide a patch point for race condition testing
     def _get_dps(self, stock_id: None | StockId) -> list[DataPoint]:
