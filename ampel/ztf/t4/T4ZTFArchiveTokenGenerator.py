@@ -48,7 +48,7 @@ class T4ZTFArchiveTokenGenerator(AbsT4Unit):
     def do(self) -> UBson | UnitResult:
         if self.date_str:
             start_jd = Time(
-                str(datetime.strptime(self.date_str, self.date_format)),
+                str(datetime.strptime(self.date_str, self.date_format)),  # noqa: DTZ007
                 format="iso",
                 scale="utc",
             ).jd
