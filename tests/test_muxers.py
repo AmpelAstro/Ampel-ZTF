@@ -159,7 +159,7 @@ def test_get_earliest_jd(
         datapoints = ZiDataPointShaperBase().process(
             alert_list[i].datapoints, stock=alert_list[i].stock
         )
-        compiler.add(datapoints, channel="EXAMPLE_TNS_MSIP", trace_id=0)
+        compiler.add(datapoints, channel="EXAMPLE_TNS_MSIP", ttl=None, trace_id=0)
         compiler.commit(ingester, 0)
 
         assert mock_archive_muxer.get_earliest_jd(
@@ -291,7 +291,7 @@ def test_deduplication(
         pps += alert.get_tuples("jd", "fid", filters=filter_pps)
         uls += alert.get_values("jd", filters=filter_uls)
         datapoints = ZiDataPointShaperBase().process(alert.datapoints, stock=alert.stock)
-        compiler.add(datapoints, "channychan", 0)
+        compiler.add(datapoints, channel="channychan", ttl=None, trace_id=None)
 
     assert len(set(uls)) < len(uls), "Some upper limits duplicated in alerts"
     assert len(set(pps)) < len(pps), "Some photopoints duplicated in alerts"
