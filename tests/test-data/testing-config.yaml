@@ -143,17 +143,6 @@ logging:
 channel:
   EXAMPLE_TNS_MSIP: 
     channel: EXAMPLE_TNS_MSIP
-    purge:
-      content:
-        delay: 100
-        format: json
-        unify: true
-        compress: true
-      logs:
-        delay: 50
-        format: csv
-        compress: true
-        header: false
     active: true
     hash: 71181859740809111
     distrib: ampel-contrib-sample
@@ -164,7 +153,6 @@ channel:
     - ZTF_PUB
     - ZTF_PRIV
     policy: []
-    template: ztf_uw_public
 unit:
   DefaultProcessController:
     fqn: ampel.core.DefaultProcessController
