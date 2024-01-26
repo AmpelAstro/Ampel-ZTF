@@ -48,7 +48,7 @@ def get_supplier(loader):
     return supplier
 
 
-@pytest.fixture
+@pytest.fixture()
 def raw_alert_dicts(avro_packets):
     def gen():
         for f in avro_packets():
@@ -57,7 +57,7 @@ def raw_alert_dicts(avro_packets):
     return gen
 
 
-@pytest.fixture
+@pytest.fixture()
 def alerts(raw_alert_dicts):
     def gen():
         for d in raw_alert_dicts():
@@ -66,7 +66,7 @@ def alerts(raw_alert_dicts):
     return gen
 
 
-@pytest.fixture
+@pytest.fixture()
 def superseded_alerts(superseded_packets):
     def gen():
         for f in superseded_packets():
@@ -119,12 +119,13 @@ def consolidated_alert(raw_alert_dicts):
         UnitModel(unit="ZiArchiveMuxer", config={"history_days": 30}),
     ],
 )
-def test_instantiate(patch_mongo, dev_context: AmpelContext, model):
+@pytest.mark.usefixtures("_patch_mongo")
+def test_instantiate(dev_context: AmpelContext, model):
     _make_muxer(dev_context, model)
 
 
-@pytest.fixture
-def mock_get_photopoints(mocker, consolidated_alert):
+@pytest.fixture()
+def _mock_get_photopoints(mocker, consolidated_alert):
     # mock get_photopoints to return first alert
     mocker.patch(
         "ampel.ztf.ingest.ZiArchiveMuxer.ZiArchiveMuxer.get_photopoints",
@@ -132,16 +133,16 @@ def mock_get_photopoints(mocker, consolidated_alert):
     )
 
 
-@pytest.fixture
-def mock_archive_muxer(patch_mongo, dev_context, mock_get_photopoints):
+@pytest.fixture()
+def mock_archive_muxer(dev_context, _mock_get_photopoints):
     ingester = _make_muxer(
         dev_context, UnitModel(unit="ZiArchiveMuxer", config={"history_days": 30})
     )
     return ingester
 
 
-@pytest.fixture
-def t0_ingester(patch_mongo, dev_context):
+@pytest.fixture()
+def t0_ingester(dev_context):
     run_id = 0
     logger = AmpelLogger.get_logger()
     updates_buffer = DBUpdatesBuffer(dev_context.db, run_id=run_id, logger=logger)
@@ -189,7 +190,8 @@ def get_handler(context, directives, run_id=0) -> ChainedIngestionHandler:
     )
 
 
-def test_integration(patch_mongo, dev_context, mock_get_photopoints, alerts):
+@pytest.mark.usefixtures("_patch_mongo", "_mock_get_photopoints")
+def test_integration(dev_context, alerts):
     directive = {
         "channel": "EXAMPLE_TNS_MSIP",
         "ingest": {
@@ -254,7 +256,7 @@ def test_integration(patch_mongo, dev_context, mock_get_photopoints, alerts):
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def archive_token(mock_context, monkeypatch):
     if not (token := os.environ.get("ARCHIVE_TOKEN")):
         pytest.skip("archive test requires token")
@@ -266,7 +268,7 @@ def archive_token(mock_context, monkeypatch):
             + mock_context.loader.vault.providers
         ),
     )
-    yield token
+    return token
 
 
 def test_get_photopoints_from_api(mock_context, archive_token):
@@ -284,10 +286,8 @@ def test_get_photopoints_from_api(mock_context, archive_token):
         "ZTF18abcfcoo", jd_center=2458270, time_pre=0, time_post=30
     )
 
-    assert (
-        len(alert_pre["prv_candidates"]) == 10
-        and len(alert_post["prv_candidates"]) == 10
-    )
+    assert len(alert_pre["prv_candidates"]) == 10
+    assert len(alert_post["prv_candidates"]) == 10
 
 
 def test_deduplication(
@@ -324,7 +324,7 @@ def test_deduplication(
     assert t0.count_documents({"id": {"$lt": 0}}) == len(set(uls))
 
 
-@pytest.fixture
+@pytest.fixture()
 def ingestion_handler_with_mongomuxer(mock_context):
     directive = {
         "channel": "EXAMPLE_TNS_MSIP",
@@ -471,9 +471,9 @@ def test_superseded_candidates_concurrent(mock_context, superseded_alerts, order
 
     def assert_superseded(old, new):
         doc = t0.find_one({"id": old})
+        assert "SUPERSEDED" in doc["tag"]
         assert (
-            "SUPERSEDED" in doc["tag"]
-            and len(
+            len(
                 [
                     m
                     for m in doc.get("meta", [])

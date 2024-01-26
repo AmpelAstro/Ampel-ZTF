@@ -8,7 +8,7 @@ from ampel.ztf.alert.PhotoAlertPlotter import PhotoAlertPlotter
 from ampel.ztf.dev.DevAlertConsumer import DevAlertConsumer
 
 
-@pytest.fixture
+@pytest.fixture()
 def recent_alerts():
     def gen():
         dap = DevAlertConsumer(alert_filter=None)

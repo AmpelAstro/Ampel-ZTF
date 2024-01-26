@@ -8,7 +8,7 @@ from ampel.ztf.dev.ZTFAlert import ZTFAlert
 T2LightCurveFeatures = pytest.importorskip("ampel.ztf.t2.T2LightCurveFeatures")
 
 
-@pytest.fixture
+@pytest.fixture()
 def lightcurve(mock_context):
     path = str(Path(__file__).parent / "test-data" / "ZTF20abyfpze.avro")
 

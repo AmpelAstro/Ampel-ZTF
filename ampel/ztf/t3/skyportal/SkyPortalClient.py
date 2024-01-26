@@ -665,7 +665,8 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             else await self._find_instrument(view.stock["tag"])
         )
 
-        assert view.stock and view.stock["name"] is not None
+        assert view.stock
+        assert view.stock["name"] is not None
         name = next(
             n for n in view.stock["name"] if isinstance(n, str) and n.startswith("ZTF")
         )

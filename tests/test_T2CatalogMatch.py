@@ -19,31 +19,30 @@ from ampel.ztf.t2.T2CatalogMatch import T2CatalogMatch
 from ampel.ztf.t3.complement.TNSNames import TNSNames
 
 
-@pytest.fixture
+@pytest.fixture()
 def catalogmatch_config():
     with open(Path(__file__).parent / "test-data" / "catalogmatch_config.yaml") as f:
         return yaml.safe_load(f)
 
 
 @pytest.fixture(scope="session")
-def catalogmatch_service_reachable():
+def _catalogmatch_service_reachable():
     try:
         requests.head("https://ampel.zeuthen.desy.de/", timeout=0.5)
     except requests.exceptions.Timeout:
         pytest.skip("https://ampel.zeuthen.desy.de/ is unreachable")
 
 
-@pytest.fixture
+@pytest.fixture()
 def ampel_logger():
     return AmpelLogger.get_logger()
 
 
+@pytest.mark.usefixtures("_patch_mongo", "_catalogmatch_service_reachable")
 def test_catalogmatch(
-    patch_mongo,
     dev_context: AmpelContext,
     catalogmatch_config: dict[str, Any],
     ampel_logger: AmpelLogger,
-    catalogmatch_service_reachable,
 ):
     unit: T2CatalogMatch = dev_context.loader.new_logical_unit(
         model=UnitModel(unit="T2CatalogMatch", config=catalogmatch_config),
@@ -76,8 +75,8 @@ def test_catalogmatch(
     )
 
 
+@pytest.mark.usefixtures("_patch_mongo")
 def test_decentfilter_star_in_gaia(
-    patch_mongo,
     dev_context: AmpelContext,
     ampel_logger: AmpelLogger,
 ):
@@ -94,9 +93,8 @@ def test_decentfilter_star_in_gaia(
     assert not unit.is_star_in_gaia({"ra": 0, "dec": 0})
 
 
-def test_tnsnames(
-    patch_mongo, dev_context: AmpelContext, ampel_logger: AmpelLogger
-) -> None:
+@pytest.mark.usefixtures("_patch_mongo")
+def test_tnsnames(dev_context: AmpelContext, ampel_logger: AmpelLogger) -> None:
     unit: TNSNames = dev_context.loader.new_context_unit(
         UnitModel(unit="TNSNames"),
         logger=ampel_logger,

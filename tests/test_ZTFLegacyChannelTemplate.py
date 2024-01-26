@@ -12,12 +12,12 @@ from ampel.model.ProcessModel import ProcessModel
 from ampel.template.ZTFLegacyChannelTemplate import ZTFLegacyChannelTemplate
 
 
-@pytest.fixture
+@pytest.fixture()
 def logger():
     return AmpelLogger.get_logger()
 
 
-@pytest.fixture
+@pytest.fixture()
 def unit_loader(first_pass_config):
     config = AmpelConfig(first_pass_config, freeze=True)
     AuxUnitRegister.initialize(config)
@@ -46,11 +46,9 @@ def test_alert_only(logger, first_pass_config, unit_loader: UnitLoader):
     assert isinstance(directive.ingest.mux, MuxModel)
     assert directive.ingest.mux.combine
     assert len(directive.ingest.mux.combine) == 1
-    assert (
-        isinstance((combine := directive.ingest.mux.combine[0]), T1Combine)
-        and isinstance((units := combine.state_t2), list)
-        and len(units) == 1
-    )
+    assert isinstance((combine := directive.ingest.mux.combine[0]), T1Combine)
+    assert isinstance((units := combine.state_t2), list)
+    assert len(units) == 1
     assert units[0].unit == "T2LightCurveSummary"
     assert directive.ingest.combine is None
 
