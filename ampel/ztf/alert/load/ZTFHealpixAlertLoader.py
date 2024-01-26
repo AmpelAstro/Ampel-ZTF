@@ -17,13 +17,12 @@ from typing import (
 
 import backoff
 import requests
+from astropy.time import Time
+
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.base.AmpelBaseModel import AmpelBaseModel
-from ampel.log.AmpelLogger import AmpelLogger
-from ampel.ztf.base.ArchiveUnit import BearerAuth, BaseUrlSession
 from ampel.secret.NamedSecret import NamedSecret
-
-from astropy.time import Time
+from ampel.ztf.base.ArchiveUnit import BaseUrlSession, BearerAuth
 
 
 class HealpixSource(AmpelBaseModel):

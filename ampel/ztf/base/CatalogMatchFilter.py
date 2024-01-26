@@ -7,14 +7,14 @@
 # Last Modified Date:  24.11.2021
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-from typing import Literal, Any, cast
+from typing import Any, Literal, cast
 
 from ampel.abstract.AbsAlertFilter import AbsAlertFilter
-from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit, ConeSearchRequest
-from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
-from ampel.model.operator.AnyOf import AnyOf
-from ampel.model.operator.AllOf import AllOf
 from ampel.base.AmpelBaseModel import AmpelBaseModel
+from ampel.model.operator.AllOf import AllOf
+from ampel.model.operator.AnyOf import AnyOf
+from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
+from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit, ConeSearchRequest
 
 
 class BaseCatalogMatchRequest(AmpelBaseModel):

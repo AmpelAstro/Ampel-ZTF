@@ -1,12 +1,13 @@
-from datetime import datetime
-from ampel.model.UnitModel import UnitModel
-import pytest
 import os
-from ampel.secret.NamedSecret import NamedSecret
+from datetime import datetime
 
+import pytest
+
+from ampel.model.UnitModel import UnitModel
+from ampel.secret.NamedSecret import NamedSecret
+from ampel.ztf.alert.HealpixPathSupplier import HealpixPathSupplier
 from ampel.ztf.alert.load.ZTFHealpixAlertLoader import HealpixSource
 from ampel.ztf.alert.ZiHealpixAlertSupplier import ZiHealpixAlertSupplier
-from ampel.ztf.alert.HealpixPathSupplier import HealpixPathSupplier
 from ampel.ztf.util.ZTFIdMapper import to_ampel_id
 
 

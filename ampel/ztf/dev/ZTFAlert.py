@@ -7,17 +7,19 @@
 # Last Modified Date:  31.07.2020
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-import random, fastavro
-from typing import Any
+import random
 from collections.abc import Sequence
+from typing import Any
 
-from ampel.model.UnitModel import UnitModel
-from ampel.view.T2DocView import T2DocView
-from ampel.view.LightCurve import LightCurve
-from ampel.view.TransientView import TransientView
+import fastavro
+
+from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.content.DataPoint import DataPoint
 from ampel.content.T2Document import T2Document
-from ampel.alert.AmpelAlert import AmpelAlert
+from ampel.model.UnitModel import UnitModel
+from ampel.view.LightCurve import LightCurve
+from ampel.view.T2DocView import T2DocView
+from ampel.view.TransientView import TransientView
 from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 from ampel.ztf.ingest.ZiDataPointShaper import ZiDataPointShaperBase
 

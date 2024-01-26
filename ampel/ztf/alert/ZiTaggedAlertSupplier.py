@@ -11,9 +11,9 @@ from os.path import basename
 from typing import Literal
 
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
-from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
 from ampel.alert.load.DirFileNamesLoader import DirFileNamesLoader
+from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 
 

@@ -1,27 +1,22 @@
-from typing import Any
-from ampel.base.LogicalUnit import LogicalUnit
-from ampel.core.AmpelContext import AmpelContext
-from ampel.model.UnitModel import UnitModel
-from ampel.protocol.LoggerProtocol import LoggerProtocol
-from ampel.struct.T3Store import T3Store
-import pytest
 from pathlib import Path
-import yaml
-import logging
-import requests
+from typing import Any
 
-from ampel.ztf.t3.complement.TNSNames import TNSNames
-from ampel.ztf.t3.complement.TNSReports import TNSReports
-from ampel.ztf.t2.T2CatalogMatch import T2CatalogMatch
-from ampel.ztf.t0.DecentFilter import DecentFilter
+import pytest
+import requests
+import yaml
 
 from ampel.content.DataPoint import DataPoint
 from ampel.content.StockDocument import StockDocument
 from ampel.content.T2Document import T2Document
-
-from ampel.struct.AmpelBuffer import AmpelBuffer
-from ampel.log.AmpelLogger import AmpelLogger
+from ampel.core.AmpelContext import AmpelContext
 from ampel.enum.DocumentCode import DocumentCode
+from ampel.log.AmpelLogger import AmpelLogger
+from ampel.model.UnitModel import UnitModel
+from ampel.struct.AmpelBuffer import AmpelBuffer
+from ampel.struct.T3Store import T3Store
+from ampel.ztf.t0.DecentFilter import DecentFilter
+from ampel.ztf.t2.T2CatalogMatch import T2CatalogMatch
+from ampel.ztf.t3.complement.TNSNames import TNSNames
 
 
 @pytest.fixture

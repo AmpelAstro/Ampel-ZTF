@@ -8,20 +8,21 @@
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import sys
-import pandas as pd
-import matplotlib.pyplot as plt
-from os.path import basename
-from bson import encode
 from hashlib import blake2b
+from os.path import basename
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from bson import encode
 from bts_phot.calibrate_fps import get_baseline  # type: ignore[import]
 
-from ampel.ztf.util.ZTFIdMapper import to_ampel_id
-from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
-from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
-from ampel.model.PlotProperties import PlotProperties, FormatModel
+from ampel.model.PlotProperties import FormatModel, PlotProperties
 from ampel.plot.create import create_plot_record
+from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
+from ampel.view.ReadOnlyDict import ReadOnlyDict
+from ampel.ztf.util.ZTFIdMapper import to_ampel_id
 
 dcast = {
     "field": int,

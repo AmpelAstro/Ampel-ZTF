@@ -7,8 +7,7 @@
 # Last Modified Date:  19.03.2020
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import overload, Tuple
-
+from typing import overload
 
 number_map = {
     "10": "a",

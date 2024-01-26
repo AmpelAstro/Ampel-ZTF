@@ -1,6 +1,7 @@
-import pytest
-from pathlib import Path
 import tarfile
+from pathlib import Path
+
+import pytest
 
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.ztf.alert.PhotoAlertPlotter import PhotoAlertPlotter

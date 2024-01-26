@@ -9,17 +9,18 @@
 import gzip
 import io
 from collections import defaultdict
+from collections.abc import Generator, Sequence
 from datetime import datetime
 from typing import Any
-from collections.abc import Sequence, Generator
 
 import numpy as np
 import requests
-from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from astropy.io import fits
 from astropy.time import Time
 from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
+
+from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 
 
 def render_thumbnail(cutout_data: bytes) -> bytes:

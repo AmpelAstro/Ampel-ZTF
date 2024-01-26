@@ -10,8 +10,8 @@
 
 from pymongo.cursor import Cursor
 
-from ampel.log.AmpelLogger import AmpelLogger
 from ampel.abstract.AbsT3Selector import AbsT3Selector
+from ampel.log.AmpelLogger import AmpelLogger
 from ampel.ztf.util.ZTFIdMapper import to_ampel_id
 
 

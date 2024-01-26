@@ -7,14 +7,16 @@
 # Date:                03.11.2020
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import backoff, requests  # type: ignore[import]
+from collections.abc import Iterable, Sequence
 from typing import Any
-from collections.abc import Sequence, Iterable
 
-from ampel.types import StockId
-from ampel.struct.T3Store import T3Store
-from ampel.struct.AmpelBuffer import AmpelBuffer
+import backoff  # type: ignore[import]
+import requests
+
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
+from ampel.struct.AmpelBuffer import AmpelBuffer
+from ampel.struct.T3Store import T3Store
+from ampel.types import StockId
 from ampel.ztf.base.CatalogMatchUnit import CatalogMatchContextUnit
 
 

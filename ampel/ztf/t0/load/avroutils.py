@@ -1,13 +1,14 @@
+import grp
+import io
+import json
+import os
+import pwd
+import tarfile
+import time
 from functools import lru_cache
 from pathlib import Path
-import json
+
 import fastavro
-import io
-import pwd
-import grp
-import os
-import time
-import tarfile
 
 
 @lru_cache()

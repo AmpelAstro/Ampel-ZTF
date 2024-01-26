@@ -10,7 +10,7 @@
 
 import io
 from functools import cached_property
-from typing import Any, Optional, Iterator
+from typing import Any, Iterator, Optional
 
 import fastavro
 

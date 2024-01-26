@@ -8,8 +8,14 @@
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 
-import logging, time, sys, fastavro, tarfile  # type: ignore[import]
+import logging  # type: ignore[import]
+import sys
+import tarfile
+import time
 from typing import Any
+
+import fastavro
+
 from ampel.alert.AmpelAlert import AmpelAlert
 
 

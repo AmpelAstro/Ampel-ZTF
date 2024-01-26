@@ -7,9 +7,9 @@
 # Last Modified Date:  14.08.2020
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from ampel.types import StockId
 from ampel.content.JournalRecord import JournalRecord
 from ampel.t3.supply.complement.T3ExtJournalAppender import T3ExtJournalAppender
+from ampel.types import StockId
 from ampel.ztf.legacy_utils import to_ampel_id as legacy_to_ampel_id
 from ampel.ztf.util.ZTFIdMapper import to_ztf_id
 

@@ -6,25 +6,33 @@
 # Last Modified Date:  24.11.2022
 # Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
 
-import asyncio, base64, gzip, io, json, math, time, aiohttp, backoff
-import numpy as np
-
+import asyncio
+import base64
+import gzip
+import io
+import json
+import math
+import time
 from collections import defaultdict
+from collections.abc import Generator, Iterable, Sequence
 from contextlib import asynccontextmanager
 from datetime import datetime
+from typing import TYPE_CHECKING, Any, TypedDict, overload
+from urllib.parse import urlparse
+
+import aiohttp
+import backoff
+import numpy as np
 from astropy.io import fits
 from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
-from typing import Any, TypedDict, overload, TYPE_CHECKING
-from collections.abc import Sequence, Generator, Iterable
-from urllib.parse import urlparse
 
 from ampel.base.AmpelUnit import AmpelUnit
+from ampel.enum.DocumentCode import DocumentCode
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.metrics.AmpelMetricsRegistry import AmpelMetricsRegistry
-from ampel.secret.NamedSecret import NamedSecret
 from ampel.protocol.LoggerProtocol import LoggerProtocol
-from ampel.enum.DocumentCode import DocumentCode
+from ampel.secret.NamedSecret import NamedSecret
 from ampel.types import Traceless
 from ampel.util.collections import ampel_iter
 from ampel.util.mappings import flatten_dict
@@ -32,8 +40,8 @@ from ampel.util.mappings import flatten_dict
 if TYPE_CHECKING:
     from ampel.config.AmpelConfig import AmpelConfig
     from ampel.content.DataPoint import DataPoint
-    from ampel.view.TransientView import TransientView
     from ampel.view.T2DocView import T2DocView
+    from ampel.view.TransientView import TransientView
 
 
 stat_http_errors = AmpelMetricsRegistry.counter(

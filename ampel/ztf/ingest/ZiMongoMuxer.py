@@ -7,14 +7,16 @@
 # Last Modified Date:  25.05.2021
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Any
 from bisect import bisect_right
+from typing import Any
+
 from pymongo import UpdateOne
-from ampel.types import DataPointId, StockId
+
+from ampel.abstract.AbsT0Muxer import AbsT0Muxer
 from ampel.content.DataPoint import DataPoint
 from ampel.content.MetaRecord import MetaRecord
+from ampel.types import DataPointId, StockId
 from ampel.util.mappings import unflatten_dict
-from ampel.abstract.AbsT0Muxer import AbsT0Muxer
 
 
 class ConcurrentUpdateError(Exception):

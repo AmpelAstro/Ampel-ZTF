@@ -9,9 +9,18 @@
 
 # pylint: disable=bad-builtin
 def archive_topic():
+    import grp
+    import io
+    import os
+    import pwd
+    import tarfile
+    import time
+    import uuid
+    from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
+
+    import fastavro
+
     from ampel.ztf.t0.load.AllConsumingConsumer import AllConsumingConsumer
-    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-    import tarfile, time, os, pwd, grp, uuid, fastavro, io
 
     parser = ArgumentParser(
         description=__doc__, formatter_class=ArgumentDefaultsHelpFormatter
@@ -74,7 +83,8 @@ def archive_topic():
 
 
 def list_kafka():
-    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
+
     from pykafka import KafkaClient  # type: ignore[import]
 
     parser = ArgumentParser(

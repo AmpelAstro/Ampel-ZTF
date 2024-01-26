@@ -6,10 +6,12 @@
 # Last Modified Date:  16.09.2020
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import asyncio, nest_asyncio
+import asyncio
+from collections.abc import Generator
 from functools import partial
 from typing import TYPE_CHECKING
-from collections.abc import Generator
+
+import nest_asyncio
 
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
 from ampel.struct.JournalAttributes import JournalAttributes
@@ -17,9 +19,9 @@ from ampel.types import StockId
 from ampel.ztf.t3.skyportal.SkyPortalClient import BaseSkyPortalPublisher
 
 if TYPE_CHECKING:
+    from ampel.content.JournalRecord import JournalRecord
     from ampel.struct.T3Store import T3Store
     from ampel.view.TransientView import TransientView
-    from ampel.content.JournalRecord import JournalRecord
 
 
 class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):

@@ -12,8 +12,8 @@ from typing import Literal
 
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
-from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 from ampel.ztf.alert.load.ZTFHealpixAlertLoader import HealpixSource
+from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 
 
 class ZiHealpixAlertSupplier(BaseAlertSupplier):

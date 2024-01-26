@@ -7,14 +7,16 @@
 # Date:                03.11.2020
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import asyncio, nest_asyncio
-from typing import Any, Tuple
+import asyncio
 from collections.abc import Iterable
+from typing import Any
 
-from ampel.struct.T3Store import T3Store
-from ampel.struct.AmpelBuffer import AmpelBuffer
-from ampel.secret.NamedSecret import NamedSecret
+import nest_asyncio
+
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
+from ampel.secret.NamedSecret import NamedSecret
+from ampel.struct.AmpelBuffer import AmpelBuffer
+from ampel.struct.T3Store import T3Store
 from ampel.ztf.t3.skyportal.SkyPortalClient import SkyPortalAPIError, SkyPortalClient
 
 

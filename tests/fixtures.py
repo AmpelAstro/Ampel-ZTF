@@ -2,19 +2,16 @@ import json
 import subprocess
 from functools import partial
 from os import environ
-from os.path import dirname, join
 from pathlib import Path
 from time import time
-from ampel.secret.AmpelVault import AmpelVault
 
 import mongomock
-import pymongo
 import pytest
 import yaml
 
 from ampel.alert.load.TarAlertLoader import TarAlertLoader
-from ampel.config.AmpelConfig import AmpelConfig
 from ampel.dev.DevAmpelContext import DevAmpelContext
+from ampel.secret.AmpelVault import AmpelVault
 from ampel.secret.PotemkinSecretProvider import PotemkinSecretProvider
 
 

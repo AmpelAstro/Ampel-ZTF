@@ -12,8 +12,8 @@ import itertools
 import logging
 import uuid
 from collections import defaultdict
-from typing import Literal, Any
 from collections.abc import Iterator
+from typing import Any, Literal
 
 import fastavro
 

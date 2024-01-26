@@ -7,12 +7,13 @@
 # Last Modified Date:  27.06.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from struct import pack
-from typing import ClassVar, BinaryIO, Any
 from collections.abc import Sequence
+from struct import pack
+from typing import Any, BinaryIO, ClassVar
+
+from ampel.log.AmpelLogger import AmpelLogger
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.ztf.alert.ZTFGeneralAlertRegister import ZTFGeneralAlertRegister
-from ampel.log.AmpelLogger import AmpelLogger
 
 
 class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):

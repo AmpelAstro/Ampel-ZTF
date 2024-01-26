@@ -7,19 +7,20 @@
 # Last Modified Date:  07.08.2020
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import asyncio, copy, logging
+import asyncio
+import copy
+import logging
 from collections import Counter
-from typing import Any
 from collections.abc import Sequence
+from typing import Any
 
 from ampel.abstract.AbsProcessController import AbsProcessController
-from ampel.secret.AmpelVault import AmpelVault
 from ampel.config.AmpelConfig import AmpelConfig
 from ampel.core.AmpelContext import AmpelContext
 from ampel.model.ProcessModel import ProcessModel
 from ampel.model.UnitModel import UnitModel
+from ampel.secret.AmpelVault import AmpelVault
 from ampel.util import concurrent
-
 
 log = logging.getLogger(__name__)
 

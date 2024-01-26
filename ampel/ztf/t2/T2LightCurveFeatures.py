@@ -8,8 +8,9 @@
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 from typing import Any
-import numpy as np
+
 import light_curve
+import numpy as np
 
 from ampel.abstract.AbsLightCurveT2Unit import AbsLightCurveT2Unit
 from ampel.types import UBson

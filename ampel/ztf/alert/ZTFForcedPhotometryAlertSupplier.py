@@ -13,12 +13,13 @@ from math import log10
 from os.path import basename
 from typing import Literal
 
+from bson import encode
+
 from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.ztf.util.ZTFIdMapper import to_ampel_id
-from bson import encode
 
 dcast = {
     "sigma": float,

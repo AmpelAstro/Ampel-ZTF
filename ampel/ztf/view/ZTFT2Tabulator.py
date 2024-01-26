@@ -7,14 +7,14 @@
 # Last Modified Date: 05.05.2022
 # Last Modified By  : Marcus Fenner <mf@physik.hu-berlin.de>
 
-from typing import Any, Sequence, Iterable
-from ampel.types import StockId
+from typing import Any, Iterable, Sequence
 
 import numpy as np
-from ampel.content.DataPoint import DataPoint
 from astropy.table import Table
 
 from ampel.abstract.AbsT2Tabulator import AbsT2Tabulator
+from ampel.content.DataPoint import DataPoint
+from ampel.types import StockId
 from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 
 ZTF_BANDPASSES = {

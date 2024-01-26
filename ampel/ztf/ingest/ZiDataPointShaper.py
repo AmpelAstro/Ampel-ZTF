@@ -7,12 +7,13 @@
 # Last Modified Date:  10.05.2021
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Any
 from collections.abc import Iterable
-from ampel.base.AmpelUnit import AmpelUnit
-from ampel.types import StockId
+from typing import Any
+
 from ampel.abstract.AbsT0Unit import AbsT0Unit
+from ampel.base.AmpelUnit import AmpelUnit
 from ampel.content.DataPoint import DataPoint
+from ampel.types import StockId
 from ampel.ztf.ingest.tags import tags
 
 

@@ -7,11 +7,12 @@
 # Last Modified Date:  24.11.2021
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from struct import pack
-from typing import ClassVar, Literal, BinaryIO
 from collections.abc import Generator
-from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
+from struct import pack
+from typing import BinaryIO, ClassVar, Literal
+
 from ampel.alert.reject.BaseAlertRegister import BaseAlertRegister
+from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.util.register import reg_iter
 
 

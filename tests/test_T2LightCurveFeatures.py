@@ -1,11 +1,9 @@
-import pytest
 import logging
 from pathlib import Path
-from ampel.ztf.dev.ZTFAlert import ZTFAlert
 
-from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
-from ampel.alert.load.FileAlertLoader import FileAlertLoader
-from ampel.alert.load.TarAlertLoader import TarAlertLoader
+import pytest
+
+from ampel.ztf.dev.ZTFAlert import ZTFAlert
 
 T2LightCurveFeatures = pytest.importorskip("ampel.ztf.t2.T2LightCurveFeatures")
 

@@ -9,7 +9,7 @@
 
 from collections.abc import Sequence
 
-from ampel.template.PeriodicSummaryT3 import PeriodicSummaryT3, LoaderDirective
+from ampel.template.PeriodicSummaryT3 import LoaderDirective, PeriodicSummaryT3
 
 
 class ZTFPeriodicSummaryT3(PeriodicSummaryT3):

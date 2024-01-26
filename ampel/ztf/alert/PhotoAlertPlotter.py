@@ -6,17 +6,19 @@
 # Last Modified Date:  13.06.2018
 # Last Modified By:    mg <matteo.giomi@desy.de>
 
-import gzip, io, os
-import numpy as np
+import gzip
+import io
+import logging
+import os
+
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import numpy as np
 from astropy.io import fits
 from astropy.time import Time
 from matplotlib.colors import Normalize
+
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
-
-
-import logging
 
 logger = None
 

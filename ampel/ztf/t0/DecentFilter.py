@@ -10,11 +10,12 @@
 from typing import Any
 
 import numpy as np
+from astropy.coordinates import SkyCoord
+from astropy.table import Table
+
 from ampel.abstract.AbsAlertFilter import AbsAlertFilter
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
-from astropy.coordinates import SkyCoord
-from astropy.table import Table
 
 
 class DecentFilter(CatalogMatchUnit, AbsAlertFilter):

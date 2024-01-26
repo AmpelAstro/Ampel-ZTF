@@ -8,13 +8,14 @@
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from typing import Any, Literal
-from ampel.types import ChannelId
-from ampel.log.AmpelLogger import AmpelLogger
-from ampel.model.UnitModel import UnitModel
-from ampel.model.job.JobTaskModel import JobTaskModel
-from ampel.model.ingest.T2Compute import T2Compute
+
 from ampel.abstract.AbsConfigMorpher import AbsConfigMorpher
+from ampel.log.AmpelLogger import AmpelLogger
+from ampel.model.ingest.T2Compute import T2Compute
+from ampel.model.job.JobTaskModel import JobTaskModel
+from ampel.model.UnitModel import UnitModel
 from ampel.template.AbsEasyChannelTemplate import AbsEasyChannelTemplate
+from ampel.types import ChannelId
 
 
 # Inheritance orders matters in this case

@@ -1,15 +1,15 @@
+import pytest
+
 from ampel.base.AuxUnitRegister import AuxUnitRegister
 from ampel.config.AmpelConfig import AmpelConfig
 from ampel.core.UnitLoader import UnitLoader
-from ampel.model.ingest.FilterModel import FilterModel
-from ampel.model.ingest.MuxModel import MuxModel
-from ampel.model.ProcessModel import ProcessModel
-from ampel.model.ingest.T1Combine import T1Combine
-import pytest
-
-from ampel.template.ZTFLegacyChannelTemplate import ZTFLegacyChannelTemplate
-from ampel.model.ingest.IngestDirective import IngestDirective
 from ampel.log.AmpelLogger import AmpelLogger
+from ampel.model.ingest.FilterModel import FilterModel
+from ampel.model.ingest.IngestDirective import IngestDirective
+from ampel.model.ingest.MuxModel import MuxModel
+from ampel.model.ingest.T1Combine import T1Combine
+from ampel.model.ProcessModel import ProcessModel
+from ampel.template.ZTFLegacyChannelTemplate import ZTFLegacyChannelTemplate
 
 
 @pytest.fixture

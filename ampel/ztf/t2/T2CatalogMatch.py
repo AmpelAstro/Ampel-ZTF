@@ -7,16 +7,17 @@
 # Last Modified Date:  29.01.2021
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-from typing import Any, Literal, ClassVar
 from collections.abc import Sequence
-from ampel.types import UBson
+from typing import Any, ClassVar, Literal
+
 from ampel.abstract.AbsPointT2Unit import AbsPointT2Unit
-from ampel.content.DataPoint import DataPoint
 from ampel.base.AmpelBaseModel import AmpelBaseModel
-from ampel.struct.UnitResult import UnitResult
-from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
+from ampel.content.DataPoint import DataPoint
 from ampel.enum.DocumentCode import DocumentCode
 from ampel.model.DPSelection import DPSelection
+from ampel.struct.UnitResult import UnitResult
+from ampel.types import UBson
+from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
 
 
 class CatalogModel(AmpelBaseModel):

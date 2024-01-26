@@ -7,7 +7,6 @@
 # Last Modified Date:  18.03.2020
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Dict
 
 # tags is used by ZiT0PhotoPointShaper and ZiT0UpperLimitShaper
 # First key: programid, second key: filter id

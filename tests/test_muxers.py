@@ -1,5 +1,10 @@
-import itertools, os, fastavro, pytest, before_after
+import itertools
+import os
 from collections import defaultdict
+
+import before_after
+import fastavro
+import pytest
 from pymongo.operations import UpdateOne
 
 from ampel.core.AmpelContext import AmpelContext
@@ -11,13 +16,13 @@ from ampel.model.ingest.IngestDirective import IngestDirective
 from ampel.model.UnitModel import UnitModel
 from ampel.mongo.update.DBUpdatesBuffer import DBUpdatesBuffer
 from ampel.mongo.update.MongoT0Ingester import MongoT0Ingester
+from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.secret.AmpelVault import AmpelVault
 from ampel.secret.DictSecretProvider import DictSecretProvider
 from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 from ampel.ztf.ingest.ZiArchiveMuxer import ZiArchiveMuxer
 from ampel.ztf.ingest.ZiCompilerOptions import ZiCompilerOptions
 from ampel.ztf.ingest.ZiDataPointShaper import ZiDataPointShaperBase
-from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 
 
 def _make_muxer(context: AmpelContext, model: UnitModel) -> ZiArchiveMuxer:

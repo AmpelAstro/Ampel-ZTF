@@ -12,6 +12,7 @@ from typing import Any
 
 import backoff
 import requests
+
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 

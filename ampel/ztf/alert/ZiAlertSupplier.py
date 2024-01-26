@@ -7,12 +7,13 @@
 # Last Modified Date:  24.11.2021
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Literal, Any
-from ampel.types import Tag
-from ampel.ztf.util.ZTFIdMapper import to_ampel_id
-from ampel.view.ReadOnlyDict import ReadOnlyDict
-from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
+from typing import Any, Literal
+
 from ampel.alert.AmpelAlert import AmpelAlert
+from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
+from ampel.types import Tag
+from ampel.view.ReadOnlyDict import ReadOnlyDict
+from ampel.ztf.util.ZTFIdMapper import to_ampel_id
 
 
 class ZiAlertSupplier(BaseAlertSupplier):

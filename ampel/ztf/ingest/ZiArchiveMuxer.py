@@ -1,16 +1,15 @@
-from functools import cached_property
-from typing import Any
 from collections.abc import Sequence
+from typing import Any
 
-import backoff, requests  # type: ignore
-from requests_toolbelt.sessions import BaseUrlSession
+import backoff  # type: ignore
+import requests
 
-from ampel.types import StockId
 from ampel.abstract.AbsT0Muxer import AbsT0Muxer
 from ampel.abstract.AbsT0Unit import AbsT0Unit
 from ampel.content.DataPoint import DataPoint
-from ampel.secret.NamedSecret import NamedSecret
 from ampel.model.UnitModel import UnitModel
+from ampel.secret.NamedSecret import NamedSecret
+from ampel.types import StockId
 from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 from ampel.ztf.base.ArchiveUnit import ArchiveUnit
 from ampel.ztf.util.ZTFIdMapper import to_ztf_id

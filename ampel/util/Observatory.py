@@ -7,13 +7,13 @@
 # Last Modified Date:  20.08.2018
 # Last Modified By:    matteo.giomi@desy.de
 
-import time
-import numpy as np
-import astropy.units as u
-from astropy.time import Time
-from astropy.coordinates import SkyCoord, AltAz, EarthLocation, get_sun, get_moon
-
 import logging
+import time
+
+import astropy.units as u
+import numpy as np
+from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_moon, get_sun
+from astropy.time import Time
 
 logging.basicConfig(level=logging.INFO)
 
