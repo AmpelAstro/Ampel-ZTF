@@ -32,15 +32,15 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
             # find the latest T2LightCurveSummary result
             if (summary := self._get_t2_result(record, "T2LightCurveSummary")) is None:
                 raise ValueError(
-                    f"No T2LightCurveSummary found for stock {str(record['id'])}"
+                    f"No T2LightCurveSummary found for stock {record['id']!s}"
                 )
             if (ra := summary.get("ra")) is None:
                 raise ValueError(
-                    f"No T2LightCurveSummary contains no right ascension for stock {str(record['id'])}"
+                    f"No T2LightCurveSummary contains no right ascension for stock {record['id']!s}"
                 )
             if (dec := summary.get("dec")) is None:
                 raise ValueError(
-                    f"No T2LightCurveSummary contains no declination for stock {str(record['id'])}"
+                    f"No T2LightCurveSummary contains no declination for stock {record['id']!s}"
                 )
             if not (
                 matches := self.cone_search_all(

@@ -99,7 +99,7 @@ def consolidated_alert(raw_alert_dicts):
         for pp in sorted(row[0], key=lambda pp: (pp[0], pp[1]["jd"], pp[1]["pid"])):
             photopoints[pp[0]][pp[1]["jd"]] = pp[1]
     assert len(photopoints) == 1
-    objectId = list(photopoints.keys())[0]
+    objectId = next(iter(photopoints.keys()))
     datapoints = sorted(
         photopoints[objectId].values(), key=lambda pp: pp["jd"], reverse=True
     )
@@ -264,8 +264,10 @@ def archive_token(mock_context, monkeypatch):
         mock_context.loader,
         "vault",
         AmpelVault(
-            [DictSecretProvider({"ztf/archive/token": token})]
-            + mock_context.loader.vault.providers
+            [
+                DictSecretProvider({"ztf/archive/token": token}),
+                *mock_context.loader.vault.providers,
+            ]
         ),
     )
     return token

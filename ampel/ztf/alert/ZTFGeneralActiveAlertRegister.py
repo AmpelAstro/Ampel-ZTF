@@ -104,18 +104,18 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
         if isinstance(stock_id, int):
             if stock_id & 15 in zy:
                 if logger:
-                    logger.info(f"Header ZTF year check: {stock_id} is eligible")  # noqa
+                    logger.info(f"Header ZTF year check: {stock_id} is eligible")
                 return stock_id
 
             if logger:
-                logger.info(f"Header ZTF year check: {stock_id} is not eligible")  # noqa
+                logger.info(f"Header ZTF year check: {stock_id} is not eligible")
             return None
 
         else:
             ret = [el for el in stock_id if (el & 15) in zy]
             if len(ret) == len(stock_id):
                 if logger:
-                    logger.info("Header ZTF year check: all stock IDs are eligible")  # noqa
+                    logger.info("Header ZTF year check: all stock IDs are eligible")
                 return stock_id
 
             if logger:

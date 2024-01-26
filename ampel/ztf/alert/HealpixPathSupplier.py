@@ -45,11 +45,11 @@ class HealpixPathSupplier(ZiHealpixAlertSupplier):
 
             # Process map
             hpx, headers = hp.read_map(temp.name, h=True, nest=True)
-            self.trigger_time = [
+            self.trigger_time = next(
                 datetime.fromisoformat(header[1])
                 for header in headers
                 if header[0] == "DATE-OBS"
-            ][0]
+            )
             self.nside = int(hp.pixelfunc.npix2nside(len(hpx)))
 
             # Find credible levels
