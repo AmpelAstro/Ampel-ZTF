@@ -399,7 +399,7 @@ async def provision_seed_data(client: SkyPortalClient):
         "stream": await client.get_id("streams", {"name": "ztf_partnership"}),
         "group": 1,  # root group
     }
-    if not source["stream"] in [
+    if source["stream"] not in [
         groupstream["id"]
         for groupstream in (await client.get(f"groups/{source['group']}"))["data"][
             "streams"
@@ -424,7 +424,7 @@ async def provision_seed_data(client: SkyPortalClient):
         for users in (await client.get(f"groups/{source['group']}"))["data"]["users"]
     ]
     for user in (await client.get("user"))["data"]:
-        if not user["username"] in users:
+        if user["username"] not in users:
             await client.post(
                 f"groups/{source['group']}/users",
                 json={"username": user["username"]},

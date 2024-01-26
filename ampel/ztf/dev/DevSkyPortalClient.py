@@ -29,7 +29,6 @@ def render_thumbnail(cutout_data: bytes) -> bytes:
     """
     with gzip.open(io.BytesIO(cutout_data), "rb") as f:
         with fits.open(f) as hdu:
-            header = hdu[0].header
             img = np.flipud(hdu[0].data)
     mask = np.isfinite(img)
 
@@ -192,4 +191,4 @@ class DevSkyPortalClient:
             after = Time(datetime.fromisoformat(candidate["data"]["last_detected"])).jd
         # post only if there are new photopoints
         if "mjd" in (photometry := self.make_photometry(alert, after=after)):
-            response = self.post("/photometry", json=photometry, raise_exc=True)
+            self.post("/photometry", json=photometry, raise_exc=True)

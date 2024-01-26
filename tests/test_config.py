@@ -10,3 +10,4 @@ def test_build_config() -> None:
         config_validator="ConfigValidator",
         get_unit_env=False,
     )
+    assert config is not None

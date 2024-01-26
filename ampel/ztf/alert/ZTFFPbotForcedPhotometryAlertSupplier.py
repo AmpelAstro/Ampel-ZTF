@@ -149,7 +149,7 @@ def get_fpbot_baseline(
         if row["counts"] < min_det_per_field_band:
             fieldid = row["fieldid"]
             filterid = row["filterid"]
-            added = fieldid + filterid
+            added = fieldid + filterid  # noqa: F841
             df.query("fieldid + filterid != @added", inplace=True)
     df = df.reset_index(drop=True)
 
@@ -368,10 +368,10 @@ def get_reference_mjds(fcqfid_list: list) -> dict:
         else:
             i = 1
 
-        fieldid = int(str(fcqfid)[: 3 + i])
-        ccdid = int(str(fcqfid)[3 + i : 5 + i])
-        qid = int(str(fcqfid)[5 + i : 6 + i])
-        fid = int(str(fcqfid)[6 + i : 7 + i])
+        fieldid = int(str(fcqfid)[: 3 + i])  # noqa: F841
+        ccdid = int(str(fcqfid)[3 + i : 5 + i])  # noqa: F841
+        qid = int(str(fcqfid)[5 + i : 6 + i])  # noqa: F841
+        fid = int(str(fcqfid)[6 + i : 7 + i])  # noqa: F841
         _ref = references.query(
             "field == @fieldid and ccdid == @ccdid and qid == @qid and fid == @fid"
         )
@@ -466,7 +466,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             self.logger.info("Dataframe is empty, skipping")
             return self.__next__()
 
-        if not "pass" in df.keys() and self.do_quality_cuts:
+        if "pass" not in df.keys() and self.do_quality_cuts:
             self.logger.info("No datapoints surviving quality cuts")
             return self.__next__()
 

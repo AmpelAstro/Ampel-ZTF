@@ -140,9 +140,11 @@ def potemkin_controller(config, first_pass_config):
 
 @pytest.mark.asyncio
 async def test_process_gauge(potemkin_controller):
-    process_count = lambda: AmpelMetricsRegistry.registry().get_sample_value(
-        "ampel_processes", {"tier": "0", "process": potemkin_controller._process.name}
-    )
+    def process_count():
+        return AmpelMetricsRegistry.registry().get_sample_value(
+            "ampel_processes",
+            {"tier": "0", "process": potemkin_controller._process.name},
+        )
 
     r = asyncio.create_task(potemkin_controller.run())
     try:
@@ -159,9 +161,12 @@ async def test_process_gauge(potemkin_controller):
 
 @pytest.mark.asyncio
 async def test_scale(potemkin_controller):
-    process_count = lambda: AmpelMetricsRegistry.registry().get_sample_value(
-        "ampel_processes", {"tier": "0", "process": potemkin_controller._process.name}
-    )
+    def process_count():
+        return AmpelMetricsRegistry.registry().get_sample_value(
+            "ampel_processes",
+            {"tier": "0", "process": potemkin_controller._process.name},
+        )
+
     try:
         r = asyncio.create_task(potemkin_controller.run())
         await asyncio.sleep(0.5)

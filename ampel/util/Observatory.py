@@ -301,7 +301,7 @@ class Observatory:
         mssg = "\t\t\t\t\t-Time resolution: %.2f min\n" % dt_min
         mssg += "\t\t\t\t\t-Airmass limit: %.2f\n" % airmass_th
         mssg += "\t\t\t\t\t-Sun altitude: %.2f deg" % sun_alt_th
-        if not min_moon_dist is None:
+        if min_moon_dist is not None:
             mssg += "\n\t\t\t\t\t-Moon distance: %.2f deg" % min_moon_dist
         self.logger.info("using visibility constraints:\n%s" % mssg)
 
@@ -320,7 +320,7 @@ class Observatory:
         # and build up the final visibility mask (the sun is already included)
         # eventually compute the moon and cut on the distance to the moon
         is_visible = am_values < airmass_th
-        if not min_moon_dist is None:
+        if min_moon_dist is not None:
             moon_pos = self.compute_sun_moon(trange, which="moon", dt_min=dt_min)
             moon_pos = moon_pos[dark_mask]
             moon_dist = target_pos.separation(moon_pos)

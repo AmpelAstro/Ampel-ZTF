@@ -160,7 +160,7 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
         # an upper limit is provided in the alert, then the upper limit is used.
         jds_alert = [dp["body"]["jd"] for dp in dps]
         extended_dps = sorted(
-            dps + [dp for dp in archive_dps if not dp["body"]["jd"] in jds_alert],
+            dps + [dp for dp in archive_dps if dp["body"]["jd"] not in jds_alert],
             key=lambda d: d["body"]["jd"],
         )
 

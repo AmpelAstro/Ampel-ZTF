@@ -67,7 +67,7 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
                 new_names = tuple(
                     n
                     for item in matches
-                    if not (n := "TNS" + item["body"]["objname"]) in existing_names
+                    if (n := "TNS" + item["body"]["objname"]) not in existing_names
                 )
                 dict.__setitem__(stock, "name", existing_names + new_names)  # type: ignore[index]
 

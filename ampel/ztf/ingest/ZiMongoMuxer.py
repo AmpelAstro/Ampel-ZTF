@@ -119,9 +119,9 @@ class ZiMongoMuxer(AbsT0Muxer):
         # New pps/uls lists for db loaded datapoints
         dps_db = self._get_dps(stock_id)
 
-        ops = []
+        ops: list[UpdateOne] = []
         if self.check_reprocessing:
-            add_update = lambda op: ops.append(op)
+            add_update = ops.append
         else:
             add_update = self.updates_buffer.add_t0_update
 
@@ -163,7 +163,7 @@ class ZiMongoMuxer(AbsT0Muxer):
         # build final set of datapoints, preferring entries loaded from the db
         final_dps_set = {v[-1] for v in unique_dps_ids.values()}
         for dp in dps_db + dps:
-            if dp["id"] in final_dps_set and not dp["id"] in unique_dps:
+            if dp["id"] in final_dps_set and dp["id"] not in unique_dps:
                 unique_dps[dp["id"]] = dp
 
         # Part 2: Update new data points that are already superseded

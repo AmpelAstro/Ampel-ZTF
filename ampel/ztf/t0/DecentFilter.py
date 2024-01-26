@@ -228,9 +228,9 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
             # among the remaining sources there is anything with
             # significant proper motion or parallax measurement
             if (
-                any(gaia_tab["FLAG_PMRA"] == True)  # noqa
-                or any(gaia_tab["FLAG_PMDec"] == True)
-                or any(gaia_tab["FLAG_Plx"] == True)
+                any(gaia_tab["FLAG_PMRA"] == True)  # noqa: E712
+                or any(gaia_tab["FLAG_PMDec"] == True)  # noqa: E712
+                or any(gaia_tab["FLAG_Plx"] == True)  # noqa: E712
             ):
                 return True
 

@@ -398,7 +398,8 @@ def test_superseded_candidates_serial(
     candids = [alert.datapoints[0]["candid"] for alert in alerts]
     assert candids[0] < candids[1]
 
-    dps = [_ingest(ingestion_handler_with_mongomuxer, alert) for alert in alerts]
+    for alert in alerts:
+        _ingest(ingestion_handler_with_mongomuxer, alert)
 
     pp_db = mock_context.db.get_collection("t0").find_one(
         {"id": candids[0]},
@@ -470,7 +471,6 @@ def test_superseded_candidates_concurrent(mock_context, superseded_alerts, order
 
     def assert_superseded(old, new):
         doc = t0.find_one({"id": old})
-        meta = doc.get("meta", [])
         assert (
             "SUPERSEDED" in doc["tag"]
             and len(

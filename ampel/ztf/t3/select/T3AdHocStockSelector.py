@@ -25,7 +25,7 @@ class T3AdHocStockSelector(AbsT3Selector):
     name: list[str]
 
     def __init__(self, **kwargs):
-        if isinstance(name := kwargs.get("name"), str):
+        if isinstance(kwargs.get("name"), str):
             kwargs["name"] = [str]
 
         super().__init__(**kwargs)

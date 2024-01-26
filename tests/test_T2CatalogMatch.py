@@ -131,7 +131,7 @@ def test_tnsnames(
     unit.complement([buf], T3Store())
     assert (stockdoc := buf["stock"]) is not None
     assert stockdoc["name"] == ("sourceysource", "TNS2020ubb")
-    assert not "extra" in buf
+    assert "extra" not in buf
 
     unit = dev_context.loader.new_context_unit(
         UnitModel(unit="TNSReports"),

@@ -38,7 +38,6 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
         """
         if isinstance(ztf_id, str):
             split_str = ztf_id.split("_")
-            ampel_id_part = split_str[0]
 
             ampel_id = ZTFIdMapper.to_ampel_id(ztf_id)
 
