@@ -147,7 +147,6 @@ class SkyPortalAPIError(IOError):
 
 
 class SkyPortalClient(AmpelUnit):
-
     #: Base URL of SkyPortal server
     base_url: str
     #: API token
@@ -239,14 +238,12 @@ class SkyPortalClient(AmpelUnit):
             with stat_http_time.labels(*labels).time(), stat_http_errors.labels(
                 *labels
             ).count_exceptions(
-                ( # type: ignore[arg-type]
+                (  # type: ignore[arg-type]
                     aiohttp.ClientResponseError,
                     aiohttp.ClientConnectionError,
                     asyncio.TimeoutError,
                 )
-            ), stat_concurrent_requests.labels(
-                *labels
-            ).track_inprogress():
+            ), stat_concurrent_requests.labels(*labels).track_inprogress():
                 async with self._session.request(
                     verb, url, **{**self._request_kwargs, **kwargs}
                 ) as response:
@@ -441,7 +438,6 @@ class PostReport(TypedDict):
 
 
 class BaseSkyPortalPublisher(SkyPortalClient):
-
     logger: Traceless[LoggerProtocol]
 
     def __init__(self, **kwargs):
@@ -693,7 +689,9 @@ class BaseSkyPortalPublisher(SkyPortalClient):
 
         if (
             response := await self.get(
-                f"candidates/{name}", params={"includeComments": 1, "includeAlerts": 1}, raise_exc=False
+                f"candidates/{name}",
+                params={"includeComments": 1, "includeAlerts": 1},
+                raise_exc=False,
             )
         )["status"] == "success":
             # Only update filters, not the candidate itself
@@ -732,7 +730,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                     json={
                         "id": name,
                         "filter_ids": fids,
-                        "passing_alert_id": jentry["alert"], # type: ignore[typeddict-item]
+                        "passing_alert_id": jentry["alert"],  # type: ignore[typeddict-item]
                         "passed_at": datetime.fromtimestamp(jentry["ts"]).isoformat(),
                         **candidate,
                     },

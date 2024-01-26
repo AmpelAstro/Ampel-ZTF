@@ -280,7 +280,9 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
             self.logger.debug(None, extra={"rb": latest["rb"]})
             return None
 
-        if "drb" in latest: # some older alerts dont have drb, dont want to leave them out entirely but need check
+        if (
+            "drb" in latest
+        ):  # some older alerts dont have drb, dont want to leave them out entirely but need check
             if self.min_drb > 0.0 and latest["drb"] < self.min_drb:
                 # self.logger.debug("rejected: RB score %.2f below threshod (%.2f)"% (latest['rb'], self.min_rb))
                 self.logger.debug(None, extra={"drb": latest["drb"]})

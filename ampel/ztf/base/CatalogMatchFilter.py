@@ -42,35 +42,55 @@ class CatalogMatchFilter(CatalogMatchUnit, AbsAlertFilter):
     """
 
     min_ndet: int
-    accept: None | CatalogMatchRequest | AnyOf[CatalogMatchRequest] | AllOf[CatalogMatchRequest]
-    reject: None | CatalogMatchRequest | AnyOf[CatalogMatchRequest] | AllOf[CatalogMatchRequest]
+    accept: None | CatalogMatchRequest | AnyOf[CatalogMatchRequest] | AllOf[
+        CatalogMatchRequest
+    ]
+    reject: None | CatalogMatchRequest | AnyOf[CatalogMatchRequest] | AllOf[
+        CatalogMatchRequest
+    ]
 
     # TODO: cache catalog lookups if deeply nested models ever become a thing
     def _evaluate_match(
         self,
         ra: float,
         dec: float,
-        selection: CatalogMatchRequest | AnyOf[CatalogMatchRequest] | AllOf[CatalogMatchRequest],
+        selection: CatalogMatchRequest
+        | AnyOf[CatalogMatchRequest]
+        | AllOf[CatalogMatchRequest],
     ) -> bool:
         if isinstance(selection, AllOf):
             return all(
-                self.cone_search_any(ra, dec, [cast(ConeSearchRequest, r.dict()) for r in selection.all_of])
+                self.cone_search_any(
+                    ra,
+                    dec,
+                    [cast(ConeSearchRequest, r.dict()) for r in selection.all_of],
+                )
             )
         elif isinstance(selection, AnyOf):
             # recurse into OR conditions
             if isinstance(selection.any_of, AllOf):
-                return all(self._evaluate_match(ra, dec, clause) for clause in selection.any_of.all_of)
+                return all(
+                    self._evaluate_match(ra, dec, clause)
+                    for clause in selection.any_of.all_of
+                )
             else:
                 return any(
-                    self.cone_search_any(ra, dec, [cast(ConeSearchRequest, r.dict()) for r in selection.any_of])
+                    self.cone_search_any(
+                        ra,
+                        dec,
+                        [cast(ConeSearchRequest, r.dict()) for r in selection.any_of],
+                    )
                 )
         else:
-            return all(self.cone_search_any(ra, dec, [cast(ConeSearchRequest, r.dict()) for r in [selection]]))
+            return all(
+                self.cone_search_any(
+                    ra, dec, [cast(ConeSearchRequest, r.dict()) for r in [selection]]
+                )
+            )
 
     def process(self, alert: AmpelAlertProtocol) -> bool:
-
         # cut on the number of previous detections
-        if len([el for el in alert.datapoints if el['id'] > 0]) < self.min_ndet:
+        if len([el for el in alert.datapoints if el["id"] > 0]) < self.min_ndet:
             return False
 
         # now consider the last photopoint

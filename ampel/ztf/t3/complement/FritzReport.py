@@ -28,9 +28,7 @@ class FritzReport(SkyPortalClient, AbsBufferComplement):
     #: API token
     token: NamedSecret[str] = NamedSecret[str](label="fritz/jno/ampelbot")
 
-    async def get_catalog_item(
-        self, names: tuple[str, ...]
-    ) -> None | dict[str, Any]:
+    async def get_catalog_item(self, names: tuple[str, ...]) -> None | dict[str, Any]:
         """Get catalog entry associated with the stock name"""
         for name in names:
             if name.startswith("ZTF"):

@@ -21,7 +21,6 @@ def recent_alerts():
 
 
 def test_PhotoAlertPlotter(recent_alerts):
-
     plotter = PhotoAlertPlotter(interactive=False)
 
     alert: AmpelAlertProtocol = next(recent_alerts())

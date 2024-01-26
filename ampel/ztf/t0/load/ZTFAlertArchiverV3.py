@@ -35,7 +35,7 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
     #: Number of alerts to post at once
     chunk_size: int = 1000
     #: extra configuration to pass to confluent_kafka.Consumer
-    kafka_consumer_properties: dict[str,Any] = {}
+    kafka_consumer_properties: dict[str, Any] = {}
 
     @cached_property
     def consumer(self) -> AllConsumingConsumer:
@@ -88,7 +88,6 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
         response.raise_for_status()
 
     def run(self, beacon: Optional[dict[str, Any]] = None) -> Optional[dict[str, Any]]:
-
         try:
             for chunk in self._chunks():
                 self._post_chunk(chunk)

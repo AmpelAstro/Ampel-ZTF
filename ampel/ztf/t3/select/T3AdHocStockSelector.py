@@ -25,7 +25,6 @@ class T3AdHocStockSelector(AbsT3Selector):
     name: list[str]
 
     def __init__(self, **kwargs):
-
         if isinstance(name := kwargs.get("name"), str):
             kwargs["name"] = [str]
 
@@ -33,7 +32,7 @@ class T3AdHocStockSelector(AbsT3Selector):
 
     # Override/Implement
     def fetch(self) -> None | Cursor:
-        """ The returned Iterator is a pymongo Cursor """
+        """The returned Iterator is a pymongo Cursor"""
 
         cursor = (
             self.context.db.get_collection("stock")

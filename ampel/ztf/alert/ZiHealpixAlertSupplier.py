@@ -15,6 +15,7 @@ from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 from ampel.ztf.alert.load.ZTFHealpixAlertLoader import HealpixSource
 
+
 class ZiHealpixAlertSupplier(BaseAlertSupplier):
     """
     Iterable class that, for each alert payload provided by the underlying alert_loader,

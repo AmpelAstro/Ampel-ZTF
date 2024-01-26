@@ -18,48 +18,47 @@ from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 
 
 class ZiTaggedAlertSupplier(BaseAlertSupplier):
-	"""
-	Loads alerts from a (flat) directory.
-	Tags potentially embedded in file names will included in alerts.
+    """
+    Loads alerts from a (flat) directory.
+    Tags potentially embedded in file names will included in alerts.
 
-	For example:
-	file ZTFabcdef.91T.TNS.BTS.json:
-	  __next__() will return a AmpelAlert instance with tags [91T, TNS, BTS]
+    For example:
+    file ZTFabcdef.91T.TNS.BTS.json:
+      __next__() will return a AmpelAlert instance with tags [91T, TNS, BTS]
 
-	file ZTFabcdef.json:
-	  __next__() will return a AmpelAlert instance with no tags
+    file ZTFabcdef.json:
+      __next__() will return a AmpelAlert instance with no tags
 
-	Note that this supplier is only compatible with DirFileNamesLoader
-	"""
+    Note that this supplier is only compatible with DirFileNamesLoader
+    """
 
-	# Override default
-	deserialize: None | Literal["avro", "json"] = "avro"
-	binary_mode: bool = True
+    # Override default
+    deserialize: None | Literal["avro", "json"] = "avro"
+    binary_mode: bool = True
 
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
-	def __init__(self, **kwargs) -> None:
+        if not isinstance(self.alert_loader, DirFileNamesLoader):
+            raise NotImplementedError(
+                "ZiTaggedAlertSupplier only supports DirFileNamesLoader for now"
+            )
 
-		super().__init__(**kwargs)
+        # quick n dirty mypy cast
+        self.alert_loader: AbsAlertLoader[str] = self.alert_loader  # type: ignore
+        self.open_mode = "rb" if self.binary_mode else "r"
 
-		if not isinstance(self.alert_loader, DirFileNamesLoader):
-			raise NotImplementedError("ZiTaggedAlertSupplier only supports DirFileNamesLoader for now")
+    def __next__(self) -> AmpelAlertProtocol:
+        """
+        :raises StopIteration: when alert_loader dries out.
+        """
+        fpath = next(self.alert_loader)
 
-		# quick n dirty mypy cast
-		self.alert_loader: AbsAlertLoader[str] = self.alert_loader # type: ignore
-		self.open_mode = "rb" if self.binary_mode else "r"
+        # basename("/usr/local/auth.AAA.BBB.py").split(".")[1:-1] -> ['AAA', 'BBB']
+        base = basename(fpath).split(".")
 
-
-	def __next__(self) -> AmpelAlertProtocol:
-		"""
-		:raises StopIteration: when alert_loader dries out.
-		"""
-		fpath = next(self.alert_loader)
-
-		# basename("/usr/local/auth.AAA.BBB.py").split(".")[1:-1] -> ['AAA', 'BBB']
-		base = basename(fpath).split(".")
-
-		with open(fpath, self.open_mode) as alert_file:
-			return ZiAlertSupplier.shape_alert_dict(
-				self._deserialize(alert_file),
-				None if len(base) == 1 else base[1:-1] # type: ignore[arg-type]
-			)
+        with open(fpath, self.open_mode) as alert_file:
+            return ZiAlertSupplier.shape_alert_dict(
+                self._deserialize(alert_file),
+                None if len(base) == 1 else base[1:-1],  # type: ignore[arg-type]
+            )

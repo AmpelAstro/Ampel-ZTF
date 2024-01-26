@@ -40,7 +40,7 @@ class T2LightCurveSummary(AbsLightCurveT2Unit):
         result: dict[str, Any] = {
             "num_detections": len(lightcurve.get_photopoints() or []),
         }
-        if (pps := lightcurve.get_photopoints()):
+        if pps := lightcurve.get_photopoints():
             first, latest = pps[0]["body"], pps[-1]["body"]
             result["first_detection"] = first["jd"]
             result["ra_dis"], result["dec_dis"] = first["ra"], first["dec"]

@@ -27,7 +27,6 @@ class ZTFCutoutImages(AbsBufferComplement):
     eligible: Literal["first", "last", "brightest", "all"] = "last"
 
     def __init__(self, context: AmpelContext, **kwargs) -> None:
-
         super().__init__(**kwargs)
 
         self.session = BaseUrlSession(

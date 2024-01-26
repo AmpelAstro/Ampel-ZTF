@@ -24,12 +24,11 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
     """
 
     #: Matching radius in arcsec
-    search_radius: float = 3.
+    search_radius: float = 3.0
     include_report: bool = False
 
     def complement(self, records: Iterable[AmpelBuffer], t3s: T3Store) -> None:
         for record in records:
-
             # find the latest T2LightCurveSummary result
             if (summary := self._get_t2_result(record, "T2LightCurveSummary")) is None:
                 raise ValueError(
@@ -70,7 +69,7 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
                     for item in matches
                     if not (n := "TNS" + item["body"]["objname"]) in existing_names
                 )
-                dict.__setitem__(stock, "name", existing_names + new_names) # type: ignore[index]
+                dict.__setitem__(stock, "name", existing_names + new_names)  # type: ignore[index]
 
             if self.include_report:
                 reports = [item["body"] for item in matches]

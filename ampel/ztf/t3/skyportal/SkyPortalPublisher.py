@@ -23,7 +23,6 @@ if TYPE_CHECKING:
 
 
 class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
-
     #: Save sources to these groups
     groups: None | list[str] = None
     filters: None | list[str] = None
@@ -35,9 +34,10 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
 
     process_name: None | str = None
 
-    def process(self,
+    def process(
+        self,
         tviews: Generator["TransientView", JournalAttributes, None],
-        t3s: 'None | T3Store' = None
+        t3s: "None | T3Store" = None,
     ) -> None:
         """Pass each view to :meth:`post_candidate`."""
         # Patch event loop to be reentrant if it is already running, e.g.
@@ -90,7 +90,9 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
                 ],
             )
 
-    async def post_view(self, view: "TransientView") -> tuple[StockId, JournalAttributes]:
+    async def post_view(
+        self, view: "TransientView"
+    ) -> tuple[StockId, JournalAttributes]:
         return view.id, JournalAttributes(
             extra=dict(
                 await self.post_candidate(

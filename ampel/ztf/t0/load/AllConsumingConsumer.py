@@ -110,7 +110,7 @@ class AllConsumingConsumer:
         timeout=None,
         topics=["^ztf_.*"],
         auto_commit=True,
-        logger: None | LoggerProtocol=None,
+        logger: None | LoggerProtocol = None,
         **consumer_config,
     ):
         """
@@ -146,7 +146,7 @@ class AllConsumingConsumer:
             self._poll_attempts = max((1, int(timeout / self._poll_interval)))
         self._timeout = timeout
 
-        self._offsets: dict[tuple[str,int],int] = {}
+        self._offsets: dict[tuple[str, int], int] = {}
         self._auto_commit = auto_commit
 
     def __next__(self):
@@ -178,7 +178,6 @@ class AllConsumingConsumer:
             else:
                 raise KafkaError(err)
 
-
     def commit(self):
         if self._offsets:
             offsets = [
@@ -191,9 +190,13 @@ class AllConsumingConsumer:
                 self._consumer.store_offsets(offsets=offsets)
                 self._offsets.clear()
             else:
-                for toppar in self._consumer.commit(offsets=offsets, asynchronous=False):
+                for toppar in self._consumer.commit(
+                    offsets=offsets, asynchronous=False
+                ):
                     if toppar.error:
-                        self._logger.error(f"Commit {toppar} failed with {toppar.error}")
+                        self._logger.error(
+                            f"Commit {toppar} failed with {toppar.error}"
+                        )
                     else:
                         del self._offsets[(toppar.topic, toppar.partition)]
 

@@ -155,7 +155,6 @@ def test_get_earliest_jd(
     ingester, compiler = t0_ingester
 
     for i in [2, 0, 1]:
-
         datapoints = ZiDataPointShaperBase().process(
             alert_list[i].datapoints, stock=alert_list[i].stock
         )
@@ -165,7 +164,7 @@ def test_get_earliest_jd(
         assert mock_archive_muxer.get_earliest_jd(
             alert_list[i].stock, datapoints
         ) == min(
-            dp["body"]["jd"] for dp in [el for el in datapoints if el['id'] > 0]
+            dp["body"]["jd"] for dp in [el for el in datapoints if el["id"] > 0]
         ), "min jd is min jd of last ingested alert"
 
 
@@ -215,7 +214,9 @@ def test_integration(patch_mongo, dev_context, mock_get_photopoints, alerts):
     alert_list = list(alerts())
 
     handler.ingest(
-        alert_list[1].datapoints, stock_id=alert_list[1].stock, filter_results=[(0, True)]
+        alert_list[1].datapoints,
+        stock_id=alert_list[1].stock,
+        filter_results=[(0, True)],
     )
     handler.updates_buffer.push_updates()
 
@@ -237,7 +238,12 @@ def test_integration(patch_mongo, dev_context, mock_get_photopoints, alerts):
     assert t2.find_one(
         {
             "link": t1.find_one(
-                {"dps": {"$size": len(alert_list[1].datapoints) + len(alert_list[0].datapoints)}}
+                {
+                    "dps": {
+                        "$size": len(alert_list[1].datapoints)
+                        + len(alert_list[0].datapoints)
+                    }
+                }
             )["link"]
         }
     )
@@ -265,11 +271,18 @@ def test_get_photopoints_from_api(mock_context, archive_token):
     muxer = _make_muxer(
         mock_context, UnitModel(unit="ZiArchiveMuxer", config={"history_days": 30})
     )
-    alert_pre = muxer.get_photopoints("ZTF18abcfcoo", jd_center=2458300, time_pre=30, time_post=0)
+    alert_pre = muxer.get_photopoints(
+        "ZTF18abcfcoo", jd_center=2458300, time_pre=30, time_post=0
+    )
 
-    alert_post = muxer.get_photopoints("ZTF18abcfcoo", jd_center=2458270, time_pre=0, time_post=30)
+    alert_post = muxer.get_photopoints(
+        "ZTF18abcfcoo", jd_center=2458270, time_pre=0, time_post=30
+    )
 
-    assert len(alert_pre["prv_candidates"]) == 10 and len(alert_post["prv_candidates"]) == 10
+    assert (
+        len(alert_pre["prv_candidates"]) == 10
+        and len(alert_post["prv_candidates"]) == 10
+    )
 
 
 def test_deduplication(
@@ -282,15 +295,17 @@ def test_deduplication(
     alert_list = list(itertools.islice(alerts(), 1, None))
 
     ingester, compiler = t0_ingester
-    filter_pps = [{'attribute': 'candid', 'operator': 'exists', 'value': True}]
-    filter_uls = [{'attribute': 'candid', 'operator': 'exists', 'value': False}]
+    filter_pps = [{"attribute": "candid", "operator": "exists", "value": True}]
+    filter_uls = [{"attribute": "candid", "operator": "exists", "value": False}]
 
     pps = []
     uls = []
     for alert in alert_list:
         pps += alert.get_tuples("jd", "fid", filters=filter_pps)
         uls += alert.get_values("jd", filters=filter_uls)
-        datapoints = ZiDataPointShaperBase().process(alert.datapoints, stock=alert.stock)
+        datapoints = ZiDataPointShaperBase().process(
+            alert.datapoints, stock=alert.stock
+        )
         compiler.add(datapoints, channel="channychan", ttl=None, trace_id=None)
 
     assert len(set(uls)) < len(uls), "Some upper limits duplicated in alerts"
@@ -418,7 +433,9 @@ def test_superseded_candidates_concurrent(mock_context, superseded_alerts, order
         for i in indexes:
             next(iter(ingesters[i]._mux_cache.values())).index = i
             ingesters[i].ingest(
-                alerts[i].datapoints, filter_results=[(0, True)], stock_id=alerts[i].stock
+                alerts[i].datapoints,
+                filter_results=[(0, True)],
+                stock_id=alerts[i].stock,
             )
             ingesters[i].updates_buffer.push_updates()
 

@@ -313,10 +313,9 @@ def get_fpbot_baseline(
                     df.iloc[
                         this_fcqfid[0], df.columns.get_loc("baseline")
                     ] = fcqfid_dict[str(ufid)]["C_pre"]
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("baseline_err_mult")
-                    ] = np.ones(len(this_fcqfid[0])) * max(
-                        np.sqrt(fcqfid_dict[str(ufid)]["chi_pre"]), 1
+                    df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
+                        np.ones(len(this_fcqfid[0]))
+                        * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_pre"]), 1)
                     )
                     df.iloc[
                         this_fcqfid[0], df.columns.get_loc("n_baseline")
@@ -330,10 +329,9 @@ def get_fpbot_baseline(
                     df.iloc[
                         this_fcqfid[0], df.columns.get_loc("baseline")
                     ] = fcqfid_dict[str(ufid)]["C_post"]
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("baseline_err_mult")
-                    ] = np.ones(len(this_fcqfid[0])) * max(
-                        np.sqrt(fcqfid_dict[str(ufid)]["chi_post"]), 1
+                    df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
+                        np.ones(len(this_fcqfid[0]))
+                        * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_post"]), 1)
                     )
                     df.iloc[
                         this_fcqfid[0], df.columns.get_loc("n_baseline")

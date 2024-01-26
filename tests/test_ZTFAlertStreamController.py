@@ -134,7 +134,6 @@ def potemkin_controller(config, first_pass_config):
 
 @pytest.mark.asyncio
 async def test_process_gauge(potemkin_controller):
-
     process_count = lambda: AmpelMetricsRegistry.registry().get_sample_value(
         "ampel_processes", {"tier": "0", "process": potemkin_controller._process.name}
     )
@@ -154,7 +153,6 @@ async def test_process_gauge(potemkin_controller):
 
 @pytest.mark.asyncio
 async def test_scale(potemkin_controller):
-
     process_count = lambda: AmpelMetricsRegistry.registry().get_sample_value(
         "ampel_processes", {"tier": "0", "process": potemkin_controller._process.name}
     )
@@ -178,7 +176,6 @@ async def test_scale(potemkin_controller):
 
 @pytest.mark.asyncio
 async def test_stop(potemkin_controller):
-
     r = asyncio.create_task(potemkin_controller.run())
     try:
         await asyncio.wait_for(asyncio.shield(r), 0.5)
@@ -239,14 +236,12 @@ def test_archive_source_for_objectid(archive_api_token):
     assert len(alerts) == 10
 
 
-def test_T4ZTFArchiveTokenGenerator(
-    mock_context: DevAmpelContext, archive_api_token
-):
+def test_T4ZTFArchiveTokenGenerator(mock_context: DevAmpelContext, archive_api_token):
     mock_context.loader.vault = AmpelVault(
         [DictSecretProvider({"archive_token": archive_api_token})]
     )
 
-    t4: AbsEventUnit = mock_context.new_context_unit( # type: ignore[assignment]
+    t4: AbsEventUnit = mock_context.new_context_unit(  # type: ignore[assignment]
         "T4Processor",
         process_name="foo",
         raise_exc=True,
@@ -260,10 +255,10 @@ def test_T4ZTFArchiveTokenGenerator(
                             "config": {
                                 "resource_name": "%%ztf_stream_token",
                                 "archive_token": {"label": "archive_token"},
-                            }
+                            },
                         }
                     ]
-                }
+                },
             }
         ],
     )
@@ -273,8 +268,10 @@ def test_T4ZTFArchiveTokenGenerator(
     t4.proceed(event_handler)
     assert "%%ztf_stream_token" in mock_context.run_time_aliases
 
-    unit_conf = {'stream': '%%ztf_stream_token'}
-    apply_templates(mock_context, 'resolve_run_time_aliases', unit_conf, AmpelLogger.get_logger())
+    unit_conf = {"stream": "%%ztf_stream_token"}
+    apply_templates(
+        mock_context, "resolve_run_time_aliases", unit_conf, AmpelLogger.get_logger()
+    )
     source = ZTFArchiveAlertLoader(**unit_conf)
     alerts = list(iter(source))
     assert len(alerts) == 27

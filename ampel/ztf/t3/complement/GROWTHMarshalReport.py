@@ -27,7 +27,6 @@ class GROWTHMarshalReport(CatalogMatchContextUnit, AbsBufferComplement):
 
     def complement(self, records: Iterable[AmpelBuffer], t3s: T3Store) -> None:
         for record in records:
-
             if (stock := record.get("stock", None)) is None:
                 raise ValueError(f"{self.__class__.__name__} requires stock records")
 

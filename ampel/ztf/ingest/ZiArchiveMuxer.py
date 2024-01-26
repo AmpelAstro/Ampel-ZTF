@@ -2,7 +2,7 @@ from functools import cached_property
 from typing import Any
 from collections.abc import Sequence
 
-import backoff, requests # type: ignore
+import backoff, requests  # type: ignore
 from requests_toolbelt.sessions import BaseUrlSession
 
 from ampel.types import StockId
@@ -29,7 +29,6 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
     #:Warning: could interfer if further alserts added ex through ZiMongoMuxer
     future_days: float = 0
 
-
     shaper: UnitModel | str = "ZiDataPointShaper"
     archive_token: NamedSecret[str] = NamedSecret[str](label="ztf/archive/token")
 
@@ -45,7 +44,6 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
     }
 
     def __init__(self, **kwargs) -> None:
-
         super().__init__(**kwargs)
 
         self._shaper = self.context.loader.new_logical_unit(
@@ -93,9 +91,7 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
         else:
             return min((from_alert, from_db))
 
-    def get_latest_jd(
-        self, datapoints: Sequence[DataPoint]
-    ) -> float:
+    def get_latest_jd(self, datapoints: Sequence[DataPoint]) -> float:
         """
         return the largest jd of any photopoint in datapoints
         Note: Not checking the DB - thought the window should be rel to alert?
@@ -108,7 +104,6 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
             )
         )
 
-
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
@@ -117,18 +112,18 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
         or e.response.status_code not in {503, 504, 429, 408},
         max_time=600,
     )
-    def get_photopoints(self, ztf_name: str, jd_center: float, time_pre: float, time_post: float) -> dict[str, Any]:
+    def get_photopoints(
+        self, ztf_name: str, jd_center: float, time_pre: float, time_post: float
+    ) -> dict[str, Any]:
         response = self.session.get(
             f"object/{ztf_name}/photopoints",
             params={
-                "jd_end": jd_center+time_post,
-                "jd_start": jd_center-time_pre,
-                },
+                "jd_end": jd_center + time_post,
+                "jd_start": jd_center - time_pre,
+            },
         )
         response.raise_for_status()
         return response.json()
-
-
 
     def process(
         self, dps: list[DataPoint], stock_id: None | StockId = None
@@ -145,34 +140,30 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
             return dps, dps
 
         # Alert jd, assumed to be latest dp
-        alert_jd =  max(
-            (
-                dp["body"]["jd"]
-                for dp in dps
-                if dp["id"] > 0 and "ZTF" in dp["tag"]
-            )
+        alert_jd = max(
+            (dp["body"]["jd"] for dp in dps if dp["id"] > 0 and "ZTF" in dp["tag"])
         )
 
         # Obtain archive alert based on this
         # - _possibly_ inefficient since we also search within alert time range
         archive_alert_dict = self.get_photopoints(
             to_ztf_id(stock_id), alert_jd, self.history_days, self.future_days
-             )
+        )
         archive_alert = ZiAlertSupplier.shape_alert_dict(archive_alert_dict)
         archive_dps = self._shaper.process(archive_alert.datapoints, stock_id)
-        if len(archive_dps)==0:
+        if len(archive_dps) == 0:
             # nothing found in archive
             return dps, dps
-
 
         # Create combined state of alert and archive
         # Only dps with a new jd are added. In practice this means that
         # if (for some reason) a detection exists in the archive, but
         # an upper limit is provided in the alert, then the upper limit is used.
-        jds_alert = [dp['body']['jd'] for dp in dps]
+        jds_alert = [dp["body"]["jd"] for dp in dps]
         extended_dps = sorted(
-            dps + [dp for dp in archive_dps if not dp['body']['jd'] in jds_alert],
-            key=lambda d: d["body"]["jd"])
+            dps + [dp for dp in archive_dps if not dp["body"]["jd"] in jds_alert],
+            key=lambda d: d["body"]["jd"],
+        )
 
         # Potentially one could here check the DB content, both to extend
         # the state and avoid duplicate inserts. Would then also need to

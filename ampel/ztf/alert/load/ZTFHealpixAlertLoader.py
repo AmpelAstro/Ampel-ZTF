@@ -33,13 +33,14 @@ class HealpixSource(AmpelBaseModel):
     time: datetime
     with_history: bool = False
 
+
 class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     """
     Create iterator of alerts found within a Healpix map.
     """
 
-    history_days: float = 30.
-    future_days: float = 30.
+    history_days: float = 30.0
+    future_days: float = 30.0
     chunk_size: int = 500
     query_size: int = 500  # number of ipix to query in one request
     query_start: int = 0  # first ipix index to query
@@ -60,13 +61,7 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     def session(self) -> BaseUrlSession:
         """Pre-authorized requests.Session"""
         session = BaseUrlSession(
-            base_url=(
-                url
-                if (
-                    url := self.archive
-                ).endswith("/")
-                else url + "/"
-            )
+            base_url=(url if (url := self.archive).endswith("/") else url + "/")
         )
         session.auth = BearerAuth(self.archive_token.get())
         return session
@@ -106,9 +101,7 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
             if self.stream is None:
                 self.stream = chunk["resume_token"]
             try:
-                yield from chunk["alerts"] if isinstance(
-                    chunk, dict
-                ) else chunk
+                yield from chunk["alerts"] if isinstance(chunk, dict) else chunk
             except GeneratorExit:
                 self.logger.error(
                     f"Chunk from stream {self.stream} partially consumed."
@@ -141,12 +134,10 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
                         "$lt": jd + self.future_days,
                     },
                     "chunk_size": self.chunk_size,
-                    "latest": "false"
-                }
+                    "latest": "false",
+                },
             )
         else:
-            response = self.session.get(
-                f"{self.archive}/stream/{self.stream}/chunk"
-            )
+            response = self.session.get(f"{self.archive}/stream/{self.stream}/chunk")
         response.raise_for_status()
         return response.json()

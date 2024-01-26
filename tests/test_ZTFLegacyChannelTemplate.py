@@ -21,9 +21,7 @@ def logger():
 def unit_loader(first_pass_config):
     config = AmpelConfig(first_pass_config, freeze=True)
     AuxUnitRegister.initialize(config)
-    return UnitLoader(
-        config, db=None, provenance=False
-    )
+    return UnitLoader(config, db=None, provenance=False)
 
 
 def test_alert_only(logger, first_pass_config, unit_loader: UnitLoader):

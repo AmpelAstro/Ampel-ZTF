@@ -1,4 +1,3 @@
-
 from functools import lru_cache
 from pathlib import Path
 import json
@@ -10,14 +9,17 @@ import os
 import time
 import tarfile
 
+
 @lru_cache()
 def schema(version):
-    base = Path(__file__).parents[2]/'test'/'test-data'
-    with open(base/f"schema_{version}.json") as f:
+    base = Path(__file__).parents[2] / "test" / "test-data"
+    with open(base / f"schema_{version}.json") as f:
         return json.load(f)
 
+
 def dump(alert, fileobj):
-    fastavro.writer(fileobj, schema(alert['schemavsn']), [alert])
+    fastavro.writer(fileobj, schema(alert["schemavsn"]), [alert])
+
 
 def to_tarball(alert_generator, **tarfile_kwargs):
     """
@@ -27,7 +29,7 @@ def to_tarball(alert_generator, **tarfile_kwargs):
     gid = grp.getgrgid(os.getegid()).gr_name
     euid = os.geteuid()
     egid = os.getegid()
-    with tarfile.open(mode='w:gz', **tarfile_kwargs) as archive:
+    with tarfile.open(mode="w:gz", **tarfile_kwargs) as archive:
         i = 0
         total_bytes = 0
         for i, alert in enumerate(alert_generator):
@@ -43,4 +45,4 @@ def to_tarball(alert_generator, **tarfile_kwargs):
                 ti.gname = gid
                 payload.seek(0)
                 archive.addfile(ti, payload)
-        return {"alerts": i+1, "total_bytes": total_bytes}
+        return {"alerts": i + 1, "total_bytes": total_bytes}

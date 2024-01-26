@@ -150,7 +150,9 @@ class DevSkyPortalClient:
                 content[k].append(v)
         return {**base, **content}
 
-    def _transform_datapoints(self, dps: Sequence[dict[str,Any]], after=-float("inf")) -> Generator[dict[str,Any],None,None]:
+    def _transform_datapoints(
+        self, dps: Sequence[dict[str, Any]], after=-float("inf")
+    ) -> Generator[dict[str, Any], None, None]:
         ztf_filters = {1: "ztfg", 2: "ztfr", 3: "ztfi"}
         for dp in dps:
             if dp["jd"] <= after:
