@@ -111,7 +111,7 @@ def get_t2_result(
     t2: "T2DocView",
 ) -> tuple[None, None] | tuple[datetime, dict[str, Any]]:
     assert t2.body is not None
-    for meta, record in zip(reversed(t2.meta), reversed(t2.body)):
+    for meta, record in zip(reversed(t2.meta), reversed(t2.body), strict=False):  # noqa: B007
         if meta.get("code", DocumentCode.OK) == DocumentCode.OK:
             break
     else:
@@ -792,7 +792,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             if response["status"] == "success"
             else set()
         )
-        for candid, cutouts in (view.extra or {}).get("ZTFCutoutImages", {}).items():
+        for cutouts in (view.extra or {}).get("ZTFCutoutImages", {}).values():
             for kind, blob in (cutouts or {}).items():
                 if CUTOUT_TYPES[kind] in existing_cutouts:
                     continue

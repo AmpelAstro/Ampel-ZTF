@@ -186,7 +186,11 @@ class ZTFAlertStreamController(AbsProcessController):
             self._scale_event.set()
             tasks = list(done.union(pending))
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            return [r for t, r in zip(tasks, results) if t.get_name() != "scale"]
+            return [  # noqa: B012
+                r
+                for t, r in zip(tasks, results, strict=False)
+                if t.get_name() != "scale"
+            ]
 
     @staticmethod
     @concurrent.process(timeout=60)

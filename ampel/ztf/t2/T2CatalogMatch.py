@@ -144,7 +144,9 @@ class T2CatalogMatch(CatalogMatchUnit, AbsPointT2Unit):
             catalog: {"dist2transient": match["dist_arcsec"], **match["body"]}
             if match is not None
             else None
-            for catalog, match in zip(self.closest_catalogs, closest_matches)
+            for catalog, match in zip(
+                self.closest_catalogs, closest_matches, strict=False
+            )
         }
         body.update(
             {
@@ -154,7 +156,7 @@ class T2CatalogMatch(CatalogMatchUnit, AbsPointT2Unit):
                 ]
                 if match
                 else None
-                for catalog, match in zip(self.all_catalogs, all_matches)
+                for catalog, match in zip(self.all_catalogs, all_matches, strict=False)
             }
         )
 

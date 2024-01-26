@@ -142,7 +142,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         all_ids = b""
         pps = []
 
-        for index, row in df.iterrows():
+        for _, row in df.iterrows():
             pp = {
                 k: dcast[k](v) if (k in dcast and v is not None) else v
                 for k, v in row.items()

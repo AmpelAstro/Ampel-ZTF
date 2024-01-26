@@ -104,7 +104,7 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
                 self.logger.error(
                     f"Chunk from stream {self.stream} partially consumed."
                 )
-                raise GeneratorExit
+                raise
             if chunk["remaining"]["chunks"] == 0:
                 self.query_start += self.query_size
                 self.stream = None

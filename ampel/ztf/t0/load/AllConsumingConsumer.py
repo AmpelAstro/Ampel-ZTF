@@ -108,7 +108,7 @@ class AllConsumingConsumer:
         self,
         broker,
         timeout=None,
-        topics=["^ztf_.*"],
+        topics=("^ztf_.*",),
         auto_commit=True,
         logger: None | LoggerProtocol = None,
         **consumer_config,
@@ -137,7 +137,7 @@ class AllConsumingConsumer:
         self._consumer = confluent_kafka.Consumer(**config)
         self._logger = logger
 
-        self._consumer.subscribe(topics)
+        self._consumer.subscribe(list(topics))
         if timeout is None:
             self._poll_interval = 1
             self._poll_attempts = sys.maxsize
@@ -176,7 +176,7 @@ class AllConsumingConsumer:
             if err.code() == confluent_kafka.KafkaError._STATE:
                 ...
             else:
-                raise KafkaError(err)
+                raise KafkaError(err) from exc
 
     def commit(self):
         if self._offsets:

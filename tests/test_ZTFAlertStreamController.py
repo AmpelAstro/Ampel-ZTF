@@ -70,11 +70,14 @@ def test_merge_processes(config, first_pass_config):
     ]
     for pm in processes:
         pm.controller.config = {"priority": pm.name.split("|")[-1]}
-    len(
-        ZTFAlertStreamController.merge_processes(processes).processor.config[
-            "directives"
-        ]
-    ) == 2
+    assert (
+        len(
+            ZTFAlertStreamController.merge_processes(processes).processor.config[
+                "directives"
+            ]
+        )
+        == 2
+    )
 
     # incompatible processor configs
     processes[0].processor.config["iter_max"] = 100
@@ -94,7 +97,9 @@ def test_merge_processes(config, first_pass_config):
             },
             first_pass_config,
         )
-        for name, stream in zip(("foo", "bar"), ("ztf_uw_private", "ztf_uw_public"))
+        for name, stream in zip(
+            ("foo", "bar"), ("ztf_uw_private", "ztf_uw_public"), strict=False
+        )
     ]
     for pm in processes:
         pm.controller.config = {"priority": pm.name.split("|")[-1]}

@@ -77,7 +77,11 @@ class ZTFT2Tabulator(AbsT2Tabulator):
     ) -> Sequence[tuple[float, float, float]]:
         det_dps = self.filter_detections(dps)
         return tuple(
-            zip(self.get_jd(det_dps), *self.get_values(det_dps, ["ra", "dec"]))
+            zip(
+                self.get_jd(det_dps),
+                *self.get_values(det_dps, ["ra", "dec"]),
+                strict=False,
+            )
         )
 
     def get_jd(
@@ -116,7 +120,8 @@ class ZTFT2Tabulator(AbsT2Tabulator):
                         [el["body"][param] for param in params]
                         for el in dps
                         if "ZTF" in el["tag"]
-                    )
+                    ),
+                    strict=False,
                 ),
             )
         ):

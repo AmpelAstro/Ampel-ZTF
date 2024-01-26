@@ -157,7 +157,7 @@ class PhotoAlertPlotter:
         if ax is None:
             ax = plt.axes()
             ax_given = False
-        ax.scatter(*zip(*alert.get_tuples(p1, p2)), **kwargs)
+        ax.scatter(*zip(*alert.get_tuples(p1, p2), strict=False), **kwargs)
         ax.set_xlabel(p1)
         ax.set_ylabel(p2)
         ax.grid(True)
@@ -180,7 +180,8 @@ class PhotoAlertPlotter:
                     filters=[
                         {"attribute": "magpsf", "operator": "is not", "value": None}
                     ],
-                )
+                ),
+                strict=False,
             )
         )
 
@@ -189,7 +190,7 @@ class PhotoAlertPlotter:
             ["diffmaglim", "jd", "fid"],
             filters=[{"attribute": "magpsf", "operator": "is", "value": None}],
         ):
-            ul_mag_lim, ul_jd, ul_fid = (np.array(x) for x in zip(*r))
+            ul_mag_lim, ul_jd, ul_fid = (np.array(x) for x in zip(*r, strict=False))
             has_ulim = True
 
         # convert the time

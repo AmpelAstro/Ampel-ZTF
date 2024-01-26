@@ -345,7 +345,7 @@ def ingestion_handler_with_mongomuxer(mock_context):
 
 def _ingest(handler: ChainedIngestionHandler, alert: AmpelAlertProtocol):
     handler.ingest(alert.datapoints, filter_results=[(0, True)], stock_id=alert.stock)
-    len(updates := handler.updates_buffer.db_ops["t1"]) == 1
+    assert len(updates := handler.updates_buffer.db_ops["t1"]) == 1
     update = updates[0]
     assert isinstance(update, UpdateOne)
     dps = update._doc["$setOnInsert"]["dps"]

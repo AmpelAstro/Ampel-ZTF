@@ -145,7 +145,7 @@ def get_fpbot_baseline(
     """
     counts = df.groupby(by=["fieldid", "filterid"]).size().reset_index(name="counts")
 
-    for i, row in counts.iterrows():
+    for _, row in counts.iterrows():
         if row["counts"] < min_det_per_field_band:
             fieldid = row["fieldid"]
             filterid = row["filterid"]
@@ -427,7 +427,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
         headerkeys = []
         headervals = []
 
-        for i, byteline in enumerate(fileio.readlines()):
+        for _, byteline in enumerate(fileio.readlines()):
             line = str(byteline, "UTF-8")
             if len(line) >= 300:
                 break
@@ -594,7 +594,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         all_ids = b""
         pps = []
-        for index, row in df.iterrows():
+        for _, row in df.iterrows():
             pp = {
                 k: dcast[k](v) if (k in dcast and v is not None) else v
                 for k, v in row.items()

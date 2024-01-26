@@ -33,7 +33,7 @@ def to_tarball(alert_generator, **tarfile_kwargs):
     with tarfile.open(mode="w:gz", **tarfile_kwargs) as archive:
         i = 0
         total_bytes = 0
-        for i, alert in enumerate(alert_generator):
+        for i, alert in enumerate(alert_generator):  # noqa: B007
             with io.BytesIO() as payload:
                 dump(alert, payload)
                 ti = tarfile.TarInfo(f"{alert['candid']}.avro")

@@ -56,7 +56,9 @@ class T2LightCurveFeatures(AbsLightCurveT2Unit):
                     {
                         f"{k}_{band}": v
                         for k, v in zip(
-                            self.extractor.names, self.extractor(t, mag, magerr)
+                            self.extractor.names,
+                            self.extractor(t, mag, magerr),
+                            strict=False,
                         )
                     }
                 )

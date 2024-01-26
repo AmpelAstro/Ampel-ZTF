@@ -91,6 +91,7 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
                 for meta, result in zip(
                     (m for m in reversed(t2_doc["meta"]) if m["tier"] == 2),
                     reversed(body),
+                    strict=False,
                 ):
                     if meta["code"] == DocumentCode.OK:
                         assert isinstance(result, dict)
