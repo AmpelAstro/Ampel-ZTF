@@ -200,7 +200,7 @@ def get_fpbot_baseline(
         ufids_to_check = []
 
         for ufid, res in fcqfid_dict.items():
-            if "t_max" in res.keys():
+            if "t_max" in res:
                 ufids_to_check.append(ufid)
 
         if ufids_to_check:
@@ -363,10 +363,7 @@ def get_reference_mjds(fcqfid_list: list) -> dict:
     ref_mjd_dict: dict[int, float] = {}
 
     for fcqfid in fcqfid_list:
-        if len(str(fcqfid)) == 7:
-            i = 0
-        else:
-            i = 1
+        i = 0 if len(str(fcqfid)) == 7 else 1
 
         fieldid = int(str(fcqfid)[: 3 + i])  # noqa: F841
         ccdid = int(str(fcqfid)[3 + i : 5 + i])  # noqa: F841
@@ -442,10 +439,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         headerdict = {}
         for i, key in enumerate(headerkeys):
-            if headervals[i] == "-":
-                returnval = None
-            else:
-                returnval = headervals[i]
+            returnval = None if headervals[i] == "-" else headervals[i]
             headerdict.update({key: returnval})
 
         headerdict["ztfid"] = headerdict.get("name")
@@ -466,7 +460,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             self.logger.info("Dataframe is empty, skipping")
             return self.__next__()
 
-        if "pass" not in df.keys() and self.do_quality_cuts:
+        if "pass" not in df and self.do_quality_cuts:
             self.logger.info("No datapoints surviving quality cuts")
             return self.__next__()
 
@@ -518,7 +512,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                     if df_sub.shape[0] == 0:
                         continue
 
-                    if "flux_max" in binfo.keys() and binfo["flux_max"] > y_max:
+                    if "flux_max" in binfo and binfo["flux_max"] > y_max:
                         y_max = binfo["flux_max"]
 
                     ax.errorbar(
@@ -575,10 +569,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             ampl_col = "ampl"
             ampl_err_col = "ampl.err"
 
-        if "fid" in list(df.keys()):
-            filter_col = "fid"
-        else:
-            filter_col = "filterid"
+        filter_col = "fid" if "fid" in list(df.keys()) else "filterid"
 
         F0 = 10 ** (df.magzp / 2.5)
         F0_err = F0 / 2.5 * np.log(10) * df.magzpunc

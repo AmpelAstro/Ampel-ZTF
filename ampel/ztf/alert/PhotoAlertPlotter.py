@@ -343,7 +343,7 @@ class PhotoAlertPlotter:
             except ValueError:
                 info.append(f"{k} : {candidate.get(k)}")
         for kk in ["objectidps", "sgscore", "distpsnr", "srmag"]:
-            for k in [k for k in candidate.keys() if kk in k]:
+            for k in [k for k in candidate if kk in k]:
                 info.append(f"{k} : {candidate.get(k, np.nan):.2f}")
         fig.text(0.68, 0.6, " \n".join(info), va="top", fontsize="medium", color="0.3")
         fig.text(

@@ -1,6 +1,7 @@
 import asyncio
 import os
 import time
+from contextlib import suppress
 
 import pytest
 import requests
@@ -152,10 +153,8 @@ async def test_process_gauge(potemkin_controller):
         )
 
     r = asyncio.create_task(potemkin_controller.run())
-    try:
+    with suppress(asyncio.exceptions.TimeoutError):
         await asyncio.wait_for(asyncio.shield(r), 0.5)
-    except asyncio.exceptions.TimeoutError:
-        ...
     try:
         assert process_count() == 1
     finally:
@@ -193,10 +192,8 @@ async def test_scale(potemkin_controller):
 @pytest.mark.asyncio()
 async def test_stop(potemkin_controller):
     r = asyncio.create_task(potemkin_controller.run())
-    try:
+    with suppress(asyncio.exceptions.TimeoutError):
         await asyncio.wait_for(asyncio.shield(r), 0.5)
-    except asyncio.exceptions.TimeoutError:
-        ...
     potemkin_controller.stop()
     assert isinstance((await r)[0], asyncio.CancelledError)
 

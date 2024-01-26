@@ -106,10 +106,8 @@ class CatalogMatchFilter(CatalogMatchUnit, AbsAlertFilter):
 
         ra = latest["ra"]
         dec = latest["dec"]
-        if self.accept:
-            if not self._evaluate_match(ra, dec, self.accept):
-                return False
-        if self.reject:
-            if self._evaluate_match(ra, dec, self.reject):
-                return False
+        if self.accept and not self._evaluate_match(ra, dec, self.accept):
+            return False
+        if self.reject and self._evaluate_match(ra, dec, self.reject):
+            return False
         return True

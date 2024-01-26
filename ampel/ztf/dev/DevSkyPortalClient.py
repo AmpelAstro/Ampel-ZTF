@@ -27,9 +27,8 @@ def render_thumbnail(cutout_data: bytes) -> bytes:
     """
     Render gzipped FITS as PNG
     """
-    with gzip.open(io.BytesIO(cutout_data), "rb") as f:
-        with fits.open(f) as hdu:
-            img = np.flipud(hdu[0].data)
+    with gzip.open(io.BytesIO(cutout_data), "rb") as f, fits.open(f) as hdu:
+        img = np.flipud(hdu[0].data)
     mask = np.isfinite(img)
 
     fig = Figure(figsize=(1, 1))

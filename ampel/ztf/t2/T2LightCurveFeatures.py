@@ -7,6 +7,7 @@
 # Last Modified Date:  15.04.2021
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
+from contextlib import suppress
 from typing import Any
 
 import light_curve
@@ -51,7 +52,7 @@ class T2LightCurveFeatures(AbsLightCurveT2Unit):
                 continue
             t, mag, magerr = np.array(sorted(in_band)).T
 
-            try:
+            with suppress(ValueError):  # raised if too few points
                 result.update(
                     {
                         f"{k}_{band}": v
@@ -62,7 +63,4 @@ class T2LightCurveFeatures(AbsLightCurveT2Unit):
                         )
                     }
                 )
-            except ValueError:
-                # raised if too few points
-                ...
         return result

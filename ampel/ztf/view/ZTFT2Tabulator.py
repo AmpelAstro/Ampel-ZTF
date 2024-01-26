@@ -39,9 +39,7 @@ class ZTFT2Tabulator(AbsT2Tabulator):
     flux_max: float = 10**30  # Cut flux above this 0 means none
 
     def filter_detections(self, dps: Iterable[DataPoint]) -> Iterable[DataPoint]:
-        return [
-            dp for dp in dps if "ZTF" in dp["tag"] and "magpsf" in dp["body"].keys()
-        ]
+        return [dp for dp in dps if "ZTF" in dp["tag"] and "magpsf" in dp["body"]]
 
     def get_flux_table(
         self,

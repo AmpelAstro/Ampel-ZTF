@@ -95,4 +95,4 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
         except KeyboardInterrupt:
             ...
 
-        return None
+        return

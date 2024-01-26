@@ -50,9 +50,7 @@ def test_catalogmatch(
         sub_type=T2CatalogMatch,
     )
     result = unit.process(DataPoint({"id": 0, "body": {"ra": 0, "dec": 0}}))
-    base_config: dict[str, Any] = {
-        k: None for k in catalogmatch_config["catalogs"].keys()
-    }
+    base_config: dict[str, Any] = {k: None for k in catalogmatch_config["catalogs"]}
     assert result == (
         base_config
         | {

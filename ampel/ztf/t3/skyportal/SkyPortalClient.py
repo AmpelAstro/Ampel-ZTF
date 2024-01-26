@@ -126,10 +126,8 @@ def render_thumbnail(cutout_data: bytes) -> str:
     """
     Render gzipped FITS as base64-encoded PNG
     """
-    with gzip.open(io.BytesIO(cutout_data), "rb") as f:
-        with fits.open(f) as hdu:
-            # header = hdu[0].header
-            img = np.flipud(hdu[0].data)
+    with gzip.open(io.BytesIO(cutout_data), "rb") as f, fits.open(f) as hdu:
+        img = np.flipud(hdu[0].data)
     mask = np.isfinite(img)
 
     fig = Figure(figsize=(1, 1))
