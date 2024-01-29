@@ -48,7 +48,7 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
         assert self.template is not None
         return {
             **super().get_channel(logger),
-            "access": self.__class__._access[self.template],
+            "access": self._access[self.template],
         }
 
     # Mandatory implementation

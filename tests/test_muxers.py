@@ -346,7 +346,7 @@ def _ingest(handler: ChainedIngestionHandler, alert: AmpelAlertProtocol):
     assert len(updates := handler.updates_buffer.db_ops["t1"]) == 1
     update = updates[0]
     assert isinstance(update, UpdateOne)
-    dps = update._doc["$setOnInsert"]["dps"]
+    dps = update._doc["$setOnInsert"]["dps"]  # noqa: SLF001
     handler.updates_buffer.push_updates()
     return dps
 
@@ -435,7 +435,7 @@ def test_superseded_candidates_concurrent(mock_context, superseded_alerts, order
 
     def _ingest(indexes: list[int]):
         for i in indexes:
-            next(iter(ingesters[i]._mux_cache.values())).index = i
+            next(iter(ingesters[i]._mux_cache.values())).index = i  # noqa: SLF001
             ingesters[i].ingest(
                 alerts[i].datapoints,
                 filter_results=[(0, True)],

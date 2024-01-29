@@ -149,7 +149,7 @@ async def test_process_gauge(potemkin_controller):
     def process_count():
         return AmpelMetricsRegistry.registry().get_sample_value(
             "ampel_processes",
-            {"tier": "0", "process": potemkin_controller._process.name},
+            {"tier": "0", "process": potemkin_controller._process.name},  # noqa: SLF001
         )
 
     r = asyncio.create_task(potemkin_controller.run())
@@ -168,7 +168,7 @@ async def test_scale(potemkin_controller):
     def process_count():
         return AmpelMetricsRegistry.registry().get_sample_value(
             "ampel_processes",
-            {"tier": "0", "process": potemkin_controller._process.name},
+            {"tier": "0", "process": potemkin_controller._process.name},  # noqa: SLF001
         )
 
     try:

@@ -172,7 +172,7 @@ class AllConsumingConsumer:
             # while a batch of messages is in flight. see also:
             # https://github.com/confluentinc/confluent-kafka-dotnet/issues/1861
             err = exc.args[0]
-            if err.code() == confluent_kafka.KafkaError._STATE:
+            if err.code() == confluent_kafka.KafkaError._STATE:  # noqa: SLF001
                 ...
             else:
                 raise KafkaError(err) from exc
@@ -226,8 +226,8 @@ class AllConsumingConsumer:
                         # ignore unknown topic messages
                         continue
                     if err.code() in (
-                        confluent_kafka.KafkaError._TIMED_OUT,
-                        confluent_kafka.KafkaError._MAX_POLL_EXCEEDED,
+                        confluent_kafka.KafkaError._TIMED_OUT,  # noqa: SLF001
+                        confluent_kafka.KafkaError._MAX_POLL_EXCEEDED,  # noqa: SLF001
                     ):
                         # bail on timeouts
                         if self._logger:
