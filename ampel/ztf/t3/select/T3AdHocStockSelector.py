@@ -34,10 +34,8 @@ class T3AdHocStockSelector(AbsT3Selector):
     def fetch(self) -> None | Cursor:
         """The returned Iterator is a pymongo Cursor"""
 
-        cursor = (
+        return (
             self.context.db.get_collection("stock")
             .find({"_id": {"$in": to_ampel_id(self.name)}}, {"_id": 1})
             .hint("_id_1_channel_1")
         )
-
-        return cursor

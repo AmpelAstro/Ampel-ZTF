@@ -153,8 +153,7 @@ class AllConsumingConsumer:
         message = self.consume()
         if message is None:
             raise StopIteration
-        else:
-            return message
+        return message
 
     def __iter__(self):
         return self
@@ -226,7 +225,7 @@ class AllConsumingConsumer:
                     if err.code() == confluent_kafka.KafkaError.UNKNOWN_TOPIC_OR_PART:
                         # ignore unknown topic messages
                         continue
-                    elif err.code() in (
+                    if err.code() in (
                         confluent_kafka.KafkaError._TIMED_OUT,
                         confluent_kafka.KafkaError._MAX_POLL_EXCEEDED,
                     ):
@@ -238,9 +237,8 @@ class AllConsumingConsumer:
 
         if message is None:
             return message
-        elif message.error():
+        if message.error():
             raise KafkaError(message.error())
-        else:
-            self._offsets[(message.topic(), message.partition())] = message.offset()
-            self._metrics.on_consume(message)
-            return message
+        self._offsets[(message.topic(), message.partition())] = message.offset()
+        self._metrics.on_consume(message)
+        return message

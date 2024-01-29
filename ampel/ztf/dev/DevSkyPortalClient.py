@@ -118,8 +118,7 @@ class DevSkyPortalClient:
             response = self.post(endpoint, json=default or params, raise_exc=True)
         if isinstance(response["data"], list):
             return response["data"][0]["id"]
-        else:
-            return response["data"]["id"]
+        return response["data"]["id"]
 
     def request(self, verb, endpoint, raise_exc=False, **kwargs):
         response = self.session.request(

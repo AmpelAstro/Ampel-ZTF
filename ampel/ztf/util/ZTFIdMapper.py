@@ -105,8 +105,7 @@ class ZTFIdMapper(AbsIdMapper):
             for i in rg:
                 num += ab[s2[i]] * powers[i]
             return (num << 4) + enc_ztf_years[ztf_id[3:5]]
-        else:
-            return [cast(int, cls.to_ampel_id(name)) for name in ztf_id]
+        return [cast(int, cls.to_ampel_id(name)) for name in ztf_id]
 
     @overload
     @classmethod
@@ -127,7 +126,7 @@ class ZTFIdMapper(AbsIdMapper):
         # Handle sequences
         if isinstance(ampel_id, Iterable) and not isinstance(ampel_id, str):
             return [cast(str, cls.to_ext_id(l)) for l in ampel_id]
-        elif isinstance(ampel_id, int):
+        if isinstance(ampel_id, int):
             # int('00001111', 2) bitmask equals 15
             year = dec_ztf_years[ampel_id & 15]
 
@@ -143,10 +142,9 @@ class ZTFIdMapper(AbsIdMapper):
                     break
 
             return f"ZTF{year}{''.join(l)}"
-        else:
-            raise TypeError(
-                f"Ampel ids for ZTF transients should be ints (got {type(ampel_id)} {ampel_id})"
-            )
+        raise TypeError(
+            f"Ampel ids for ZTF transients should be ints (got {type(ampel_id)} {ampel_id})"
+        )
 
 
 # backward compatibility shortcuts

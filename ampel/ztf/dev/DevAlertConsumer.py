@@ -123,7 +123,7 @@ class DevAlertConsumer:
         alert_content = self._deserialize(self.tar_file.extractfile(tar_info))
 
         # Create alert instance
-        alert = AmpelAlert(
+        return AmpelAlert(
             alert_content["candid"],
             alert_content["objectId"],
             self._shape(alert_content),
@@ -137,8 +137,6 @@ class DevAlertConsumer:
             if self.include_cutouts
             else None,
         )
-
-        return alert
 
     def _filter(self, alert: AmpelAlert):
         filter_result = self._alert_filter.process(alert)
@@ -172,5 +170,4 @@ class DevAlertConsumer:
             dps = [el for el in alert_content["prv_candidates"]]
             dps.insert(0, alert_content["candidate"])
             return dps
-        else:
-            return [alert_content["candidate"]]
+        return [alert_content["candidate"]]

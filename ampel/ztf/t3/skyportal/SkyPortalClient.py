@@ -75,12 +75,11 @@ stat_concurrent_requests = AmpelMetricsRegistry.gauge(
 def sanitize_json(obj):
     if isinstance(obj, dict):
         return {k: sanitize_json(v) for k, v in obj.items()}
-    elif isinstance(obj, tuple | list):
+    if isinstance(obj, tuple | list):
         return [sanitize_json(v) for v in obj]
-    elif isinstance(obj, float) and math.isnan(obj):
+    if isinstance(obj, float) and math.isnan(obj):
         return None
-    else:
-        return obj
+    return obj
 
 
 def encode_t2_body(t2: "T2DocView") -> str:
@@ -268,11 +267,9 @@ class SkyPortalClient(AmpelUnit):
                             ):
                                 raise SkyPortalAPIError(payload["message"], url, kwargs)
                             # otherwise, believe status code
-                            else:
-                                response.raise_for_status()
+                            response.raise_for_status()
                         return payload
-                    else:
-                        return response
+                    return response
 
     async def get_id(self, endpoint, params, default=None):
         """Query for an object by id, inserting it if not found"""
@@ -282,8 +279,7 @@ class SkyPortalClient(AmpelUnit):
             response = await self.post(endpoint, json=default or params)
         if isinstance(response["data"], list):
             return response["data"][0]["id"]
-        else:
-            return response["data"]["id"]
+        return response["data"]["id"]
 
     async def get_by_name(self, endpoint, name):
         if endpoint not in self._ids:

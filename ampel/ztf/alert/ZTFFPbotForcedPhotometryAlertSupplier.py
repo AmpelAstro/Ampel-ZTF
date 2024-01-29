@@ -251,92 +251,91 @@ def get_fpbot_baseline(
         for ufid in unique_fid:
             if ufid % 10 == 4:  # JN: Not sure what this check does
                 continue
+            this_fcqfid = np.where(df.fcqfid.values == ufid)
+            fcqf_df = df.iloc[this_fcqfid].copy()
+
+            # measure the baseline pre-peak
+            pre_bl = np.where(t_peak - fcqf_df.obsmjd.values > 100)
+            fcqfid_dict[str(ufid)]["N_pre_peak"] = 0
+            if len(pre_bl[0]) > 1:
+                # base_mjd = fcqf_df.obsmjd.values[pre_bl]
+                base_flux = fcqf_df.ampl.values[pre_bl]
+                base_flux_unc = fcqf_df["ampl.err"].values[
+                    pre_bl
+                ]  # Would ampl.err work?
+                mask = np.where(
+                    np.abs((base_flux - np.median(base_flux)) / base_flux_unc) <= 5
+                )
+                if len(mask[0]) > 1:
+                    Cmean = np.average(
+                        base_flux[mask], weights=1 / base_flux_unc[mask] ** 2
+                    )
+                    sum_diff_sq = np.sum(
+                        ((base_flux[mask] - Cmean) / (base_flux_unc[mask])) ** 2
+                    )
+                    chi = 1 / (len(mask[0]) - 1) * sum_diff_sq
+                    fcqfid_dict[str(ufid)]["C_pre"] = Cmean
+                    fcqfid_dict[str(ufid)]["chi_pre"] = chi
+                    fcqfid_dict[str(ufid)]["N_pre_peak"] = len(mask[0])
+
+            # measure the baseline post-peak
+            post_bl = np.where(fcqf_df.obsmjd.values > t_faded)
+            fcqfid_dict[str(ufid)]["N_post_peak"] = 0
+            if len(post_bl[0]) > 1:
+                # local variable 'base_jd' is assigned to but never used
+                # base_jd = fcqf_df.jd.values[post_bl]
+                base_flux = fcqf_df.ampl.values[post_bl]
+                base_flux_unc = fcqf_df["ampl.err"].values[post_bl]
+                mask = np.where(
+                    np.abs((base_flux - np.median(base_flux)) / base_flux_unc) <= 5
+                )
+                if len(mask[0]) > 1:
+                    Cmean = np.average(
+                        base_flux[mask], weights=1 / base_flux_unc[mask] ** 2
+                    )
+                    sum_diff_sq = np.sum(
+                        ((base_flux[mask] - Cmean) / (base_flux_unc[mask])) ** 2
+                    )
+                    chi = 1 / (len(mask[0]) - 1) * sum_diff_sq
+                    fcqfid_dict[str(ufid)]["C_post"] = Cmean
+                    fcqfid_dict[str(ufid)]["chi_post"] = chi
+                    fcqfid_dict[str(ufid)]["N_post_peak"] = len(mask[0])
+
+            # Decide which baseline to use
+            if (fcqfid_dict[str(ufid)]["N_pre_peak"] >= 25) or (
+                (fcqfid_dict[str(ufid)]["N_pre_peak"] > 10)
+                and (fcqfid_dict[str(ufid)]["N_post_peak"] < 25)
+            ):
+                df.iloc[this_fcqfid[0], df.columns.get_loc("baseline")] = fcqfid_dict[
+                    str(ufid)
+                ]["C_pre"]
+                df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
+                    np.ones(len(this_fcqfid[0]))
+                    * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_pre"]), 1)
+                )
+                df.iloc[this_fcqfid[0], df.columns.get_loc("n_baseline")] = fcqfid_dict[
+                    str(ufid)
+                ]["N_pre_peak"]
+                df.iloc[this_fcqfid[0], df.columns.get_loc("pre_or_post")] = -1
+                fcqfid_dict[str(ufid)]["which_baseline"] = "pre"
+            elif (fcqfid_dict[str(ufid)]["N_post_peak"] >= 25) or (
+                (fcqfid_dict[str(ufid)]["N_pre_peak"] < 10)
+                and (fcqfid_dict[str(ufid)]["N_post_peak"] >= 25)
+            ):
+                df.iloc[this_fcqfid[0], df.columns.get_loc("baseline")] = fcqfid_dict[
+                    str(ufid)
+                ]["C_post"]
+                df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
+                    np.ones(len(this_fcqfid[0]))
+                    * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_post"]), 1)
+                )
+                df.iloc[this_fcqfid[0], df.columns.get_loc("n_baseline")] = fcqfid_dict[
+                    str(ufid)
+                ]["N_post_peak"]
+                df.iloc[this_fcqfid[0], df.columns.get_loc("pre_or_post")] = 1
+                fcqfid_dict[str(ufid)]["which_baseline"] = "post"
             else:
-                this_fcqfid = np.where(df.fcqfid.values == ufid)
-                fcqf_df = df.iloc[this_fcqfid].copy()
-
-                # measure the baseline pre-peak
-                pre_bl = np.where(t_peak - fcqf_df.obsmjd.values > 100)
-                fcqfid_dict[str(ufid)]["N_pre_peak"] = 0
-                if len(pre_bl[0]) > 1:
-                    # base_mjd = fcqf_df.obsmjd.values[pre_bl]
-                    base_flux = fcqf_df.ampl.values[pre_bl]
-                    base_flux_unc = fcqf_df["ampl.err"].values[
-                        pre_bl
-                    ]  # Would ampl.err work?
-                    mask = np.where(
-                        np.abs((base_flux - np.median(base_flux)) / base_flux_unc) <= 5
-                    )
-                    if len(mask[0]) > 1:
-                        Cmean = np.average(
-                            base_flux[mask], weights=1 / base_flux_unc[mask] ** 2
-                        )
-                        sum_diff_sq = np.sum(
-                            ((base_flux[mask] - Cmean) / (base_flux_unc[mask])) ** 2
-                        )
-                        chi = 1 / (len(mask[0]) - 1) * sum_diff_sq
-                        fcqfid_dict[str(ufid)]["C_pre"] = Cmean
-                        fcqfid_dict[str(ufid)]["chi_pre"] = chi
-                        fcqfid_dict[str(ufid)]["N_pre_peak"] = len(mask[0])
-
-                # measure the baseline post-peak
-                post_bl = np.where(fcqf_df.obsmjd.values > t_faded)
-                fcqfid_dict[str(ufid)]["N_post_peak"] = 0
-                if len(post_bl[0]) > 1:
-                    # local variable 'base_jd' is assigned to but never used
-                    # base_jd = fcqf_df.jd.values[post_bl]
-                    base_flux = fcqf_df.ampl.values[post_bl]
-                    base_flux_unc = fcqf_df["ampl.err"].values[post_bl]
-                    mask = np.where(
-                        np.abs((base_flux - np.median(base_flux)) / base_flux_unc) <= 5
-                    )
-                    if len(mask[0]) > 1:
-                        Cmean = np.average(
-                            base_flux[mask], weights=1 / base_flux_unc[mask] ** 2
-                        )
-                        sum_diff_sq = np.sum(
-                            ((base_flux[mask] - Cmean) / (base_flux_unc[mask])) ** 2
-                        )
-                        chi = 1 / (len(mask[0]) - 1) * sum_diff_sq
-                        fcqfid_dict[str(ufid)]["C_post"] = Cmean
-                        fcqfid_dict[str(ufid)]["chi_post"] = chi
-                        fcqfid_dict[str(ufid)]["N_post_peak"] = len(mask[0])
-
-                # Decide which baseline to use
-                if (fcqfid_dict[str(ufid)]["N_pre_peak"] >= 25) or (
-                    (fcqfid_dict[str(ufid)]["N_pre_peak"] > 10)
-                    and (fcqfid_dict[str(ufid)]["N_post_peak"] < 25)
-                ):
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("baseline")
-                    ] = fcqfid_dict[str(ufid)]["C_pre"]
-                    df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
-                        np.ones(len(this_fcqfid[0]))
-                        * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_pre"]), 1)
-                    )
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("n_baseline")
-                    ] = fcqfid_dict[str(ufid)]["N_pre_peak"]
-                    df.iloc[this_fcqfid[0], df.columns.get_loc("pre_or_post")] = -1
-                    fcqfid_dict[str(ufid)]["which_baseline"] = "pre"
-                elif (fcqfid_dict[str(ufid)]["N_post_peak"] >= 25) or (
-                    (fcqfid_dict[str(ufid)]["N_pre_peak"] < 10)
-                    and (fcqfid_dict[str(ufid)]["N_post_peak"] >= 25)
-                ):
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("baseline")
-                    ] = fcqfid_dict[str(ufid)]["C_post"]
-                    df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
-                        np.ones(len(this_fcqfid[0]))
-                        * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_post"]), 1)
-                    )
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("n_baseline")
-                    ] = fcqfid_dict[str(ufid)]["N_post_peak"]
-                    df.iloc[this_fcqfid[0], df.columns.get_loc("pre_or_post")] = 1
-                    fcqfid_dict[str(ufid)]["which_baseline"] = "post"
-                else:
-                    fcqfid_dict[str(ufid)]["which_baseline"] = None
+                fcqfid_dict[str(ufid)]["which_baseline"] = None
 
     # Restrict to subset with baseline corrections
     # (These could in principle have been kept in some form)

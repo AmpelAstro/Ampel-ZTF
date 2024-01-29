@@ -30,7 +30,7 @@ def _make_muxer(context: AmpelContext, model: UnitModel) -> ZiArchiveMuxer:
     logger = AmpelLogger.get_logger()
     updates_buffer = DBUpdatesBuffer(context.db, run_id=run_id, logger=logger)
 
-    muxer = context.loader.new_context_unit(
+    return context.loader.new_context_unit(
         model=model,
         sub_type=ZiArchiveMuxer,
         context=context,
@@ -38,14 +38,11 @@ def _make_muxer(context: AmpelContext, model: UnitModel) -> ZiArchiveMuxer:
         updates_buffer=updates_buffer,
     )
 
-    return muxer
-
 
 def get_supplier(loader):
-    supplier = ZiAlertSupplier(
+    return ZiAlertSupplier(
         deserialize="avro", loader=UnitTestAlertSupplier(alerts=list(loader))
     )
-    return supplier
 
 
 @pytest.fixture()
@@ -135,10 +132,9 @@ def _mock_get_photopoints(mocker, consolidated_alert):
 
 @pytest.fixture()
 def mock_archive_muxer(dev_context, _mock_get_photopoints):
-    ingester = _make_muxer(
+    return _make_muxer(
         dev_context, UnitModel(unit="ZiArchiveMuxer", config={"history_days": 30})
     )
-    return ingester
 
 
 @pytest.fixture()

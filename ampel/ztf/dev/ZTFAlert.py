@@ -113,16 +113,13 @@ class ZTFAlert:
     def _load_alert(cls, file_path: str) -> None | dict:
         """ """
         with open(file_path, "rb") as f:
-            content = cls._deserialize(f)
-        return content
+            return cls._deserialize(f)
 
     @staticmethod
     def _deserialize(f) -> None | dict:
         """ """
         reader = fastavro.reader(f)
         alert = next(reader, None)
-        if alert is None:
+        if alert is None or isinstance(alert, dict):
             return alert
-        else:
-            assert isinstance(alert, dict)
-            return alert
+        raise TypeError(f"Unexpected message type {type(alert)}: {alert!r}")

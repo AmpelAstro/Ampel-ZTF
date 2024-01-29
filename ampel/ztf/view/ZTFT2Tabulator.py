@@ -124,5 +124,4 @@ class ZTFT2Tabulator(AbsT2Tabulator):
             )
         ):
             return tup
-        else:
-            return tuple([[]] * len(params))
+        return ([],) * len(params)

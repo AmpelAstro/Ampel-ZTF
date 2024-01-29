@@ -55,9 +55,10 @@ class PhotoAlertPlotter:
         with gzip.open(io.BytesIO(stamp), "rb") as f:
             raw = fits.open(f)[0].data
             if scaler is not None:
-                scaler(raw)  # TODO: some astropy.visualization stuff do not like this
-            else:
-                return raw
+                return scaler(
+                    raw
+                )  # TODO: some astropy.visualization stuff do not like this
+            return raw
 
     def __init__(
         self,
@@ -124,13 +125,12 @@ class PhotoAlertPlotter:
 
         if ax_given:
             return ax
-        elif self.interactive:
+        if self.interactive:
             plt.show()
             return ax
-        else:
-            fname_tmplt = fine_name_tag + self.base_plot_name_tmpl
-            self.save_current_plot(alert, fname_tmplt, **kwargs)
-            return None
+        fname_tmplt = fine_name_tag + self.base_plot_name_tmpl
+        self.save_current_plot(alert, fname_tmplt, **kwargs)
+        return None
 
     def scatter_plot(self, alert: AmpelAlertProtocol, p1, p2, ax=None, **kwargs):
         """

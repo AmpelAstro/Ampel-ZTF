@@ -44,11 +44,9 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
             if len(split_str) > 1:
                 sub_id = split_str[1]
                 return int(str(ampel_id) + "000000" + sub_id)
-            else:
-                return ampel_id
+            return ampel_id
 
-        else:
-            return [cast(int, cls.to_ampel_id(name)) for name in ztf_id]
+        return [cast(int, cls.to_ampel_id(name)) for name in ztf_id]
 
     @overload
     @classmethod
@@ -68,7 +66,7 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
         if isinstance(ampel_id, Iterable) and not isinstance(ampel_id, str):
             return [cast(str, cls.to_ext_id(l)) for l in ampel_id]
 
-        elif isinstance(ampel_id, int):
+        if isinstance(ampel_id, int):
             both_ids = str(ampel_id).split("000000")
             ampel_id = int(both_ids[0])
 
@@ -78,12 +76,11 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
                 sub_id = int(both_ids[1])
                 return ztfid + "_" + str(sub_id)
 
-            else:
-                return ztfid
-        else:
-            raise TypeError(
-                f"Ampel ids for ZTF transients should be ints (got {type(ampel_id)} {ampel_id})"
-            )
+            return ztfid
+
+        raise TypeError(
+            f"Ampel ids for ZTF transients should be ints (got {type(ampel_id)} {ampel_id})"
+        )
 
 
 # backward compatibility shortcuts

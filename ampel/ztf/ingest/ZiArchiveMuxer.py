@@ -83,8 +83,7 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
             )["jd"]
         ) is None:
             return from_alert
-        else:
-            return min((from_alert, from_db))
+        return min((from_alert, from_db))
 
     def get_latest_jd(self, datapoints: Sequence[DataPoint]) -> float:
         """

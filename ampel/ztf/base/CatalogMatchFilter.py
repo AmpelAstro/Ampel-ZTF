@@ -66,27 +66,25 @@ class CatalogMatchFilter(CatalogMatchUnit, AbsAlertFilter):
                     [cast(ConeSearchRequest, r.dict()) for r in selection.all_of],
                 )
             )
-        elif isinstance(selection, AnyOf):
+        if isinstance(selection, AnyOf):
             # recurse into OR conditions
             if isinstance(selection.any_of, AllOf):
                 return all(
                     self._evaluate_match(ra, dec, clause)
                     for clause in selection.any_of.all_of
                 )
-            else:
-                return any(
-                    self.cone_search_any(
-                        ra,
-                        dec,
-                        [cast(ConeSearchRequest, r.dict()) for r in selection.any_of],
-                    )
-                )
-        else:
-            return all(
+            return any(
                 self.cone_search_any(
-                    ra, dec, [cast(ConeSearchRequest, r.dict()) for r in [selection]]
+                    ra,
+                    dec,
+                    [cast(ConeSearchRequest, r.dict()) for r in selection.any_of],
                 )
             )
+        return all(
+            self.cone_search_any(
+                ra, dec, [cast(ConeSearchRequest, r.dict()) for r in [selection]]
+            )
+        )
 
     def process(self, alert: AmpelAlertProtocol) -> bool:
         # cut on the number of previous detections

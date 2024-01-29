@@ -111,21 +111,20 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
                 logger.info(f"Header ZTF year check: {stock_id} is not eligible")
             return None
 
-        else:
-            ret = [el for el in stock_id if (el & 15) in zy]
-            if len(ret) == len(stock_id):
-                if logger:
-                    logger.info("Header ZTF year check: all stock IDs are eligible")
-                return stock_id
-
+        ret = [el for el in stock_id if (el & 15) in zy]
+        if len(ret) == len(stock_id):
             if logger:
-                if len(ret) == 0:
-                    logger.info(
-                        "Header ZTF year check: none of the provided stock IDs are eligible"
-                    )
-                else:
-                    logger.info(
-                        f"Header ZTF year check: stock IDs search targets reduced to {ret}"
-                    )
+                logger.info("Header ZTF year check: all stock IDs are eligible")
+            return stock_id
 
-            return ret
+        if logger:
+            if len(ret) == 0:
+                logger.info(
+                    "Header ZTF year check: none of the provided stock IDs are eligible"
+                )
+            else:
+                logger.info(
+                    f"Header ZTF year check: stock IDs search targets reduced to {ret}"
+                )
+
+        return ret

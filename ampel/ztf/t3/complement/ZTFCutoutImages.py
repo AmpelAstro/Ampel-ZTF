@@ -55,8 +55,7 @@ class ZTFCutoutImages(AbsBufferComplement):
         response = self.session.get(f"cutouts/{candid}")
         if response.status_code == 404:
             return None
-        else:
-            response.raise_for_status()
+        response.raise_for_status()
         return {k: b64decode(v) for k, v in response.json().items()}
 
     def complement(self, records: Iterable[AmpelBuffer], t3s: T3Store) -> None:

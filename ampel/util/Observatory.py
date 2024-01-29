@@ -18,16 +18,14 @@ from astropy.time import Time
 logging.basicConfig(level=logging.INFO)
 
 
-def to_time(time):
+def to_time(time) -> Time:
     if isinstance(time, str):
         return Time(time)
-    elif isinstance(Time):
+    if isinstance(time, Time):
         return time
-    else:
-        raise TypeError(
-            "times can be either `str` or `astropy.time.Time` objects, not %s"
-            % type(time)
-        )
+    raise TypeError(
+        f"times can be either `str` or `astropy.time.Time` objects, not {type(time)}"
+    )
 
 
 def get_times(trange, dt_min):

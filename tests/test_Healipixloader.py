@@ -41,8 +41,7 @@ def healpix_loader(archive_token):
 def archive_token():
     if not (token := os.environ.get("ARCHIVE_TOKEN")):
         pytest.skip("archive test requires api token")
-    archive_token = NamedSecret[str](label="ztf/archive/token", value=token)
-    return archive_token
+    return NamedSecret[str](label="ztf/archive/token", value=token)
 
 
 def test_healpix_alertsupplier(mock_context, healpix_source, healpix_loader):
