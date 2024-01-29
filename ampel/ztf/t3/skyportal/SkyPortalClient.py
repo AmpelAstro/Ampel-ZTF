@@ -15,7 +15,7 @@ import math
 import time
 from collections import defaultdict
 from collections.abc import Generator, Iterable, Sequence
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, TypedDict, overload
 from urllib.parse import urlparse
@@ -485,11 +485,9 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         return dict(content)
 
     async def _find_instrument(self, tags: Sequence[int | str]) -> int:
-        for tag in tags:
-            try:
+        with suppress(KeyError, aiohttp.ClientError):
+            for tag in tags:
                 return await self.get_by_name("instrument", tag)
-            except Exception:
-                ...
         raise KeyError(f"None of {tags} match a known instrument")
 
     async def post_t2_annotations(

@@ -340,11 +340,11 @@ class PhotoAlertPlotter:
         for k in ["rb", "fwhm", "nbad", "elong", "isdiffpos", "ssdistnr"]:
             try:
                 info.append(f"{k} : {candidate.get(k, np.nan):.3f}")
-            except ValueError:
+            except ValueError:  # noqa: PERF203
                 info.append(f"{k} : {candidate.get(k)}")
         for kk in ["objectidps", "sgscore", "distpsnr", "srmag"]:
             for k in [k for k in candidate if kk in k]:
-                info.append(f"{k} : {candidate.get(k, np.nan):.2f}")
+                info.append(f"{k} : {candidate.get(k, np.nan):.2f}")  # noqa: PERF401
         fig.text(0.68, 0.6, " \n".join(info), va="top", fontsize="medium", color="0.3")
         fig.text(
             0.01,

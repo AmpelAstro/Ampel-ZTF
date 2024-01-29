@@ -177,7 +177,7 @@ class ZTFAlertStreamController(AbsProcessController):
                                 pending
                             ) < self.multiplier + 1:
                                 pending.add(launch())
-                except Exception:
+                except Exception:  # noqa: PERF203
                     for t in pending:
                         t.cancel()
                     break

@@ -8,6 +8,7 @@
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from bisect import bisect_right
+from contextlib import suppress
 from typing import Any
 
 from pymongo import UpdateOne
@@ -90,10 +91,8 @@ class ZiMongoMuxer(AbsT0Muxer):
         # exposure and source, and these may be received in parallel by two
         # AlertConsumers.
         for _ in range(10):
-            try:
+            with suppress(ConcurrentUpdateError):
                 return self._process(dps, stock_id)
-            except ConcurrentUpdateError:
-                continue
         raise ConcurrentUpdateError(
             f"More than 10 iterations ingesting alert {dps[0]['id']}"
         )
