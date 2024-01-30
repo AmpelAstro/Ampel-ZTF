@@ -12,6 +12,7 @@ from typing import Any
 
 import backoff
 import requests
+
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 
@@ -41,7 +42,7 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     archive: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3"
 
     #: A stream identifier, created via POST /api/ztf/archive/streams/, or a query
-    stream: None | str | ZTFSource = '%%ztf_stream_token'
+    stream: None | str | ZTFSource = "%%ztf_stream_token"
 
     with_history: bool = True
 

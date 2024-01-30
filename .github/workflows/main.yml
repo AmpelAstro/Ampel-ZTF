@@ -21,5 +21,7 @@ jobs:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     with:
       mongo: true
+      format: true
+      lint: true
       # renovate: datasource=conda depName=conda-forge/python
       python-version: "3.12.1"

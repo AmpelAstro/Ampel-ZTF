@@ -6,16 +6,18 @@
 # Last Modified Date:  18.09.2020
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import backoff, requests  # type: ignore[import]
 from base64 import b64decode
-from requests_toolbelt.sessions import BaseUrlSession
-from typing import Literal
 from collections.abc import Iterable
+from typing import Literal
 
-from ampel.struct.T3Store import T3Store
-from ampel.struct.AmpelBuffer import AmpelBuffer
-from ampel.core.AmpelContext import AmpelContext
+import backoff  # type: ignore[import]
+import requests
+from requests_toolbelt.sessions import BaseUrlSession
+
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
+from ampel.core.AmpelContext import AmpelContext
+from ampel.struct.AmpelBuffer import AmpelBuffer
+from ampel.struct.T3Store import T3Store
 
 
 class ZTFCutoutImages(AbsBufferComplement):
@@ -27,7 +29,6 @@ class ZTFCutoutImages(AbsBufferComplement):
     eligible: Literal["first", "last", "brightest", "all"] = "last"
 
     def __init__(self, context: AmpelContext, **kwargs) -> None:
-
         super().__init__(**kwargs)
 
         self.session = BaseUrlSession(
@@ -54,8 +55,7 @@ class ZTFCutoutImages(AbsBufferComplement):
         response = self.session.get(f"cutouts/{candid}")
         if response.status_code == 404:
             return None
-        else:
-            response.raise_for_status()
+        response.raise_for_status()
         return {k: b64decode(v) for k, v in response.json().items()}
 
     def complement(self, records: Iterable[AmpelBuffer], t3s: T3Store) -> None:

@@ -8,9 +8,10 @@
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 from typing import Any
-from ampel.types import UBson
+
 from ampel.abstract.AbsLightCurveT2Unit import AbsLightCurveT2Unit
 from ampel.struct.UnitResult import UnitResult
+from ampel.types import UBson
 from ampel.view.LightCurve import LightCurve
 
 
@@ -40,7 +41,7 @@ class T2LightCurveSummary(AbsLightCurveT2Unit):
         result: dict[str, Any] = {
             "num_detections": len(lightcurve.get_photopoints() or []),
         }
-        if (pps := lightcurve.get_photopoints()):
+        if pps := lightcurve.get_photopoints():
             first, latest = pps[0]["body"], pps[-1]["body"]
             result["first_detection"] = first["jd"]
             result["ra_dis"], result["dec_dis"] = first["ra"], first["dec"]

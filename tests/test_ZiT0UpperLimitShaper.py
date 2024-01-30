@@ -4,7 +4,7 @@ from ampel.ztf.ingest.ZiDataPointShaper import ZiDataPointShaperBase
 
 
 @pytest.mark.parametrize(
-    "uld,expected_id,comment",
+    ("uld", "expected_id", "comment"),
     [
         (
             {

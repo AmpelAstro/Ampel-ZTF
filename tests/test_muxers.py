@@ -1,5 +1,10 @@
-import itertools, os, fastavro, pytest, before_after
+import itertools
+import os
 from collections import defaultdict
+
+import before_after
+import fastavro
+import pytest
 from pymongo.operations import UpdateOne
 
 from ampel.core.AmpelContext import AmpelContext
@@ -11,13 +16,13 @@ from ampel.model.ingest.IngestDirective import IngestDirective
 from ampel.model.UnitModel import UnitModel
 from ampel.mongo.update.DBUpdatesBuffer import DBUpdatesBuffer
 from ampel.mongo.update.MongoT0Ingester import MongoT0Ingester
+from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.secret.AmpelVault import AmpelVault
 from ampel.secret.DictSecretProvider import DictSecretProvider
 from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 from ampel.ztf.ingest.ZiArchiveMuxer import ZiArchiveMuxer
 from ampel.ztf.ingest.ZiCompilerOptions import ZiCompilerOptions
 from ampel.ztf.ingest.ZiDataPointShaper import ZiDataPointShaperBase
-from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 
 
 def _make_muxer(context: AmpelContext, model: UnitModel) -> ZiArchiveMuxer:
@@ -25,7 +30,7 @@ def _make_muxer(context: AmpelContext, model: UnitModel) -> ZiArchiveMuxer:
     logger = AmpelLogger.get_logger()
     updates_buffer = DBUpdatesBuffer(context.db, run_id=run_id, logger=logger)
 
-    muxer = context.loader.new_context_unit(
+    return context.loader.new_context_unit(
         model=model,
         sub_type=ZiArchiveMuxer,
         context=context,
@@ -33,17 +38,14 @@ def _make_muxer(context: AmpelContext, model: UnitModel) -> ZiArchiveMuxer:
         updates_buffer=updates_buffer,
     )
 
-    return muxer
-
 
 def get_supplier(loader):
-    supplier = ZiAlertSupplier(
+    return ZiAlertSupplier(
         deserialize="avro", loader=UnitTestAlertSupplier(alerts=list(loader))
     )
-    return supplier
 
 
-@pytest.fixture
+@pytest.fixture()
 def raw_alert_dicts(avro_packets):
     def gen():
         for f in avro_packets():
@@ -52,7 +54,7 @@ def raw_alert_dicts(avro_packets):
     return gen
 
 
-@pytest.fixture
+@pytest.fixture()
 def alerts(raw_alert_dicts):
     def gen():
         for d in raw_alert_dicts():
@@ -61,7 +63,7 @@ def alerts(raw_alert_dicts):
     return gen
 
 
-@pytest.fixture
+@pytest.fixture()
 def superseded_alerts(superseded_packets):
     def gen():
         for f in superseded_packets():
@@ -94,7 +96,7 @@ def consolidated_alert(raw_alert_dicts):
         for pp in sorted(row[0], key=lambda pp: (pp[0], pp[1]["jd"], pp[1]["pid"])):
             photopoints[pp[0]][pp[1]["jd"]] = pp[1]
     assert len(photopoints) == 1
-    objectId = list(photopoints.keys())[0]
+    objectId = next(iter(photopoints.keys()))
     datapoints = sorted(
         photopoints[objectId].values(), key=lambda pp: pp["jd"], reverse=True
     )
@@ -114,12 +116,13 @@ def consolidated_alert(raw_alert_dicts):
         UnitModel(unit="ZiArchiveMuxer", config={"history_days": 30}),
     ],
 )
-def test_instantiate(patch_mongo, dev_context: AmpelContext, model):
+@pytest.mark.usefixtures("_patch_mongo")
+def test_instantiate(dev_context: AmpelContext, model):
     _make_muxer(dev_context, model)
 
 
-@pytest.fixture
-def mock_get_photopoints(mocker, consolidated_alert):
+@pytest.fixture()
+def _mock_get_photopoints(mocker, consolidated_alert):
     # mock get_photopoints to return first alert
     mocker.patch(
         "ampel.ztf.ingest.ZiArchiveMuxer.ZiArchiveMuxer.get_photopoints",
@@ -127,16 +130,15 @@ def mock_get_photopoints(mocker, consolidated_alert):
     )
 
 
-@pytest.fixture
-def mock_archive_muxer(patch_mongo, dev_context, mock_get_photopoints):
-    ingester = _make_muxer(
+@pytest.fixture()
+def mock_archive_muxer(dev_context, _mock_get_photopoints):
+    return _make_muxer(
         dev_context, UnitModel(unit="ZiArchiveMuxer", config={"history_days": 30})
     )
-    return ingester
 
 
-@pytest.fixture
-def t0_ingester(patch_mongo, dev_context):
+@pytest.fixture()
+def t0_ingester(dev_context):
     run_id = 0
     logger = AmpelLogger.get_logger()
     updates_buffer = DBUpdatesBuffer(dev_context.db, run_id=run_id, logger=logger)
@@ -155,7 +157,6 @@ def test_get_earliest_jd(
     ingester, compiler = t0_ingester
 
     for i in [2, 0, 1]:
-
         datapoints = ZiDataPointShaperBase().process(
             alert_list[i].datapoints, stock=alert_list[i].stock
         )
@@ -165,7 +166,7 @@ def test_get_earliest_jd(
         assert mock_archive_muxer.get_earliest_jd(
             alert_list[i].stock, datapoints
         ) == min(
-            dp["body"]["jd"] for dp in [el for el in datapoints if el['id'] > 0]
+            dp["body"]["jd"] for dp in [el for el in datapoints if el["id"] > 0]
         ), "min jd is min jd of last ingested alert"
 
 
@@ -185,7 +186,8 @@ def get_handler(context, directives, run_id=0) -> ChainedIngestionHandler:
     )
 
 
-def test_integration(patch_mongo, dev_context, mock_get_photopoints, alerts):
+@pytest.mark.usefixtures("_patch_mongo", "_mock_get_photopoints")
+def test_integration(dev_context, alerts):
     directive = {
         "channel": "EXAMPLE_TNS_MSIP",
         "ingest": {
@@ -215,7 +217,9 @@ def test_integration(patch_mongo, dev_context, mock_get_photopoints, alerts):
     alert_list = list(alerts())
 
     handler.ingest(
-        alert_list[1].datapoints, stock_id=alert_list[1].stock, filter_results=[(0, True)]
+        alert_list[1].datapoints,
+        stock_id=alert_list[1].stock,
+        filter_results=[(0, True)],
     )
     handler.updates_buffer.push_updates()
 
@@ -237,13 +241,18 @@ def test_integration(patch_mongo, dev_context, mock_get_photopoints, alerts):
     assert t2.find_one(
         {
             "link": t1.find_one(
-                {"dps": {"$size": len(alert_list[1].datapoints) + len(alert_list[0].datapoints)}}
+                {
+                    "dps": {
+                        "$size": len(alert_list[1].datapoints)
+                        + len(alert_list[0].datapoints)
+                    }
+                }
             )["link"]
         }
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def archive_token(mock_context, monkeypatch):
     if not (token := os.environ.get("ARCHIVE_TOKEN")):
         pytest.skip("archive test requires token")
@@ -251,11 +260,13 @@ def archive_token(mock_context, monkeypatch):
         mock_context.loader,
         "vault",
         AmpelVault(
-            [DictSecretProvider({"ztf/archive/token": token})]
-            + mock_context.loader.vault.providers
+            [
+                DictSecretProvider({"ztf/archive/token": token}),
+                *mock_context.loader.vault.providers,
+            ]
         ),
     )
-    yield token
+    return token
 
 
 def test_get_photopoints_from_api(mock_context, archive_token):
@@ -265,11 +276,16 @@ def test_get_photopoints_from_api(mock_context, archive_token):
     muxer = _make_muxer(
         mock_context, UnitModel(unit="ZiArchiveMuxer", config={"history_days": 30})
     )
-    alert_pre = muxer.get_photopoints("ZTF18abcfcoo", jd_center=2458300, time_pre=30, time_post=0)
+    alert_pre = muxer.get_photopoints(
+        "ZTF18abcfcoo", jd_center=2458300, time_pre=30, time_post=0
+    )
 
-    alert_post = muxer.get_photopoints("ZTF18abcfcoo", jd_center=2458270, time_pre=0, time_post=30)
+    alert_post = muxer.get_photopoints(
+        "ZTF18abcfcoo", jd_center=2458270, time_pre=0, time_post=30
+    )
 
-    assert len(alert_pre["prv_candidates"]) == 10 and len(alert_post["prv_candidates"]) == 10
+    assert len(alert_pre["prv_candidates"]) == 10
+    assert len(alert_post["prv_candidates"]) == 10
 
 
 def test_deduplication(
@@ -282,15 +298,17 @@ def test_deduplication(
     alert_list = list(itertools.islice(alerts(), 1, None))
 
     ingester, compiler = t0_ingester
-    filter_pps = [{'attribute': 'candid', 'operator': 'exists', 'value': True}]
-    filter_uls = [{'attribute': 'candid', 'operator': 'exists', 'value': False}]
+    filter_pps = [{"attribute": "candid", "operator": "exists", "value": True}]
+    filter_uls = [{"attribute": "candid", "operator": "exists", "value": False}]
 
     pps = []
     uls = []
     for alert in alert_list:
         pps += alert.get_tuples("jd", "fid", filters=filter_pps)
         uls += alert.get_values("jd", filters=filter_uls)
-        datapoints = ZiDataPointShaperBase().process(alert.datapoints, stock=alert.stock)
+        datapoints = ZiDataPointShaperBase().process(
+            alert.datapoints, stock=alert.stock
+        )
         compiler.add(datapoints, channel="channychan", ttl=None, trace_id=None)
 
     assert len(set(uls)) < len(uls), "Some upper limits duplicated in alerts"
@@ -304,7 +322,7 @@ def test_deduplication(
     assert t0.count_documents({"id": {"$lt": 0}}) == len(set(uls))
 
 
-@pytest.fixture
+@pytest.fixture()
 def ingestion_handler_with_mongomuxer(mock_context):
     directive = {
         "channel": "EXAMPLE_TNS_MSIP",
@@ -325,10 +343,10 @@ def ingestion_handler_with_mongomuxer(mock_context):
 
 def _ingest(handler: ChainedIngestionHandler, alert: AmpelAlertProtocol):
     handler.ingest(alert.datapoints, filter_results=[(0, True)], stock_id=alert.stock)
-    len(updates := handler.updates_buffer.db_ops["t1"]) == 1
+    assert len(updates := handler.updates_buffer.db_ops["t1"]) == 1
     update = updates[0]
     assert isinstance(update, UpdateOne)
-    dps = update._doc["$setOnInsert"]["dps"]
+    dps = update._doc["$setOnInsert"]["dps"]  # noqa: SLF001
     handler.updates_buffer.push_updates()
     return dps
 
@@ -378,7 +396,8 @@ def test_superseded_candidates_serial(
     candids = [alert.datapoints[0]["candid"] for alert in alerts]
     assert candids[0] < candids[1]
 
-    dps = [_ingest(ingestion_handler_with_mongomuxer, alert) for alert in alerts]
+    for alert in alerts:
+        _ingest(ingestion_handler_with_mongomuxer, alert)
 
     pp_db = mock_context.db.get_collection("t0").find_one(
         {"id": candids[0]},
@@ -416,9 +435,11 @@ def test_superseded_candidates_concurrent(mock_context, superseded_alerts, order
 
     def _ingest(indexes: list[int]):
         for i in indexes:
-            next(iter(ingesters[i]._mux_cache.values())).index = i
+            next(iter(ingesters[i]._mux_cache.values())).index = i  # noqa: SLF001
             ingesters[i].ingest(
-                alerts[i].datapoints, filter_results=[(0, True)], stock_id=alerts[i].stock
+                alerts[i].datapoints,
+                filter_results=[(0, True)],
+                stock_id=alerts[i].stock,
             )
             ingesters[i].updates_buffer.push_updates()
 
@@ -448,10 +469,9 @@ def test_superseded_candidates_concurrent(mock_context, superseded_alerts, order
 
     def assert_superseded(old, new):
         doc = t0.find_one({"id": old})
-        meta = doc.get("meta", [])
+        assert "SUPERSEDED" in doc["tag"]
         assert (
-            "SUPERSEDED" in doc["tag"]
-            and len(
+            len(
                 [
                     m
                     for m in doc.get("meta", [])

@@ -10,6 +10,7 @@
 
 import io
 import time
+from contextlib import suppress
 from typing import Any
 
 import fastavro
@@ -18,14 +19,11 @@ from ampel.abstract.AbsOpsUnit import AbsOpsUnit
 from ampel.secret.NamedSecret import NamedSecret
 from ampel.ztf.t0.load.AllConsumingConsumer import AllConsumingConsumer
 
-try:
+with suppress(ImportError):
     from ampel.ztf.t0.ArchiveUpdater import ArchiveUpdater
-except ImportError:
-    ...
 
 
 class ZTFAlertArchiver(AbsOpsUnit):
-
     #: Address of Kafka broker
     bootstrap: str = "partnership.alerts.ztf.uw.edu:9092"
     #: Consumer group name
@@ -35,7 +33,7 @@ class ZTFAlertArchiver(AbsOpsUnit):
     #: Time to wait for messages before giving up, in seconds
     timeout: int = 300
     #: extra configuration to pass to confluent_kafka.Consumer
-    kafka_consumer_properties: dict[str,Any] = {}
+    kafka_consumer_properties: dict[str, Any] = {}
     #: URI of postgres server hosting the archive
     archive_uri: str
     archive_auth: NamedSecret[dict] = NamedSecret(label="ztf/archive/writer")
@@ -58,7 +56,6 @@ class ZTFAlertArchiver(AbsOpsUnit):
         )
 
     def run(self, beacon: None | dict[str, Any] = None) -> None | dict[str, Any]:
-
         try:
             for message in self.consumer:
                 reader = fastavro.reader(io.BytesIO(message.value()))
@@ -71,5 +68,5 @@ class ZTFAlertArchiver(AbsOpsUnit):
                 )
         except KeyboardInterrupt:
             ...
-        
+
         return None

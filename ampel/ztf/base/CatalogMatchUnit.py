@@ -7,16 +7,12 @@
 # Last Modified Date:  30.11.2022
 # Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
 
+from collections.abc import Sequence
 from functools import cached_property
 from typing import (
-    Sequence,
-    Dict,
     Any,
     Literal,
     TypedDict,
-    Optional,
-    List,
-    Union,
     overload,
 )
 
@@ -143,7 +139,9 @@ class CatalogMatchUnitBase:
         catalogs: Sequence[ConeSearchRequest],
     ) -> list[bool] | list[None | CatalogItem] | list[None | list[CatalogItem]]:
         if not -90 <= dec <= 90:
-            raise ValueError("Declination angle must be within -90 deg <= angle <= 90 deg, got {dec} deg")
+            raise ValueError(
+                "Declination angle must be within -90 deg <= angle <= 90 deg, got {dec} deg"
+            )
         response = self.session.post(
             f"cone_search/{method}",
             json={

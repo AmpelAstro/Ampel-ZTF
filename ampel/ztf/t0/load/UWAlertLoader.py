@@ -12,8 +12,8 @@ import itertools
 import logging
 import uuid
 from collections import defaultdict
-from typing import Literal, Any
 from collections.abc import Iterator
+from typing import Any, Literal
 
 import fastavro
 
@@ -28,6 +28,7 @@ class UWAlertLoader(AbsAlertLoader[io.IOBase]):
     Iterable class that loads avro alerts from the Kafka stream
     provided by University of Washington (UW)
     """
+
     #: Address of Kafka broker
     bootstrap: str = "partnership.alerts.ztf.uw.edu:9092"
     #: Alert steam to subscribe to
@@ -39,21 +40,20 @@ class UWAlertLoader(AbsAlertLoader[io.IOBase]):
     #: extra configuration to pass to confluent_kafka.Consumer
     kafka_consumer_properties: dict[str, Any] = {}
 
-
     def __init__(self, **kwargs) -> None:
-
         super().__init__(**kwargs)
         topics = ["^ztf_.*_programid1$"]
 
         if self.stream == "ztf_uw_private":
             topics.append("^ztf_.*_programid2$")
-        config = {"group.id": f"{self.group_name}-{self.stream}"} | self.kafka_consumer_properties
+        config = {
+            "group.id": f"{self.group_name}-{self.stream}"
+        } | self.kafka_consumer_properties
 
         self._consumer = AllConsumingConsumer(
             self.bootstrap, timeout=self.timeout, topics=topics, logger=None, **config
         )
         self._it: Iterator[io.BytesIO] | None = None
-
 
     def alerts(self, limit: None | int = None) -> Iterator[io.BytesIO]:
         """
@@ -61,7 +61,9 @@ class UWAlertLoader(AbsAlertLoader[io.IOBase]):
         :returns: dict instance of the alert content
         :raises StopIteration: when next(fastavro.reader) has dried out
         """
-        topic_stats: defaultdict[str, list[float]] = defaultdict(lambda: [float("inf"), -float("inf"), 0])
+        topic_stats: defaultdict[str, list[float]] = defaultdict(
+            lambda: [float("inf"), -float("inf"), 0]
+        )
         for message in itertools.islice(self._consumer, limit):
             reader = fastavro.reader(io.BytesIO(message.value()))
             alert = next(reader)  # raise StopIteration
@@ -73,7 +75,7 @@ class UWAlertLoader(AbsAlertLoader[io.IOBase]):
                 stats[1] = alert["candidate"]["jd"]
             stats[2] += 1
             yield io.BytesIO(message.value())
-        log.info("Got messages from topics: {}".format(dict(topic_stats)))
+        log.info(f"Got messages from topics: {dict(topic_stats)}")
 
     def __next__(self) -> io.BytesIO:
         if self._it is None:

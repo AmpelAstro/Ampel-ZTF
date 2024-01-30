@@ -9,8 +9,9 @@
 
 
 import io
+from collections.abc import Iterator
 from functools import cached_property
-from typing import Any, Optional, Iterator
+from typing import Any
 
 import fastavro
 
@@ -35,7 +36,7 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
     #: Number of alerts to post at once
     chunk_size: int = 1000
     #: extra configuration to pass to confluent_kafka.Consumer
-    kafka_consumer_properties: dict[str,Any] = {}
+    kafka_consumer_properties: dict[str, Any] = {}
 
     @cached_property
     def consumer(self) -> AllConsumingConsumer:
@@ -87,12 +88,9 @@ class ZTFAlertArchiverV3(AbsOpsUnit, ArchiveUnit):
         response = self.session.post("alerts", data=payload)
         response.raise_for_status()
 
-    def run(self, beacon: Optional[dict[str, Any]] = None) -> Optional[dict[str, Any]]:
-
+    def run(self, beacon: None | dict[str, Any] = None) -> None:
         try:
             for chunk in self._chunks():
                 self._post_chunk(chunk)
         except KeyboardInterrupt:
             ...
-
-        return None

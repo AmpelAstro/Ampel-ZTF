@@ -2,24 +2,21 @@ import json
 import subprocess
 from functools import partial
 from os import environ
-from os.path import dirname, join
 from pathlib import Path
 from time import time
-from ampel.secret.AmpelVault import AmpelVault
 
 import mongomock
-import pymongo
 import pytest
 import yaml
 
 from ampel.alert.load.TarAlertLoader import TarAlertLoader
-from ampel.config.AmpelConfig import AmpelConfig
 from ampel.dev.DevAmpelContext import DevAmpelContext
+from ampel.secret.AmpelVault import AmpelVault
 from ampel.secret.PotemkinSecretProvider import PotemkinSecretProvider
 
 
-@pytest.fixture
-def patch_mongo(monkeypatch):
+@pytest.fixture()
+def _patch_mongo(monkeypatch):
     monkeypatch.setattr("ampel.core.AmpelDB.MongoClient", mongomock.MongoClient)
 
 
@@ -65,7 +62,7 @@ def mongod(pytestconfig):
         subprocess.check_call(["docker", "stop", container])
 
 
-@pytest.fixture
+@pytest.fixture()
 def dev_context(mongod):
     return DevAmpelContext.load(
         config=Path(__file__).parent / "test-data" / "testing-config.yaml",
@@ -75,8 +72,8 @@ def dev_context(mongod):
     )
 
 
-@pytest.fixture
-def mock_context(patch_mongo):
+@pytest.fixture()
+def mock_context(_patch_mongo):
     return DevAmpelContext.load(
         config=Path(__file__).parent / "test-data" / "testing-config.yaml",
         purge_db=True,
@@ -84,7 +81,7 @@ def mock_context(patch_mongo):
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def avro_packets():
     """
     4 alerts for a random AGN, widely spaced:
@@ -104,7 +101,7 @@ def avro_packets():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def superseded_packets():
     """
     Three alerts, received within 100 ms, with the same points but different candids
@@ -115,7 +112,7 @@ def superseded_packets():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def first_pass_config():
     with open(Path(__file__).parent / "test-data" / "testing-config.yaml") as f:
         return yaml.safe_load(f)

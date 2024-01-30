@@ -10,11 +10,12 @@
 from typing import Any
 
 import numpy as np
+from astropy.coordinates import SkyCoord
+from astropy.table import Table
+
 from ampel.abstract.AbsAlertFilter import AbsAlertFilter
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
-from astropy.coordinates import SkyCoord
-from astropy.table import Table
 
 
 class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
@@ -227,9 +228,9 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
             # among the remaining sources there is anything with
             # significant proper motion or parallax measurement
             if (
-                any(gaia_tab["FLAG_PMRA"] == True)  # noqa
-                or any(gaia_tab["FLAG_PMDec"] == True)
-                or any(gaia_tab["FLAG_Plx"] == True)
+                any(gaia_tab["FLAG_PMRA"] == True)  # noqa: E712
+                or any(gaia_tab["FLAG_PMDec"] == True)  # noqa: E712
+                or any(gaia_tab["FLAG_Plx"] == True)  # noqa: E712
             ):
                 return True
 
@@ -280,11 +281,11 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
             self.logger.debug(None, extra={"rb": latest["rb"]})
             return None
 
-        if "drb" in latest: # some older alerts dont have drb, dont want to leave them out entirely but need check
-            if self.min_drb > 0.0 and latest["drb"] < self.min_drb:
-                # self.logger.debug("rejected: RB score %.2f below threshod (%.2f)"% (latest['rb'], self.min_rb))
-                self.logger.debug(None, extra={"drb": latest["drb"]})
-                return None
+        # some older alerts dont have drb, dont want to leave them out entirely but need check
+        if ("drb" in latest) and self.min_drb > 0.0 and latest["drb"] < self.min_drb:
+            # self.logger.debug("rejected: RB score %.2f below threshod (%.2f)"% (latest['rb'], self.min_rb))
+            self.logger.debug(None, extra={"drb": latest["drb"]})
+            return None
 
         if latest["fwhm"] > self.max_fwhm:
             # self.logger.debug("rejected: fwhm %.2f above threshod (%.2f)"% (latest['fwhm'], self.max_fwhm))
@@ -302,7 +303,7 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
             return None
 
         # cut on archive length
-        if "jdendhist" in latest.keys() and "jdstarthist" in latest.keys():
+        if "jdendhist" in latest and "jdstarthist" in latest:
             archive_tspan = latest["jdendhist"] - latest["jdstarthist"]
             if not (self.min_archive_tspan < archive_tspan < self.max_archive_tspan):
                 self.logger.debug(None, extra={"archive_tspan": archive_tspan})
