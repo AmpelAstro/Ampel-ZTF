@@ -15,7 +15,6 @@ import requests
 from requests_toolbelt.sessions import BaseUrlSession
 
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
-from ampel.core.AmpelContext import AmpelContext
 from ampel.struct.AmpelBuffer import AmpelBuffer
 from ampel.struct.T3Store import T3Store
 
@@ -28,11 +27,11 @@ class ZTFCutoutImages(AbsBufferComplement):
     #: Which detection to retrieve cutouts for
     eligible: Literal["first", "last", "brightest", "all"] = "last"
 
-    def __init__(self, context: AmpelContext, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
         self.session = BaseUrlSession(
-            base_url=context.config.get(
+            base_url=self.context.config.get(
                 "resource.ampel-ztf/archive", str, raise_exc=True
             )
         )
