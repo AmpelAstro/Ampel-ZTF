@@ -50,12 +50,15 @@ class ZTFCutoutImages(AbsBufferComplement):
         max_time=60,
     )
     def get_cutout(self, candid: int) -> None | dict[str, bytes]:
-        response = self.session.get(f"cutouts/{candid}")
+        response = self.session.get(f"alert/{candid}/cutouts")
         if response.status_code == 404:
             return None
-        else:
-            response.raise_for_status()
-        return {k: b64decode(v) for k, v in response.json().items()}
+
+        response.raise_for_status()
+        return {
+            k: b64decode(response.json()[k]["stampData"])
+            for k in ["cutoutScience", "cutoutTemplate", "cutoutDifference"]
+        }
 
     def complement(self, records: Iterable[AmpelBuffer], t3s: T3Store) -> None:
         for record in records:
