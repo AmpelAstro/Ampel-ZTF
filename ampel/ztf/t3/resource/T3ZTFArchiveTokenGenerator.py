@@ -38,7 +38,7 @@ class T3ZTFArchiveTokenGenerator(AbsT3PlainUnit):
 	date_format: str = "%Y-%m-%d"
 	delta_t: float = 1.0         # Length of time window from start date (days)
 	
-	days_ago: None | int = None
+	days_ago: None | float = None
 
 	#: overrides max_dist_ps1_src & min_detections
 	candidate: None | dict[str, Any] = None
