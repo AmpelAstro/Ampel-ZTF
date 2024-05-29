@@ -650,6 +650,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             )
         }
         group_ids = {await self.get_by_name("groups", name) for name in (groups or [])}
+        assert "tag" in view.stock, f"{self.__class__} requires stocks with a `tag` field. Did you remember to set AlertConsumer.compiler_opts?"
         assert view.stock["tag"] is not None
         instrument_id = (
             await self.get_by_name("instrument", instrument)
@@ -658,6 +659,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         )
 
         assert view.stock
+        assert "name" in view.stock, f"{self.__class__} requires stocks with a `name` field. Did you remember to set AlertConsumer.compiler_opts?"
         assert view.stock["name"] is not None
         name = next(
             n for n in view.stock["name"] if isinstance(n, str) and n.startswith("ZTF")
