@@ -209,6 +209,7 @@ def test_integration(dev_context, alerts):
 
     handler = get_handler(dev_context, [IngestDirective(**directive)])
 
+    stock = dev_context.db.get_collection("stock")
     t0 = dev_context.db.get_collection("t0")
     t1 = dev_context.db.get_collection("t1")
     t2 = dev_context.db.get_collection("t2")
@@ -228,6 +229,12 @@ def test_integration(dev_context, alerts):
     # note lack of handler.updates_buffer.push_updates() here;
     # ZiAlertContentIngester has to be synchronous to deal with superseded
     # photopoints
+
+    assert stock.count_documents({}) == 1
+    doc = next(stock.find())
+    assert doc["tag"] == ["ZTF"]
+    assert doc["name"] == ["ZTF18abxhyqv"]
+
     assert t0.count_documents({}) == len(alert_list[1].datapoints) + len(
         alert_list[0].datapoints
     ), "datapoints ingested for archival alert"
