@@ -16,7 +16,7 @@ import nest_asyncio
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
 from ampel.struct.JournalAttributes import JournalAttributes
 from ampel.types import StockId
-from ampel.ztf.t3.skyportal.SkyPortalClient import BaseSkyPortalPublisher
+from ampel.ztf.t3.skyportal.SkyPortalClient import BaseSkyPortalPublisher, CutoutSpec
 
 if TYPE_CHECKING:
     from ampel.content.JournalRecord import JournalRecord
@@ -33,6 +33,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
     #: Explicitly post photometry for each stock. If False, rely on some backend
     #: service (like Kowalski on Fritz) to fill in photometry for sources.
     include_photometry: bool = True
+    cutouts: None | CutoutSpec = CutoutSpec()
 
     process_name: None | str = None
 
@@ -103,6 +104,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
                     filters=self.filters,
                     annotate=self.annotate,
                     post_photometry=self.include_photometry,
+                    post_cutouts=self.cutouts,
                 )
             )
         )
