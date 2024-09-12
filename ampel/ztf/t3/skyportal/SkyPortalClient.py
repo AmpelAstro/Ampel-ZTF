@@ -39,6 +39,10 @@ from ampel.util.collections import ampel_iter
 from ampel.util.mappings import flatten_dict
 
 if TYPE_CHECKING:
+    from typing import Unpack
+
+    from aiohttp.client import _RequestOptions
+
     from ampel.config.AmpelConfig import AmpelConfig
     from ampel.content.DataPoint import DataPoint
     from ampel.view.T2DocView import T2DocView
@@ -185,9 +189,7 @@ class SkyPortalClient(AmpelUnit):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self._request_kwargs = {
-            "headers": {"Authorization": f"token {self.token.get()}"}
-        }
+        self._auth_header = {"Authorization": f"token {self.token.get()}"}
         self._ids: dict[str, dict[str, int]] = {}
         self._session: None | aiohttp.ClientSession = None
         self._semaphore: None | asyncio.Semaphore = None
@@ -210,7 +212,7 @@ class SkyPortalClient(AmpelUnit):
         endpoint: str,
         raise_exc: bool,
         _decode_json: None,
-        **kwargs: dict[str, Any],
+        **kwargs: "Unpack[_RequestOptions]",
     ) -> aiohttp.ClientResponse:
         ...
 
@@ -221,7 +223,7 @@ class SkyPortalClient(AmpelUnit):
         endpoint: str,
         raise_exc: bool,
         _decode_json: bool,
-        **kwargs: dict[str, Any],
+        **kwargs: "Unpack[_RequestOptions]",
     ) -> dict[str, Any]:
         ...
 
@@ -241,7 +243,7 @@ class SkyPortalClient(AmpelUnit):
         endpoint: str,
         raise_exc: bool = True,
         _decode_json: None | bool = True,
-        **kwargs: dict[str, Any],
+        **kwargs: "Unpack[_RequestOptions]",
     ) -> aiohttp.ClientResponse | dict[str, Any]:
         if self._session is None or self._semaphore is None:
             raise ValueError(
@@ -251,6 +253,7 @@ class SkyPortalClient(AmpelUnit):
             url = self.base_url + endpoint
         else:
             url = self.base_url + "/api/" + endpoint
+        kwargs["headers"] = dict(kwargs.get("headers") or {}) | self._auth_header
         labels = (verb, endpoint.split("/")[0])
         async with self._semaphore:
             with (
@@ -265,7 +268,7 @@ class SkyPortalClient(AmpelUnit):
                 stat_concurrent_requests.labels(*labels).track_inprogress(),
             ):
                 async with self._session.request(
-                    verb, url, **{**self._request_kwargs, **kwargs}
+                    verb, url, **kwargs
                 ) as response:
                     if response.status == 429 or response.status >= 500:
                         response.raise_for_status()
