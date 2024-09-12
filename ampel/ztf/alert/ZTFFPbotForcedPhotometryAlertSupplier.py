@@ -540,7 +540,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
                 y_min = 10 ** ((self.pivot_zeropoint - 20) / 2.5)
                 ax.set_ylim(
-                    [-y_min, y_max * 1.4]
+                    (-y_min, y_max * 1.4)
                 )  # Bottom limit set based on sample runs
 
                 plt.tight_layout()
