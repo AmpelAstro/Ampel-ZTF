@@ -59,7 +59,7 @@ planobs = {version = "^0.7.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.3"
-pytest-cov = "^5.0.0"
+pytest-cov = "^6.0.0"
 pytest-mock = "^3.14.0"
 mongomock = "^4.1.2"
 # mongomock uses pkg_resources
