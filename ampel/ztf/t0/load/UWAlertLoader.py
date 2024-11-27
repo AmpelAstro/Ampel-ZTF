@@ -68,10 +68,8 @@ class UWAlertLoader(AbsAlertLoader[io.IOBase]):
             alert = next(reader)  # raise StopIteration
             assert isinstance(alert, dict)
             stats = topic_stats[message.topic()]
-            if alert["candidate"]["jd"] < stats[0]:
-                stats[0] = alert["candidate"]["jd"]
-            if alert["candidate"]["jd"] > stats[1]:
-                stats[1] = alert["candidate"]["jd"]
+            stats[0] = min(alert["candidate"]["jd"], stats[0])
+            stats[1] = max(alert["candidate"]["jd"], stats[1])
             stats[2] += 1
             yield io.BytesIO(message.value())
         log.info(f"Got messages from topics: {dict(topic_stats)}")
