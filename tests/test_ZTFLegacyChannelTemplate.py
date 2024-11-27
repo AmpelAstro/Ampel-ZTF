@@ -12,12 +12,12 @@ from ampel.model.ProcessModel import ProcessModel
 from ampel.template.ZTFLegacyChannelTemplate import ZTFLegacyChannelTemplate
 
 
-@pytest.fixture()
+@pytest.fixture
 def logger():
     return AmpelLogger.get_logger()
 
 
-@pytest.fixture()
+@pytest.fixture
 def unit_loader(first_pass_config):
     config = AmpelConfig(first_pass_config, freeze=True)
     AuxUnitRegister.initialize(config)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/t2/T2CatalogMatch.py
 # License:             BSD-3-Clause
 # Author:              matteo.giomi@desy.de

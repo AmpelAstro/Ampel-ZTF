@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/base/CatalogMatchFilter.py
 # License:             BSD-3-Clause
 # Author:              Jakob van Santen <jakob.van.santen@desy.de>
@@ -42,12 +41,18 @@ class CatalogMatchFilter(CatalogMatchUnit, AbsAlertFilter):
     """
 
     min_ndet: int
-    accept: None | CatalogMatchRequest | AnyOf[CatalogMatchRequest] | AllOf[
-        CatalogMatchRequest
-    ]
-    reject: None | CatalogMatchRequest | AnyOf[CatalogMatchRequest] | AllOf[
-        CatalogMatchRequest
-    ]
+    accept: (
+        None
+        | CatalogMatchRequest
+        | AnyOf[CatalogMatchRequest]
+        | AllOf[CatalogMatchRequest]
+    )
+    reject: (
+        None
+        | CatalogMatchRequest
+        | AnyOf[CatalogMatchRequest]
+        | AllOf[CatalogMatchRequest]
+    )
 
     # TODO: cache catalog lookups if deeply nested models ever become a thing
     def _evaluate_match(
@@ -106,6 +111,6 @@ class CatalogMatchFilter(CatalogMatchUnit, AbsAlertFilter):
         dec = latest["dec"]
         if self.accept and not self._evaluate_match(ra, dec, self.accept):
             return False
-        if self.reject and self._evaluate_match(ra, dec, self.reject):
+        if self.reject and self._evaluate_match(ra, dec, self.reject):  # noqa: SIM103
             return False
         return True

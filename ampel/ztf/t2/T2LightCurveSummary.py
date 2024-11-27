@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/t2/T2LightCurveSummary.py
 # License:             BSD-3-Clause
 # Author:              Jakob van Santen <jakob.van.santen@desy.de>
@@ -72,8 +71,8 @@ class T2LightCurveSummary(AbsLightCurveT2Unit):
                 None,
             ):
                 for field in ("jd", "fid", "diffmaglim"):
-                    result[
-                        f"last_significant_nondetection_{field}"
-                    ] = last_significant_nondetection["body"][field]
+                    result[f"last_significant_nondetection_{field}"] = (
+                        last_significant_nondetection["body"][field]
+                    )
 
         return result

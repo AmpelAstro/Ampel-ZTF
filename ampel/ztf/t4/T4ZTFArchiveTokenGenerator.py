@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/t4/T4ZTFArchiveTokenGenerator.py
 # License:             BSD-3-Clause
 # Author:              valery brinnel & Simeon Reusch

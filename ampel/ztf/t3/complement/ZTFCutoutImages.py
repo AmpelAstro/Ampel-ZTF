@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/t3/complement/ZTFCutoutImages.py
 # Author:              Jakob van Santen <jakob.van.santen@desy.de>
 # Date:                18.09.2020

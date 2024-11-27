@@ -19,7 +19,7 @@ from ampel.ztf.t2.T2CatalogMatch import T2CatalogMatch
 from ampel.ztf.t3.complement.TNSNames import TNSNames
 
 
-@pytest.fixture()
+@pytest.fixture
 def catalogmatch_config():
     with open(Path(__file__).parent / "test-data" / "catalogmatch_config.yaml") as f:
         return yaml.safe_load(f)
@@ -33,7 +33,7 @@ def _catalogmatch_service_reachable():
         pytest.skip("https://ampel.zeuthen.desy.de/ is unreachable")
 
 
-@pytest.fixture()
+@pytest.fixture
 def ampel_logger():
     return AmpelLogger.get_logger()
 
