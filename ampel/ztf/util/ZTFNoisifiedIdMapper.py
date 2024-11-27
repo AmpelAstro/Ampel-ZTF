@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/util/ZTFIdMapper.py
 # License:             BSD-3-Clause
 # Author:              Simeon Reusch <simeon.reusch@desy.de
@@ -21,13 +20,11 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
 
     @overload
     @classmethod
-    def to_ampel_id(cls, ztf_id: str) -> int:
-        ...
+    def to_ampel_id(cls, ztf_id: str) -> int: ...
 
     @overload
     @classmethod
-    def to_ampel_id(cls, ztf_id: StrictIterable[str]) -> list[int]:
-        ...
+    def to_ampel_id(cls, ztf_id: StrictIterable[str]) -> list[int]: ...
 
     @classmethod
     def to_ampel_id(cls, ztf_id: str | StrictIterable[str]) -> int | list[int]:
@@ -50,13 +47,11 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
 
     @overload
     @classmethod
-    def to_ext_id(cls, ampel_id: StockId) -> str:
-        ...
+    def to_ext_id(cls, ampel_id: StockId) -> str: ...
 
     @overload
     @classmethod
-    def to_ext_id(cls, ampel_id: StrictIterable[StockId]) -> list[str]:
-        ...
+    def to_ext_id(cls, ampel_id: StrictIterable[StockId]) -> list[str]: ...
 
     @classmethod
     def to_ext_id(cls, ampel_id: StockId | StrictIterable[StockId]) -> str | list[str]:  # type: ignore[override]

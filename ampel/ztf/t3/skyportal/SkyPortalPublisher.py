@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/t3/skyportal/SkyPortalPublisher.py
 # Author:              Jakob van Santen <jakob.van.santen@desy.de>
 # Date:                16.09.2020
