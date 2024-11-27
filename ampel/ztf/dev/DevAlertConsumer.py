@@ -64,7 +64,7 @@ class DevAlertConsumer:
 
     def process_tar(self, tar_file_path, tar_mode="r:gz", iter_max=5000, iter_offset=0):
         """For each alert: load, filter, ingest"""
-        self.tar_file = tarfile.open(tar_file_path, mode=tar_mode)
+        self.tar_file = tarfile.open(tar_file_path, mode=tar_mode)  # noqa: SIM115
         return self._run(
             self.tar_file, self._unpack, iter_max=iter_max, iter_offset=iter_offset
         )

@@ -111,6 +111,6 @@ class CatalogMatchFilter(CatalogMatchUnit, AbsAlertFilter):
         dec = latest["dec"]
         if self.accept and not self._evaluate_match(ra, dec, self.accept):
             return False
-        if self.reject and self._evaluate_match(ra, dec, self.reject):
+        if self.reject and self._evaluate_match(ra, dec, self.reject):  # noqa: SIM103
             return False
         return True

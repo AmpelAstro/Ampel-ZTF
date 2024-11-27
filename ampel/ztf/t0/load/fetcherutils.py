@@ -59,7 +59,7 @@ def archive_topic():
         t0 = time.time()
         num = 0
         num_bytes = 0
-        for message in consumer:
+        for num, message in enumerate(consumer, 1):
             candid, payload = trim_alert(message.value())
             ti = tarfile.TarInfo(f"{opts.topic}/{candid}.avro")
             ti.size = len(payload)
@@ -69,7 +69,6 @@ def archive_topic():
             ti.gid = os.getegid()
             ti.gname = gid
             archive.addfile(ti, io.BytesIO(payload))
-            num += 1
             num_bytes += len(message.value())
             if num % 1000 == 0:
                 # consumer.commit_offsets()
