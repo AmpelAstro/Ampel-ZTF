@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File              : Ampel-ZTF/ampel/ztf/view/ZTFFPTabulator.py
 # License           : BSD-3-Clause
 # Author            : jno

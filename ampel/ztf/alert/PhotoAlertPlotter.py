@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/alert/PhotoAlertPlotter.py
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                23.01.2018
@@ -101,8 +100,7 @@ class PhotoAlertPlotter:
                 os.makedirs(plot_dir)
             self.plot_dir = plot_dir
             self.logger.info(
-                "Initialized PhotoAlertPlotter in bash-mode. Plots will be saved to %s."
-                % self.plot_dir
+                f"Initialized PhotoAlertPlotter in bash-mode. Plots will be saved to {self.plot_dir}."
             )
         self.base_plot_name_tmpl = plot_name_tmpl
 
@@ -115,7 +113,7 @@ class PhotoAlertPlotter:
         fig = plt.gcf()
         fig.savefig(fname, **kwargs)
         plt.close(fig)
-        self.logger.info("current figure saved to %s" % fname)
+        self.logger.info(f"current figure saved to {fname}")
 
     def exit(self, alert: AmpelAlertProtocol, fine_name_tag, ax_given, ax, **kwargs):
         """
@@ -215,7 +213,7 @@ class PhotoAlertPlotter:
 
         ax.invert_yaxis()
         for ifilter in [1, 2, 3]:
-            label = "magpsf %s" % self.__class__.filter_names[ifilter - 1]
+            label = f"magpsf {self.__class__.filter_names[ifilter - 1]}"
             color = self.__class__.pp_colors[ifilter - 1]
 
             # plot detctecions

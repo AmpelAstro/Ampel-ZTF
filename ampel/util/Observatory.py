@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                ampel/base/Observatory.py
 # License:             BSD-3-Clause
 # Author:              matteo.giomi@desy.de
@@ -122,13 +121,11 @@ class Observatory:
         self.av_wlength = wlength * 1e-9 * u.m
 
         # some logging
-        mssg = "\t\t\t\t\t-pressure: %f Pa\n" % pressure
-        mssg += "\t\t\t\t\t-temperature: %f Celsius\n" % temperature
-        mssg += "\t\t\t\t\t-relatice humidity: %f perc.\n" % rel_humidity
-        mssg += "\t\t\t\t\t-central wavelength: %f nm" % wlength
-        self.logger.info(
-            "set atmospheric parameters at observatory location: %s" % mssg
-        )
+        mssg = f"\t\t\t\t\t-pressure: {pressure:f} Pa\n"
+        mssg += f"\t\t\t\t\t-temperature: {temperature:f} Celsius\n"
+        mssg += f"\t\t\t\t\t-relatice humidity: {rel_humidity:f} perc.\n"
+        mssg += f"\t\t\t\t\t-central wavelength: {wlength:f} nm"
+        self.logger.info(f"set atmospheric parameters at observatory location: {mssg}")
         self.has_atmo = True
 
     def get_alt_az(self, obstime=None):
@@ -179,7 +176,7 @@ class Observatory:
             skypos = get_moon(times).transform_to(obs_altaz)
         else:
             raise ValueError(
-                "compute_sun_moon accepts either 'sun' or 'moon'. Got %s" % (which)
+                f"compute_sun_moon accepts either 'sun' or 'moon'. Got {which}"
             )
         end = time.time()
         self.logger.debug(
@@ -288,12 +285,14 @@ class Observatory:
         self.logger.info(
             f"computing visibility of source at (ra: {ra:f}, dec: {dec:f}) from observatory {self.name}"
         )
-        mssg = "\t\t\t\t\t-Time resolution: %.2f min\n" % dt_min
-        mssg += "\t\t\t\t\t-Airmass limit: %.2f\n" % airmass_th
-        mssg += "\t\t\t\t\t-Sun altitude: %.2f deg" % sun_alt_th
+        mssg = f"\t\t\t\t\t-Time resolution: {dt_min:.2f} min\n"
+        mssg += f"\t\t\t\t\t-Airmass limit: {airmass_th:.2f}\n"
+        mssg += f"\t\t\t\t\t-Sun altitude: {sun_alt_th:.2f} deg"
         if min_moon_dist is not None:
-            mssg += "\n\t\t\t\t\t-Moon distance: %.2f deg" % min_moon_dist
-        self.logger.info("using visibility constraints:\n%s" % mssg)
+            mssg += (
+                f"\n\t\t\t\t\t-Moon distance: {min_moon_dist:%.2f} deg" % min_moon_dist
+            )
+        self.logger.info(f"using visibility constraints:\n{mssg}")
 
         # find out the array of dark times
         dark_times, dark_mask = self.get_dark_times(

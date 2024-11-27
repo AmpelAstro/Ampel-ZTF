@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/alert/BTSForcedPhotometryAlertSupplier.py
 # License:             BSD-3-Clause
 # Author:              valery brinnel
@@ -60,7 +59,9 @@ class BTSForcedPhotometryAlertSupplier(BaseAlertSupplier):
     baseline_flag_cut: int = (
         512  # This will allow also cases with underestimated scaled unc
     )
-    days_prepeak: None | float = None  # Cut epochs earlier than this relative to peak. Assumes this can be found!
+    days_prepeak: None | float = (
+        None  # Cut epochs earlier than this relative to peak. Assumes this can be found!
+    )
     days_postpeak: None | float = (
         None  # Cut epochs later than this relative to peak. Assumes this can be found!
     )

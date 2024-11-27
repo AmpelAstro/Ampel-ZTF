@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/t0/DecentFilter.py
 # License:             BSD-3-Clause
 # Author:              m. giomi <matteo.giomi@desy.de>
@@ -52,20 +51,34 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
 
     # Astro
     min_sso_dist: float  # distance to nearest solar system object [arcsec]
-    min_gal_lat: float  # minium distance from galactic plane. Set to negative to disable cut.
+    min_gal_lat: (
+        float  # minium distance from galactic plane. Set to negative to disable cut.
+    )
 
     # PS1
-    ps1_sgveto_rad: float  # maximum distance to closest PS1 source for SG score veto [arcsec]
-    ps1_sgveto_th: float  # maximum allowed SG score for PS1 source within PS1_SGVETO_RAD
+    ps1_sgveto_rad: (
+        float  # maximum distance to closest PS1 source for SG score veto [arcsec]
+    )
+    ps1_sgveto_th: (
+        float  # maximum allowed SG score for PS1 source within PS1_SGVETO_RAD
+    )
     ps1_confusion_rad: float  # reject alerts if the three PS1 sources are all within this radius [arcsec]
     ps1_confusion_sg_tol: float  # and if the SG score of all of these 3 sources is within this tolerance to 0.5
 
     # Gaia
     gaia_rs: float  # search radius for GAIA DR2 matching [arcsec]
-    gaia_pm_signif: float  # significance of proper motion detection of GAIA counterpart [sigma]
-    gaia_plx_signif: float  # significance of parallax detection of GAIA counterpart [sigma]
-    gaia_veto_gmag_min: float  # min gmag for normalized distance cut of GAIA counterparts [mag]
-    gaia_veto_gmag_max: float  # max gmag for normalized distance cut of GAIA counterparts [mag]
+    gaia_pm_signif: (
+        float  # significance of proper motion detection of GAIA counterpart [sigma]
+    )
+    gaia_plx_signif: (
+        float  # significance of parallax detection of GAIA counterpart [sigma]
+    )
+    gaia_veto_gmag_min: (
+        float  # min gmag for normalized distance cut of GAIA counterparts [mag]
+    )
+    gaia_veto_gmag_max: (
+        float  # max gmag for normalized distance cut of GAIA counterparts [mag]
+    )
     gaia_excessnoise_sig_max: float  # maximum allowed noise (expressed as significance) for Gaia match to be trusted.
 
     def post_init(self):

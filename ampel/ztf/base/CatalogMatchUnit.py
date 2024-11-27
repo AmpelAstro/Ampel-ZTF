@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/base/CatalogMatchUnit.py
 # License:             BSD-3-Clause
 # Author:              Jakob van Santen <jakob.van.santen@desy.de>
@@ -94,8 +93,7 @@ class CatalogMatchUnitBase:
         ra: float,
         dec: float,
         catalogs: Sequence[ConeSearchRequest],
-    ) -> list[bool]:
-        ...
+    ) -> list[bool]: ...
 
     @overload
     def _cone_search(
@@ -104,8 +102,7 @@ class CatalogMatchUnitBase:
         ra: float,
         dec: float,
         catalogs: Sequence[ConeSearchRequest],
-    ) -> list[None | CatalogItem]:
-        ...
+    ) -> list[None | CatalogItem]: ...
 
     @overload
     def _cone_search(
@@ -114,8 +111,7 @@ class CatalogMatchUnitBase:
         ra: float,
         dec: float,
         catalogs: Sequence[ConeSearchRequest],
-    ) -> list[None | list[CatalogItem]]:
-        ...
+    ) -> list[None | list[CatalogItem]]: ...
 
     @backoff.on_exception(
         backoff.expo,

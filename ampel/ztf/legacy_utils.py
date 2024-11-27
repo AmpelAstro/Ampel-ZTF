@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/legacy_utils.py
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
@@ -69,13 +68,11 @@ letter_map = {
 
 
 @overload
-def to_ampel_id(ztf_id: str) -> int:
-    ...
+def to_ampel_id(ztf_id: str) -> int: ...
 
 
 @overload
-def to_ampel_id(ztf_id: list[str] | tuple[str, ...]) -> list[int]:
-    ...
+def to_ampel_id(ztf_id: list[str] | tuple[str, ...]) -> list[int]: ...
 
 
 def to_ampel_id(ztf_id: str | list[str] | tuple[str, ...]) -> int | list[int]:
@@ -102,13 +99,11 @@ def to_ampel_id(ztf_id: str | list[str] | tuple[str, ...]) -> int | list[int]:
 
 
 @overload
-def to_ztf_id(ampel_id: int) -> str:
-    ...
+def to_ztf_id(ampel_id: int) -> str: ...
 
 
 @overload
-def to_ztf_id(ampel_id: list[int] | tuple[int, ...]) -> list[str]:
-    ...
+def to_ztf_id(ampel_id: list[int] | tuple[int, ...]) -> list[str]: ...
 
 
 def to_ztf_id(ampel_id: int | list[int] | tuple[int, ...]) -> str | list[str]:

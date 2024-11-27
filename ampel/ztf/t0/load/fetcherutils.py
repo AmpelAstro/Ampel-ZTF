@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                ampel/ztf/t0/load/fetcherutils.py
 # License:             BSD-3-Clause
 # Author:              Jakob van Santen <jakob.van.santen@desy.de>
@@ -76,9 +75,7 @@ def archive_topic():
                 # consumer.commit_offsets()
                 elapsed = time.time() - t0
                 print(
-                    "{} messages in {:.1f} seconds ({:.1f}/s, {:.2f} Mbps)".format(
-                        num, elapsed, num / elapsed, num_bytes * 8 / 2.0**20 / elapsed
-                    )
+                    f"{num} messages in {elapsed:.1f} seconds ({num / elapsed:.1f}/s, {num_bytes * 8 / 2.0**20 / elapsed:.2f} Mbps)"
                 )
 
 

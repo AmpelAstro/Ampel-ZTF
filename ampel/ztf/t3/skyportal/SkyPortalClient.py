@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # File:                Ampel-ZTF/ampel/ztf/t3/skyportal/SkyPortalClient.py
 # Author:              Jakob van Santen <jakob.van.santen@desy.de>
 # Date:                16.09.2020
@@ -164,8 +163,7 @@ class CutoutSpec(AmpelBaseModel):
     }
 
 
-class SkyPortalAPIError(IOError):
-    ...
+class SkyPortalAPIError(IOError): ...
 
 
 class SkyPortalClient(AmpelUnit):
@@ -213,8 +211,7 @@ class SkyPortalClient(AmpelUnit):
         raise_exc: bool,
         _decode_json: None,
         **kwargs: "Unpack[_RequestOptions]",
-    ) -> aiohttp.ClientResponse:
-        ...
+    ) -> aiohttp.ClientResponse: ...
 
     @overload
     async def request(
@@ -224,8 +221,7 @@ class SkyPortalClient(AmpelUnit):
         raise_exc: bool,
         _decode_json: bool,
         **kwargs: "Unpack[_RequestOptions]",
-    ) -> dict[str, Any]:
-        ...
+    ) -> dict[str, Any]: ...
 
     @backoff.on_exception(
         backoff.expo,
@@ -831,7 +827,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                     ret["thumbnail_count"] += 1
 
         # represent latest T2 results as a comments
-        latest_t2: dict[str, "T2DocView"] = {}
+        latest_t2: dict[str, T2DocView] = {}
         for t2 in view.t2 or []:
             if t2.code != DocumentCode.OK or not t2.body:
                 continue
