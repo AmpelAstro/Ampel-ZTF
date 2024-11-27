@@ -15,6 +15,7 @@ from astropy.table import Table
 from ampel.abstract.AbsT2Tabulator import AbsT2Tabulator
 from ampel.content.DataPoint import DataPoint
 from ampel.types import StockId
+from ampel.util.collections import ampel_iter
 
 # from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 
@@ -86,17 +87,10 @@ class ZTFFPTabulator(AbsT2Tabulator):
 
     def get_stock_id(self, dps: Iterable[DataPoint]) -> set[StockId]:
         return set(
-            sum(
-                [
-                    list(stockid)
-                    if isinstance(stockid := el["stock"], Sequence)
-                    and not isinstance(stockid, str | bytes)
-                    else [stockid]
-                    for el in dps
-                    if "ZTF" in el["tag"]
-                ],
-                [],
-            )
+            stockid
+            for el in dps
+            if "ZTF" in el["tag"]
+            for stockid in ampel_iter(el["stock"])
         )
 
     def get_stock_name(self, dps: Iterable[DataPoint]) -> list[str]:
