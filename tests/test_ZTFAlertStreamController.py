@@ -45,7 +45,7 @@ def make_controller(config, processes, klass=ZTFAlertStreamController):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def config(first_pass_config):
     first_pass_config["resource"]["ampel-ztf/kafka"] = {
         "broker": "nonesuch:9092",
@@ -123,7 +123,7 @@ class PotemkinZTFAlertStreamController(ZTFAlertStreamController):
         return True
 
 
-@pytest.fixture()
+@pytest.fixture
 def potemkin_controller(config, first_pass_config):
     processes = [
         t0_process(
@@ -144,7 +144,7 @@ def potemkin_controller(config, first_pass_config):
     return controller
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_process_gauge(potemkin_controller):
     def process_count():
         return AmpelMetricsRegistry.registry().get_sample_value(
@@ -163,7 +163,7 @@ async def test_process_gauge(potemkin_controller):
     assert process_count() == 0
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_scale(potemkin_controller):
     def process_count():
         return AmpelMetricsRegistry.registry().get_sample_value(
@@ -189,7 +189,7 @@ async def test_scale(potemkin_controller):
     await r
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_stop(potemkin_controller):
     r = asyncio.create_task(potemkin_controller.run())
     with suppress(asyncio.exceptions.TimeoutError):
@@ -198,7 +198,7 @@ async def test_stop(potemkin_controller):
     assert isinstance((await r)[0], asyncio.CancelledError)
 
 
-@pytest.fixture()
+@pytest.fixture
 def archive_api_token() -> str:
     try:
         return os.environ["ARCHIVE_TOKEN"]
@@ -206,7 +206,7 @@ def archive_api_token() -> str:
         pytest.skip("archive test requires api token")
 
 
-@pytest.fixture()
+@pytest.fixture
 def topic_stream_token() -> str:
     if not (token := os.environ.get("ARCHIVE_TOPIC_TOKEN")):
         pytest.skip("archive test requires stream token")
