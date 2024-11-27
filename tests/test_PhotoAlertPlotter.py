@@ -12,7 +12,7 @@ from ampel.ztf.dev.DevAlertConsumer import DevAlertConsumer
 def recent_alerts():
     def gen():
         dap = DevAlertConsumer(alert_filter=None)
-        dap.tar_file = tarfile.open(
+        dap.tar_file = tarfile.open(  # noqa: SIM115
             Path(__file__).parent.parent / "alerts" / "recent_alerts.tar.gz"
         )
         for item in dap.tar_file:
