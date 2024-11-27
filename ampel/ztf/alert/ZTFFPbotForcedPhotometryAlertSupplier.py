@@ -9,22 +9,18 @@
 
 import gc
 import os
-import re
 import sys
 from hashlib import blake2b
-from os.path import basename
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Optional, Union, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
-from ampel.model.PlotProperties import PlotProperties
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.types import Tag
 from ampel.view.ReadOnlyDict import ReadOnlyDict
-from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 from ampel.ztf.util.ZTFNoisifiedIdMapper import ZTFNoisifiedIdMapper
 
 # from appdirs import user_cache_dir
@@ -107,7 +103,7 @@ def get_fpbot_baseline(
     min_det_per_field_band: int = 10,
     zp_max_deviation_from_median: float = 0.5,
     reference_days_before_peak: Optional[float] = 50.0,
-) -> pd.DataFrame:
+) -> Tuple[pd.DataFrame, dict[str, Any]]:
     """
     For each unique baseline combination, estimate and store baseline.
     Partially taken from
@@ -130,10 +126,7 @@ def get_fpbot_baseline(
 
     """
     df["fcqfid"] = np.array(
-        df.fieldid.values * 10000
-        + df.ccdid.values * 100
-        + df.qid.values * 10
-        + df.filterid.values
+        df["fieldid"] * 10000 + df["ccdid"] * 100 + df["qid"] * 10 + df["filterid"]
     )
 
     if primary_grid_only:
@@ -152,7 +145,7 @@ def get_fpbot_baseline(
         if row["counts"] < min_det_per_field_band:
             fieldid = row["fieldid"]
             filterid = row["filterid"]
-            added = fieldid + filterid
+            added = fieldid + filterid  # noqa: F841
             df.query("fieldid + filterid != @added", inplace=True)
     df = df.reset_index(drop=True)
 
@@ -161,7 +154,7 @@ def get_fpbot_baseline(
     df["zp_median_deviation"] = np.abs(np.log10(median_zp / df.magzp))
     df.query("zp_median_deviation < @zp_max_deviation_from_median", inplace=True)
 
-    unique_fid = np.unique(df.fcqfid.values).astype(int)
+    unique_fid = np.unique(df.fcqfid).astype(int)
 
     # Time index for use for rolling window
     df = df.sort_values("obsmjd")
@@ -180,13 +173,13 @@ def get_fpbot_baseline(
 
         fcqf_df = df.iloc[this_fcqfid].copy()
         # Use the pulls from mean to find largest deviation
-        pull_series = fcqf_df.ampl / fcqf_df["ampl.err"]
+        pull_series = fcqf_df["ampl"] / fcqf_df["ampl.err"]
         roll_med = pull_series.rolling(window, center=True).median().values
         # Only use medians with a min nbr of values (otherwise we get edge results)
         t_max = fcqf_df.obsmjd.values[np.argmax(roll_med)]
         #        flux_max = np.max(roll_med)
-        flux_max = fcqf_df.ampl.values[np.argmax(roll_med)]
-        flux_scatt = median_abs_deviation(fcqf_df.ampl.values, scale="normal")
+        flux_max = fcqf_df["ampl"].values[np.argmax(roll_med)]
+        flux_scatt = median_abs_deviation(fcqf_df["ampl"].values, scale="normal")
         peak_snr = flux_max / flux_scatt
         if (peak_snr > min_peak_snr) and (ufid < 10000000):
             fcqfid_dict[str(ufid)]["det_sn"] = True
@@ -313,10 +306,9 @@ def get_fpbot_baseline(
                     df.iloc[
                         this_fcqfid[0], df.columns.get_loc("baseline")
                     ] = fcqfid_dict[str(ufid)]["C_pre"]
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("baseline_err_mult")
-                    ] = np.ones(len(this_fcqfid[0])) * max(
-                        np.sqrt(fcqfid_dict[str(ufid)]["chi_pre"]), 1
+                    df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
+                        np.ones(len(this_fcqfid[0]))
+                        * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_pre"]), 1)
                     )
                     df.iloc[
                         this_fcqfid[0], df.columns.get_loc("n_baseline")
@@ -330,15 +322,14 @@ def get_fpbot_baseline(
                     df.iloc[
                         this_fcqfid[0], df.columns.get_loc("baseline")
                     ] = fcqfid_dict[str(ufid)]["C_post"]
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("baseline_err_mult")
-                    ] = np.ones(len(this_fcqfid[0])) * max(
-                        np.sqrt(fcqfid_dict[str(ufid)]["chi_post"]), 1
+                    df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
+                        np.ones(len(this_fcqfid[0]))
+                        * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_post"]), 1)
                     )
                     df.iloc[
                         this_fcqfid[0], df.columns.get_loc("n_baseline")
                     ] = fcqfid_dict[str(ufid)]["N_post_peak"]
-                    df.iloc[this_fcqfid[0], df.columns.get_loc("pre_or_post")] = 1
+                    df.iloc[this_fcqfid[0], list(df.columns.get_loc("pre_or_post"))] = 1
                     fcqfid_dict[str(ufid)]["which_baseline"] = "post"
                 else:
                     fcqfid_dict[str(ufid)]["which_baseline"] = None
@@ -373,10 +364,10 @@ def get_reference_mjds(fcqfid_list: list) -> dict:
         else:
             i = 1
 
-        fieldid = int(str(fcqfid)[: 3 + i])
-        ccdid = int(str(fcqfid)[3 + i : 5 + i])
-        qid = int(str(fcqfid)[5 + i : 6 + i])
-        fid = int(str(fcqfid)[6 + i : 7 + i])
+        fieldid = int(str(fcqfid)[: 3 + i])  # noqa: F841
+        ccdid = int(str(fcqfid)[3 + i : 5 + i])  # noqa: F841
+        qid = int(str(fcqfid)[5 + i : 6 + i])  # noqa: F841
+        fid = int(str(fcqfid)[6 + i : 7 + i])  # noqa: F841
         _ref = references.query(
             "field == @fieldid and ccdid == @ccdid and qid == @qid and fid == @fid"
         )
@@ -471,7 +462,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             self.logger.info("Dataframe is empty, skipping")
             return self.__next__()
 
-        if not "pass" in df.keys() and self.do_quality_cuts:
+        if "pass" not in df.keys() and self.do_quality_cuts:
             self.logger.info("No datapoints surviving quality cuts")
             return self.__next__()
 
