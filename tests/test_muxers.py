@@ -45,7 +45,7 @@ def get_supplier(loader):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def raw_alert_dicts(avro_packets):
     def gen():
         for f in avro_packets():
@@ -54,7 +54,7 @@ def raw_alert_dicts(avro_packets):
     return gen
 
 
-@pytest.fixture()
+@pytest.fixture
 def alerts(raw_alert_dicts):
     def gen():
         for d in raw_alert_dicts():
@@ -63,7 +63,7 @@ def alerts(raw_alert_dicts):
     return gen
 
 
-@pytest.fixture()
+@pytest.fixture
 def superseded_alerts(superseded_packets):
     def gen():
         for f in superseded_packets():
@@ -72,7 +72,7 @@ def superseded_alerts(superseded_packets):
     return gen
 
 
-@pytest.fixture()
+@pytest.fixture
 def consolidated_alert(raw_alert_dicts):
     """
     Make one mega-alert containing all photopoints for an object, similar to
@@ -121,7 +121,7 @@ def test_instantiate(dev_context: AmpelContext, model):
     _make_muxer(dev_context, model)
 
 
-@pytest.fixture()
+@pytest.fixture
 def _mock_get_photopoints(mocker, consolidated_alert):
     # mock get_photopoints to return first alert
     mocker.patch(
@@ -130,14 +130,14 @@ def _mock_get_photopoints(mocker, consolidated_alert):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_archive_muxer(dev_context, _mock_get_photopoints):
     return _make_muxer(
         dev_context, UnitModel(unit="ZiArchiveMuxer", config={"history_days": 30})
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def t0_ingester(dev_context):
     run_id = 0
     logger = AmpelLogger.get_logger()
@@ -259,7 +259,7 @@ def test_integration(dev_context, alerts):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def archive_token(mock_context, monkeypatch):
     if not (token := os.environ.get("ARCHIVE_TOKEN")):
         pytest.skip("archive test requires token")
@@ -329,7 +329,7 @@ def test_deduplication(
     assert t0.count_documents({"id": {"$lt": 0}}) == len(set(uls))
 
 
-@pytest.fixture()
+@pytest.fixture
 def ingestion_handler_with_mongomuxer(mock_context):
     directive = {
         "channel": "EXAMPLE_TNS_MSIP",
