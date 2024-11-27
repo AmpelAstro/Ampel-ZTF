@@ -7,14 +7,15 @@
 # Last Modified Date: 05.05.2022
 # Last Modified By  : Marcus Fenner <mf@physik.hu-berlin.de>
 
-from typing import Any, Sequence, Iterable
-from ampel.types import StockId
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 import numpy as np
-from ampel.content.DataPoint import DataPoint
 from astropy.table import Table
 
 from ampel.abstract.AbsT2Tabulator import AbsT2Tabulator
+from ampel.content.DataPoint import DataPoint
+from ampel.types import StockId
 from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 
 ZTF_BANDPASSES = {
@@ -32,35 +33,30 @@ signdict = {
 
 
 class ZTFT2Tabulator(AbsT2Tabulator):
-    reject_outlier_sigma: float = 10**30   # Immediately reject flux outliers beyond. 0 means none
-    flux_max: float = 10**30         # Cut flux above this 0 means none
+    reject_outlier_sigma: float = (
+        10**30
+    )  # Immediately reject flux outliers beyond. 0 means none
+    flux_max: float = 10**30  # Cut flux above this 0 means none
 
-    def filter_detections(
-        self, dps: Iterable[DataPoint]
-    ) -> Iterable[DataPoint]:
-        return [dp for dp in dps
-                     if 'ZTF' in dp['tag'] and 'magpsf' in dp['body'].keys() ]
+    def filter_detections(self, dps: Iterable[DataPoint]) -> Iterable[DataPoint]:
+        return [dp for dp in dps if "ZTF" in dp["tag"] and "magpsf" in dp["body"]]
 
     def get_flux_table(
         self,
         dps: Iterable[DataPoint],
     ) -> Table:
         magpsf, sigmapsf, jd, fids = self.get_values(
-            self.filter_detections(dps),
-            ["magpsf", "sigmapsf", "jd", "fid"]
+            self.filter_detections(dps), ["magpsf", "sigmapsf", "jd", "fid"]
         )
         filter_names = [ZTF_BANDPASSES[fid]["name"] for fid in fids]
-        #signs = [signdict[el] for el in isdiffpos]
-        flux = np.asarray(
-            [10 ** (-((mgpsf) - 25) / 2.5) for mgpsf in magpsf]
-        )
+        # signs = [signdict[el] for el in isdiffpos]
+        flux = np.asarray([10 ** (-((mgpsf) - 25) / 2.5) for mgpsf in magpsf])
         fluxerr = np.abs(flux * (-np.asarray(sigmapsf) / 2.5 * np.log(10)))
 
         # Mask data
-        bMask = (
-                    ((np.abs(flux)/fluxerr) < self.reject_outlier_sigma) &
-                    ( np.abs(flux) < self.flux_max)
-                )
+        bMask = ((np.abs(flux) / fluxerr) < self.reject_outlier_sigma) & (
+            np.abs(flux) < self.flux_max
+        )
 
         return Table(
             {
@@ -79,7 +75,11 @@ class ZTFT2Tabulator(AbsT2Tabulator):
     ) -> Sequence[tuple[float, float, float]]:
         det_dps = self.filter_detections(dps)
         return tuple(
-            zip(self.get_jd(det_dps), *self.get_values(det_dps, ["ra", "dec"]))
+            zip(
+                self.get_jd(det_dps),
+                *self.get_values(det_dps, ["ra", "dec"]),
+                strict=False,
+            )
         )
 
     def get_jd(
@@ -93,7 +93,8 @@ class ZTFT2Tabulator(AbsT2Tabulator):
             sum(
                 [
                     list(stockid)
-                    if isinstance(stockid := el["stock"], Sequence) and not isinstance(stockid, (str,bytes))
+                    if isinstance(stockid := el["stock"], Sequence)
+                    and not isinstance(stockid, str | bytes)
                     else [stockid]
                     for el in dps
                     if "ZTF" in el["tag"]
@@ -117,10 +118,10 @@ class ZTFT2Tabulator(AbsT2Tabulator):
                         [el["body"][param] for param in params]
                         for el in dps
                         if "ZTF" in el["tag"]
-                    )
+                    ),
+                    strict=False,
                 ),
             )
         ):
             return tup
-        else:
-            return tuple([[]] * len(params))
+        return ([],) * len(params)

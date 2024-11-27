@@ -7,9 +7,11 @@
 # Last Modified Date:  15.04.2021
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
+from contextlib import suppress
 from typing import Any
-import numpy as np
+
 import light_curve
+import numpy as np
 
 from ampel.abstract.AbsLightCurveT2Unit import AbsLightCurveT2Unit
 from ampel.types import UBson
@@ -50,16 +52,15 @@ class T2LightCurveFeatures(AbsLightCurveT2Unit):
                 continue
             t, mag, magerr = np.array(sorted(in_band)).T
 
-            try:
+            with suppress(ValueError):  # raised if too few points
                 result.update(
                     {
                         f"{k}_{band}": v
                         for k, v in zip(
-                            self.extractor.names, self.extractor(t, mag, magerr)
+                            self.extractor.names,
+                            self.extractor(t, mag, magerr),
+                            strict=False,
                         )
                     }
                 )
-            except ValueError:
-                # raised if too few points
-                ...
         return result

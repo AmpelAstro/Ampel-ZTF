@@ -6,35 +6,47 @@
 # Last Modified Date:  24.11.2022
 # Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
 
-import asyncio, base64, gzip, io, json, math, time, aiohttp, backoff
-import numpy as np
-
+import asyncio
+import base64
+import gzip
+import io
+import json
+import math
+import time
 from collections import defaultdict
-from contextlib import asynccontextmanager
-from datetime import datetime
+from collections.abc import Generator, Iterable, Sequence
+from contextlib import asynccontextmanager, suppress
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any, TypedDict, overload
+from urllib.parse import urlparse
+
+import aiohttp
+import backoff
+import numpy as np
 from astropy.io import fits
 from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
-from typing import Any, TypedDict, overload, TYPE_CHECKING
-from collections.abc import Sequence, Generator, Iterable
-from urllib.parse import urlparse
 
 from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.base.AmpelUnit import AmpelUnit
+from ampel.enum.DocumentCode import DocumentCode
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.metrics.AmpelMetricsRegistry import AmpelMetricsRegistry
-from ampel.secret.NamedSecret import NamedSecret
 from ampel.protocol.LoggerProtocol import LoggerProtocol
-from ampel.enum.DocumentCode import DocumentCode
+from ampel.secret.NamedSecret import NamedSecret
 from ampel.types import Traceless
 from ampel.util.collections import ampel_iter
 from ampel.util.mappings import flatten_dict
 
 if TYPE_CHECKING:
+    from typing import Unpack
+
+    from aiohttp.client import _RequestOptions
+
     from ampel.config.AmpelConfig import AmpelConfig
     from ampel.content.DataPoint import DataPoint
-    from ampel.view.TransientView import TransientView
     from ampel.view.T2DocView import T2DocView
+    from ampel.view.TransientView import TransientView
 
 
 stat_http_errors = AmpelMetricsRegistry.counter(
@@ -68,12 +80,11 @@ stat_concurrent_requests = AmpelMetricsRegistry.gauge(
 def sanitize_json(obj):
     if isinstance(obj, dict):
         return {k: sanitize_json(v) for k, v in obj.items()}
-    elif isinstance(obj, (tuple, list)):
+    if isinstance(obj, tuple | list):
         return [sanitize_json(v) for v in obj]
-    elif isinstance(obj, float) and math.isnan(obj):
+    if isinstance(obj, float) and math.isnan(obj):
         return None
-    else:
-        return obj
+    return obj
 
 
 def encode_t2_body(t2: "T2DocView") -> str:
@@ -83,7 +94,9 @@ def encode_t2_body(t2: "T2DocView") -> str:
     return base64.b64encode(
         json.dumps(
             {
-                "timestamp": datetime.fromtimestamp(t2.meta[-1]["ts"]).isoformat(),
+                "timestamp": datetime.fromtimestamp(
+                    t2.meta[-1]["ts"], tz=timezone.utc
+                ).isoformat(),
                 **{k: sanitize_json(v) for k, v in doc.items() if k != "ts"},
             },
             default=lambda o: None,
@@ -104,23 +117,21 @@ def get_t2_result(
     t2: "T2DocView",
 ) -> tuple[None, None] | tuple[datetime, dict[str, Any]]:
     assert t2.body is not None
-    for meta, record in zip(reversed(t2.meta), reversed(t2.body)):
+    for meta, record in zip(reversed(t2.meta), reversed(t2.body), strict=False):  # noqa: B007
         if meta.get("code", DocumentCode.OK) == DocumentCode.OK:
             break
     else:
         return None, None
     assert isinstance(record, dict)
-    return datetime.fromtimestamp(meta["ts"]), record
+    return datetime.fromtimestamp(meta["ts"], tz=timezone.utc), record
 
 
 def render_thumbnail(cutout_data: bytes) -> str:
     """
     Render gzipped FITS as base64-encoded PNG
     """
-    with gzip.open(io.BytesIO(cutout_data), "rb") as f:
-        with fits.open(f) as hdu:
-            # header = hdu[0].header
-            img = np.flipud(hdu[0].data)
+    with gzip.open(io.BytesIO(cutout_data), "rb") as f, fits.open(f) as hdu:
+        img = np.flipud(hdu[0].data)
     mask = np.isfinite(img)
 
     fig = Figure(figsize=(1, 1))
@@ -158,7 +169,6 @@ class SkyPortalAPIError(IOError):
 
 
 class SkyPortalClient(AmpelUnit):
-
     #: Base URL of SkyPortal server
     base_url: str
     #: API token
@@ -179,9 +189,7 @@ class SkyPortalClient(AmpelUnit):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self._request_kwargs = {
-            "headers": {"Authorization": f"token {self.token.get()}"}
-        }
+        self._auth_header = {"Authorization": f"token {self.token.get()}"}
         self._ids: dict[str, dict[str, int]] = {}
         self._session: None | aiohttp.ClientSession = None
         self._semaphore: None | asyncio.Semaphore = None
@@ -204,7 +212,7 @@ class SkyPortalClient(AmpelUnit):
         endpoint: str,
         raise_exc: bool,
         _decode_json: None,
-        **kwargs: dict[str, Any],
+        **kwargs: "Unpack[_RequestOptions]",
     ) -> aiohttp.ClientResponse:
         ...
 
@@ -215,7 +223,7 @@ class SkyPortalClient(AmpelUnit):
         endpoint: str,
         raise_exc: bool,
         _decode_json: bool,
-        **kwargs: dict[str, Any],
+        **kwargs: "Unpack[_RequestOptions]",
     ) -> dict[str, Any]:
         ...
 
@@ -235,7 +243,7 @@ class SkyPortalClient(AmpelUnit):
         endpoint: str,
         raise_exc: bool = True,
         _decode_json: None | bool = True,
-        **kwargs: dict[str, Any],
+        **kwargs: "Unpack[_RequestOptions]",
     ) -> aiohttp.ClientResponse | dict[str, Any]:
         if self._session is None or self._semaphore is None:
             raise ValueError(
@@ -245,22 +253,21 @@ class SkyPortalClient(AmpelUnit):
             url = self.base_url + endpoint
         else:
             url = self.base_url + "/api/" + endpoint
+        kwargs["headers"] = dict(kwargs.get("headers") or {}) | self._auth_header
         labels = (verb, endpoint.split("/")[0])
         async with self._semaphore:
-            with stat_http_time.labels(*labels).time(), stat_http_errors.labels(
-                *labels
-            ).count_exceptions(
-                ( # type: ignore[arg-type]
-                    aiohttp.ClientResponseError,
-                    aiohttp.ClientConnectionError,
-                    asyncio.TimeoutError,
-                )
-            ), stat_concurrent_requests.labels(
-                *labels
-            ).track_inprogress():
-                async with self._session.request(
-                    verb, url, **{**self._request_kwargs, **kwargs}
-                ) as response:
+            with (
+                stat_http_time.labels(*labels).time(),
+                stat_http_errors.labels(*labels).count_exceptions(
+                    (  # type: ignore[arg-type]
+                        aiohttp.ClientResponseError,
+                        aiohttp.ClientConnectionError,
+                        asyncio.TimeoutError,
+                    )
+                ),
+                stat_concurrent_requests.labels(*labels).track_inprogress(),
+            ):
+                async with self._session.request(verb, url, **kwargs) as response:
                     if response.status == 429 or response.status >= 500:
                         response.raise_for_status()
                     stat_http_responses.labels(*labels).inc()
@@ -274,11 +281,9 @@ class SkyPortalClient(AmpelUnit):
                             ):
                                 raise SkyPortalAPIError(payload["message"], url, kwargs)
                             # otherwise, believe status code
-                            else:
-                                response.raise_for_status()
+                            response.raise_for_status()
                         return payload
-                    else:
-                        return response
+                    return response
 
     async def get_id(self, endpoint, params, default=None):
         """Query for an object by id, inserting it if not found"""
@@ -288,8 +293,7 @@ class SkyPortalClient(AmpelUnit):
             response = await self.post(endpoint, json=default or params)
         if isinstance(response["data"], list):
             return response["data"][0]["id"]
-        else:
-            return response["data"]["id"]
+        return response["data"]["id"]
 
     async def get_by_name(self, endpoint, name):
         if endpoint not in self._ids:
@@ -405,7 +409,7 @@ async def provision_seed_data(client: SkyPortalClient):
         "stream": await client.get_id("streams", {"name": "ztf_partnership"}),
         "group": 1,  # root group
     }
-    if not source["stream"] in [
+    if source["stream"] not in [
         groupstream["id"]
         for groupstream in (await client.get(f"groups/{source['group']}"))["data"][
             "streams"
@@ -430,7 +434,7 @@ async def provision_seed_data(client: SkyPortalClient):
         for users in (await client.get(f"groups/{source['group']}"))["data"]["users"]
     ]
     for user in (await client.get("user"))["data"]:
-        if not user["username"] in users:
+        if user["username"] not in users:
             await client.post(
                 f"groups/{source['group']}/users",
                 json={"username": user["username"]},
@@ -452,7 +456,6 @@ class PostReport(TypedDict):
 
 
 class BaseSkyPortalPublisher(SkyPortalClient):
-
     logger: Traceless[LoggerProtocol]
 
     def __init__(self, **kwargs):
@@ -496,11 +499,9 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         return dict(content)
 
     async def _find_instrument(self, tags: Sequence[int | str]) -> int:
-        for tag in tags:
-            try:
+        with suppress(KeyError, aiohttp.ClientError):
+            for tag in tags:
                 return await self.get_by_name("instrument", tag)
-            except Exception:
-                ...
         raise KeyError(f"None of {tags} match a known instrument")
 
     async def post_t2_annotations(
@@ -713,7 +714,9 @@ class BaseSkyPortalPublisher(SkyPortalClient):
 
         if (
             response := await self.get(
-                f"candidates/{name}", params={"includeComments": 1, "includeAlerts": 1}, raise_exc=False
+                f"candidates/{name}",
+                params={"includeComments": 1, "includeAlerts": 1},
+                raise_exc=False,
             )
         )["status"] == "success":
             # Only update filters, not the candidate itself
@@ -752,8 +755,10 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                     json={
                         "id": name,
                         "filter_ids": fids,
-                        "passing_alert_id": jentry["alert"], # type: ignore[typeddict-item]
-                        "passed_at": datetime.fromtimestamp(jentry["ts"]).isoformat(),
+                        "passing_alert_id": jentry["alert"],  # type: ignore[typeddict-item]
+                        "passed_at": datetime.fromtimestamp(
+                            jentry["ts"], tz=timezone.utc
+                        ).isoformat(),
                         **candidate,
                     },
                 )

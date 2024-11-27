@@ -44,7 +44,7 @@ def read_ipac_fps(fps_file):
     if ipac_version == "2":
         fp = pd.read_csv(
             fps_file,
-            sep="\s+",
+            sep=r"\s+",
             comment="#",
             skiprows=70,
             names=[
@@ -107,7 +107,7 @@ def read_ipac_fps(fps_file):
     elif int(ipac_version) >= 3:
         fp = pd.read_csv(
             fps_file,
-            sep="\s+",
+            sep=r"\s+",
             comment="#",
             header=0,
             names=[
@@ -159,7 +159,7 @@ def read_ipac_fps(fps_file):
             fps_file,
             skiprows=3,
             nrows=2,
-            sep="\s+",
+            sep=r"\s+",
             names=["dum", "dum1", "dum2", "coords", "dum4"],
         )
         ra, dec = ha.coords.values
@@ -214,7 +214,7 @@ def read_ipac_fps(fps_file):
 
     cloudy = np.zeros_like(fp_det.infobitssci.values)
     read_opts = {
-        "sep": "\s+",
+        "sep": r"\s+",
         "names": ["zp_rcid_g", "zp_rcid_r", "zp_rcid_i"],
         "comment": "#",
     }

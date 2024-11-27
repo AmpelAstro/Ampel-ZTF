@@ -6,16 +6,17 @@
 # Last Modified Date:  18.09.2020
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import backoff, requests  # type: ignore[import]
 from base64 import b64decode
-from requests_toolbelt.sessions import BaseUrlSession
-from typing import Literal
 from collections.abc import Iterable
+from typing import Literal
 
-from ampel.struct.T3Store import T3Store
-from ampel.struct.AmpelBuffer import AmpelBuffer
-from ampel.core.AmpelContext import AmpelContext
+import backoff  # type: ignore[import]
+import requests  # type: ignore[import]
+from requests_toolbelt.sessions import BaseUrlSession
+
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
+from ampel.struct.AmpelBuffer import AmpelBuffer
+from ampel.struct.T3Store import T3Store
 
 
 class ZTFCutoutImages(AbsBufferComplement):

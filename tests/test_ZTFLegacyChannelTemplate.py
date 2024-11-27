@@ -1,29 +1,27 @@
+import pytest
+
 from ampel.base.AuxUnitRegister import AuxUnitRegister
 from ampel.config.AmpelConfig import AmpelConfig
 from ampel.core.UnitLoader import UnitLoader
-from ampel.model.ingest.FilterModel import FilterModel
-from ampel.model.ingest.MuxModel import MuxModel
-from ampel.model.ProcessModel import ProcessModel
-from ampel.model.ingest.T1Combine import T1Combine
-import pytest
-
-from ampel.template.ZTFLegacyChannelTemplate import ZTFLegacyChannelTemplate
-from ampel.model.ingest.IngestDirective import IngestDirective
 from ampel.log.AmpelLogger import AmpelLogger
+from ampel.model.ingest.FilterModel import FilterModel
+from ampel.model.ingest.IngestDirective import IngestDirective
+from ampel.model.ingest.MuxModel import MuxModel
+from ampel.model.ingest.T1Combine import T1Combine
+from ampel.model.ProcessModel import ProcessModel
+from ampel.template.ZTFLegacyChannelTemplate import ZTFLegacyChannelTemplate
 
 
-@pytest.fixture
+@pytest.fixture()
 def logger():
     return AmpelLogger.get_logger()
 
 
-@pytest.fixture
+@pytest.fixture()
 def unit_loader(first_pass_config):
     config = AmpelConfig(first_pass_config, freeze=True)
     AuxUnitRegister.initialize(config)
-    return UnitLoader(
-        config, db=None, provenance=False
-    )
+    return UnitLoader(config, db=None, provenance=False)
 
 
 def test_alert_only(logger, first_pass_config, unit_loader: UnitLoader):
@@ -48,11 +46,9 @@ def test_alert_only(logger, first_pass_config, unit_loader: UnitLoader):
     assert isinstance(directive.ingest.mux, MuxModel)
     assert directive.ingest.mux.combine
     assert len(directive.ingest.mux.combine) == 1
-    assert (
-        isinstance((combine := directive.ingest.mux.combine[0]), T1Combine)
-        and isinstance((units := combine.state_t2), list)
-        and len(units) == 1
-    )
+    assert isinstance((combine := directive.ingest.mux.combine[0]), T1Combine)
+    assert isinstance((units := combine.state_t2), list)
+    assert len(units) == 1
     assert units[0].unit == "T2LightCurveSummary"
     assert directive.ingest.combine is None
 

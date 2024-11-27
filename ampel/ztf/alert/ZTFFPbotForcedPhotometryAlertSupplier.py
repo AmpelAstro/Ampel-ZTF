@@ -11,22 +11,21 @@ import gc
 import os
 import sys
 from hashlib import blake2b
-from typing import Any, Literal, Optional, Union, Tuple
+from typing import Any, Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from astropy.time import Time
+from bson import encode
+from scipy.stats import median_abs_deviation
+
 from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.types import Tag
 from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.ztf.util.ZTFNoisifiedIdMapper import ZTFNoisifiedIdMapper
-
-# from appdirs import user_cache_dir
-from astropy.time import Time
-from bson import encode
-from scipy.stats import median_abs_deviation
 
 # Only works directly on filenames
 # from bts_phot.calibrate_fps import get_baseline # type: ignore[import]
@@ -102,8 +101,8 @@ def get_fpbot_baseline(
     primary_grid_only: bool = False,
     min_det_per_field_band: int = 10,
     zp_max_deviation_from_median: float = 0.5,
-    reference_days_before_peak: Optional[float] = 50.0,
-) -> Tuple[pd.DataFrame, dict[str, Any]]:
+    reference_days_before_peak: None | float = 50.0,
+) -> tuple[pd.DataFrame, dict[str, Any]]:
     """
     For each unique baseline combination, estimate and store baseline.
     Partially taken from
@@ -141,7 +140,7 @@ def get_fpbot_baseline(
     """
     counts = df.groupby(by=["fieldid", "filterid"]).size().reset_index(name="counts")
 
-    for i, row in counts.iterrows():
+    for _, row in counts.iterrows():
         if row["counts"] < min_det_per_field_band:
             fieldid = row["fieldid"]
             filterid = row["filterid"]
@@ -196,7 +195,7 @@ def get_fpbot_baseline(
         ufids_to_check = []
 
         for ufid, res in fcqfid_dict.items():
-            if "t_max" in res.keys():
+            if "t_max" in res:
                 ufids_to_check.append(ufid)
 
         if ufids_to_check:
@@ -206,7 +205,7 @@ def get_fpbot_baseline(
                 t_max = fcqfid_dict[ufid]["t_max"]
 
                 if (t_max - ref_end_mjd) < reference_days_before_peak:
-                    ufid = int(ufid)
+                    ufid = int(ufid)  # noqa: PLW2901
                     df.query("fcqfid != @ufid", inplace=True)
 
     # should we not first convert to a common zeropoint or flux scale (jansky?)
@@ -234,7 +233,7 @@ def get_fpbot_baseline(
                 t_faded = t_peak + (22.5 - mag_min) / 0.009
             else:
                 t_faded = t_peak + 611  # catch strange cases where t_gmax != t_rmax
-        elif isinstance(falltime, (float, int)):
+        elif isinstance(falltime, float | int):
             t_faded = t_peak + falltime
         t_risetime = t_peak - risetime
         outside_baseline = np.where(
@@ -247,92 +246,91 @@ def get_fpbot_baseline(
         for ufid in unique_fid:
             if ufid % 10 == 4:  # JN: Not sure what this check does
                 continue
+            this_fcqfid = np.where(df.fcqfid.values == ufid)
+            fcqf_df = df.iloc[this_fcqfid].copy()
+
+            # measure the baseline pre-peak
+            pre_bl = np.where(t_peak - fcqf_df.obsmjd.values > 100)
+            fcqfid_dict[str(ufid)]["N_pre_peak"] = 0
+            if len(pre_bl[0]) > 1:
+                # base_mjd = fcqf_df.obsmjd.values[pre_bl]
+                base_flux = fcqf_df.ampl.values[pre_bl]
+                base_flux_unc = fcqf_df["ampl.err"].values[
+                    pre_bl
+                ]  # Would ampl.err work?
+                mask = np.where(
+                    np.abs((base_flux - np.median(base_flux)) / base_flux_unc) <= 5
+                )
+                if len(mask[0]) > 1:
+                    Cmean = np.average(
+                        base_flux[mask], weights=1 / base_flux_unc[mask] ** 2
+                    )
+                    sum_diff_sq = np.sum(
+                        ((base_flux[mask] - Cmean) / (base_flux_unc[mask])) ** 2
+                    )
+                    chi = 1 / (len(mask[0]) - 1) * sum_diff_sq
+                    fcqfid_dict[str(ufid)]["C_pre"] = Cmean
+                    fcqfid_dict[str(ufid)]["chi_pre"] = chi
+                    fcqfid_dict[str(ufid)]["N_pre_peak"] = len(mask[0])
+
+            # measure the baseline post-peak
+            post_bl = np.where(fcqf_df.obsmjd.values > t_faded)
+            fcqfid_dict[str(ufid)]["N_post_peak"] = 0
+            if len(post_bl[0]) > 1:
+                # local variable 'base_jd' is assigned to but never used
+                # base_jd = fcqf_df.jd.values[post_bl]
+                base_flux = fcqf_df.ampl.values[post_bl]
+                base_flux_unc = fcqf_df["ampl.err"].values[post_bl]
+                mask = np.where(
+                    np.abs((base_flux - np.median(base_flux)) / base_flux_unc) <= 5
+                )
+                if len(mask[0]) > 1:
+                    Cmean = np.average(
+                        base_flux[mask], weights=1 / base_flux_unc[mask] ** 2
+                    )
+                    sum_diff_sq = np.sum(
+                        ((base_flux[mask] - Cmean) / (base_flux_unc[mask])) ** 2
+                    )
+                    chi = 1 / (len(mask[0]) - 1) * sum_diff_sq
+                    fcqfid_dict[str(ufid)]["C_post"] = Cmean
+                    fcqfid_dict[str(ufid)]["chi_post"] = chi
+                    fcqfid_dict[str(ufid)]["N_post_peak"] = len(mask[0])
+
+            # Decide which baseline to use
+            if (fcqfid_dict[str(ufid)]["N_pre_peak"] >= 25) or (
+                (fcqfid_dict[str(ufid)]["N_pre_peak"] > 10)
+                and (fcqfid_dict[str(ufid)]["N_post_peak"] < 25)
+            ):
+                df.iloc[this_fcqfid[0], df.columns.get_loc("baseline")] = fcqfid_dict[
+                    str(ufid)
+                ]["C_pre"]
+                df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
+                    np.ones(len(this_fcqfid[0]))
+                    * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_pre"]), 1)
+                )
+                df.iloc[this_fcqfid[0], df.columns.get_loc("n_baseline")] = fcqfid_dict[
+                    str(ufid)
+                ]["N_pre_peak"]
+                df.iloc[this_fcqfid[0], df.columns.get_loc("pre_or_post")] = -1
+                fcqfid_dict[str(ufid)]["which_baseline"] = "pre"
+            elif (fcqfid_dict[str(ufid)]["N_post_peak"] >= 25) or (
+                (fcqfid_dict[str(ufid)]["N_pre_peak"] < 10)
+                and (fcqfid_dict[str(ufid)]["N_post_peak"] >= 25)
+            ):
+                df.iloc[this_fcqfid[0], df.columns.get_loc("baseline")] = fcqfid_dict[
+                    str(ufid)
+                ]["C_post"]
+                df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
+                    np.ones(len(this_fcqfid[0]))
+                    * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_post"]), 1)
+                )
+                df.iloc[this_fcqfid[0], df.columns.get_loc("n_baseline")] = fcqfid_dict[
+                    str(ufid)
+                ]["N_post_peak"]
+                df.iloc[this_fcqfid[0], df.columns.get_loc("pre_or_post")] = 1
+                fcqfid_dict[str(ufid)]["which_baseline"] = "post"
             else:
-                this_fcqfid = np.where(df.fcqfid.values == ufid)
-                fcqf_df = df.iloc[this_fcqfid].copy()
-
-                # measure the baseline pre-peak
-                pre_bl = np.where((t_peak - fcqf_df.obsmjd.values > 100))
-                fcqfid_dict[str(ufid)]["N_pre_peak"] = 0
-                if len(pre_bl[0]) > 1:
-                    # base_mjd = fcqf_df.obsmjd.values[pre_bl]
-                    base_flux = fcqf_df.ampl.values[pre_bl]
-                    base_flux_unc = fcqf_df["ampl.err"].values[
-                        pre_bl
-                    ]  # Would ampl.err work?
-                    mask = np.where(
-                        np.abs((base_flux - np.median(base_flux)) / base_flux_unc) <= 5
-                    )
-                    if len(mask[0]) > 1:
-                        Cmean = np.average(
-                            base_flux[mask], weights=1 / base_flux_unc[mask] ** 2
-                        )
-                        sum_diff_sq = np.sum(
-                            ((base_flux[mask] - Cmean) / (base_flux_unc[mask])) ** 2
-                        )
-                        chi = 1 / (len(mask[0]) - 1) * sum_diff_sq
-                        fcqfid_dict[str(ufid)]["C_pre"] = Cmean
-                        fcqfid_dict[str(ufid)]["chi_pre"] = chi
-                        fcqfid_dict[str(ufid)]["N_pre_peak"] = len(mask[0])
-
-                # measure the baseline post-peak
-                post_bl = np.where((fcqf_df.obsmjd.values > t_faded))
-                fcqfid_dict[str(ufid)]["N_post_peak"] = 0
-                if len(post_bl[0]) > 1:
-                    # local variable 'base_jd' is assigned to but never used
-                    # base_jd = fcqf_df.jd.values[post_bl]
-                    base_flux = fcqf_df.ampl.values[post_bl]
-                    base_flux_unc = fcqf_df["ampl.err"].values[post_bl]
-                    mask = np.where(
-                        np.abs((base_flux - np.median(base_flux)) / base_flux_unc) <= 5
-                    )
-                    if len(mask[0]) > 1:
-                        Cmean = np.average(
-                            base_flux[mask], weights=1 / base_flux_unc[mask] ** 2
-                        )
-                        sum_diff_sq = np.sum(
-                            ((base_flux[mask] - Cmean) / (base_flux_unc[mask])) ** 2
-                        )
-                        chi = 1 / (len(mask[0]) - 1) * sum_diff_sq
-                        fcqfid_dict[str(ufid)]["C_post"] = Cmean
-                        fcqfid_dict[str(ufid)]["chi_post"] = chi
-                        fcqfid_dict[str(ufid)]["N_post_peak"] = len(mask[0])
-
-                # Decide which baseline to use
-                if (fcqfid_dict[str(ufid)]["N_pre_peak"] >= 25) or (
-                    (fcqfid_dict[str(ufid)]["N_pre_peak"] > 10)
-                    and (fcqfid_dict[str(ufid)]["N_post_peak"] < 25)
-                ):
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("baseline")
-                    ] = fcqfid_dict[str(ufid)]["C_pre"]
-                    df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
-                        np.ones(len(this_fcqfid[0]))
-                        * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_pre"]), 1)
-                    )
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("n_baseline")
-                    ] = fcqfid_dict[str(ufid)]["N_pre_peak"]
-                    df.iloc[this_fcqfid[0], df.columns.get_loc("pre_or_post")] = -1
-                    fcqfid_dict[str(ufid)]["which_baseline"] = "pre"
-                elif (fcqfid_dict[str(ufid)]["N_post_peak"] >= 25) or (
-                    (fcqfid_dict[str(ufid)]["N_pre_peak"] < 10)
-                    and (fcqfid_dict[str(ufid)]["N_post_peak"] >= 25)
-                ):
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("baseline")
-                    ] = fcqfid_dict[str(ufid)]["C_post"]
-                    df.iloc[this_fcqfid[0], df.columns.get_loc("baseline_err_mult")] = (
-                        np.ones(len(this_fcqfid[0]))
-                        * max(np.sqrt(fcqfid_dict[str(ufid)]["chi_post"]), 1)
-                    )
-                    df.iloc[
-                        this_fcqfid[0], df.columns.get_loc("n_baseline")
-                    ] = fcqfid_dict[str(ufid)]["N_post_peak"]
-                    df.iloc[this_fcqfid[0], list(df.columns.get_loc("pre_or_post"))] = 1
-                    fcqfid_dict[str(ufid)]["which_baseline"] = "post"
-                else:
-                    fcqfid_dict[str(ufid)]["which_baseline"] = None
+                fcqfid_dict[str(ufid)]["which_baseline"] = None
 
     # Restrict to subset with baseline corrections
     # (These could in principle have been kept in some form)
@@ -359,10 +357,7 @@ def get_reference_mjds(fcqfid_list: list) -> dict:
     ref_mjd_dict: dict[int, float] = {}
 
     for fcqfid in fcqfid_list:
-        if len(str(fcqfid)) == 7:
-            i = 0
-        else:
-            i = 1
+        i = 0 if len(str(fcqfid)) == 7 else 1
 
         fieldid = int(str(fcqfid)[: 3 + i])  # noqa: F841
         ccdid = int(str(fcqfid)[3 + i : 5 + i])  # noqa: F841
@@ -393,7 +388,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
     pivot_zeropoint: float = 28.0
 
     transient_risetime: float = 100.0
-    transient_falltime: Union[Literal["co"], float] = 365.0
+    transient_falltime: Literal["co"] | float = 365.0
 
     primary_grid_only: bool = False
 
@@ -401,12 +396,12 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
     zp_max_deviation_from_median: float = 0.5
 
-    reference_days_before_peak: Optional[float] = 50.0
+    reference_days_before_peak: None | float = 50.0
 
-    plot_suffix: Optional[str]
-    plot_dir: Optional[str]
+    plot_suffix: None | str = None
+    plot_dir: None | str = None
 
-    save_dir: Optional[str]
+    save_dir: None | str = None
 
     def __init__(self, **kwargs) -> None:
         kwargs["deserialize"] = None
@@ -423,7 +418,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
         headerkeys = []
         headervals = []
 
-        for i, byteline in enumerate(fileio.readlines()):
+        for _, byteline in enumerate(fileio.readlines()):
             line = str(byteline, "UTF-8")
             if len(line) >= 300:
                 break
@@ -438,10 +433,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         headerdict = {}
         for i, key in enumerate(headerkeys):
-            if headervals[i] == "-":
-                returnval = None
-            else:
-                returnval = headervals[i]
+            returnval = None if headervals[i] == "-" else headervals[i]
             headerdict.update({key: returnval})
 
         headerdict["ztfid"] = headerdict.get("name")
@@ -462,7 +454,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             self.logger.info("Dataframe is empty, skipping")
             return self.__next__()
 
-        if "pass" not in df.keys() and self.do_quality_cuts:
+        if "pass" not in df and self.do_quality_cuts:
             self.logger.info("No datapoints surviving quality cuts")
             return self.__next__()
 
@@ -514,7 +506,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                     if df_sub.shape[0] == 0:
                         continue
 
-                    if "flux_max" in binfo.keys() and binfo["flux_max"] > y_max:
+                    if "flux_max" in binfo and binfo["flux_max"] > y_max:
                         y_max = binfo["flux_max"]
 
                     ax.errorbar(
@@ -543,14 +535,14 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
                 y_min = 10 ** ((self.pivot_zeropoint - 20) / 2.5)
                 ax.set_ylim(
-                    [-y_min, y_max * 1.4]
+                    (-y_min, y_max * 1.4)
                 )  # Bottom limit set based on sample runs
 
                 plt.tight_layout()
                 plt.savefig(
                     os.path.join(
                         self.plot_dir,
-                        "fpbase_%s.%s" % (headerdict["name"], self.plot_suffix),
+                        f'fpbase_{headerdict["name"]}.{self.plot_suffix}',
                     )
                 )
                 plt.close("fig")
@@ -571,10 +563,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
             ampl_col = "ampl"
             ampl_err_col = "ampl.err"
 
-        if "fid" in list(df.keys()):
-            filter_col = "fid"
-        else:
-            filter_col = "filterid"
+        filter_col = "fid" if "fid" in list(df.keys()) else "filterid"
 
         F0 = 10 ** (df.magzp / 2.5)
         F0_err = F0 / 2.5 * np.log(10) * df.magzpunc
@@ -590,7 +579,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         all_ids = b""
         pps = []
-        for index, row in df.iterrows():
+        for _, row in df.iterrows():
             pp = {
                 k: dcast[k](v) if (k in dcast and v is not None) else v
                 for k, v in row.items()

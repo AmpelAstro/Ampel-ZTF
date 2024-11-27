@@ -6,10 +6,12 @@
 # Last Modified Date:  16.09.2020
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
-import asyncio, nest_asyncio
+import asyncio
+from collections.abc import Generator
 from functools import partial
 from typing import TYPE_CHECKING
-from collections.abc import Generator
+
+import nest_asyncio
 
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
 from ampel.struct.JournalAttributes import JournalAttributes
@@ -17,13 +19,12 @@ from ampel.types import StockId
 from ampel.ztf.t3.skyportal.SkyPortalClient import BaseSkyPortalPublisher, CutoutSpec
 
 if TYPE_CHECKING:
+    from ampel.content.JournalRecord import JournalRecord
     from ampel.struct.T3Store import T3Store
     from ampel.view.TransientView import TransientView
-    from ampel.content.JournalRecord import JournalRecord
 
 
 class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
-
     #: Save sources to these groups
     groups: None | list[str] = None
     filters: None | list[str] = None
@@ -36,9 +37,10 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
 
     process_name: None | str = None
 
-    def process(self,
+    def process(
+        self,
         tviews: Generator["TransientView", JournalAttributes, None],
-        t3s: 'None | T3Store' = None
+        t3s: "None | T3Store" = None,
     ) -> None:
         """Pass each view to :meth:`post_candidate`."""
         # Patch event loop to be reentrant if it is already running, e.g.
@@ -91,7 +93,9 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
                 ],
             )
 
-    async def post_view(self, view: "TransientView") -> tuple[StockId, JournalAttributes]:
+    async def post_view(
+        self, view: "TransientView"
+    ) -> tuple[StockId, JournalAttributes]:
         return view.id, JournalAttributes(
             extra=dict(
                 await self.post_candidate(

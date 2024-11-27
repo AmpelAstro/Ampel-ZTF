@@ -4,34 +4,36 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                Unspecified
-# Last Modified Date:  02.01.2022
+# Last Modified Date:  07.04.2023
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from setuptools import setup, find_namespace_packages
+from setuptools import find_namespace_packages, setup
 
 package_data = {
-	'conf': [
-		'ampel-ztf/*.yaml', 'ampel-ztf/*.yml', 'ampel-ztf/*.json',
-		'ampel-ztf/**/*.yaml', 'ampel-ztf/**/*.yml', 'ampel-ztf/**/*.json',
-	],
-	'ampel.test': ['test-data/*']
+    "conf": [
+        "ampel-ztf/*.yaml",
+        "ampel-ztf/*.yml",
+        "ampel-ztf/*.json",
+        "ampel-ztf/**/*.yaml",
+        "ampel-ztf/**/*.yml",
+        "ampel-ztf/**/*.json",
+    ],
+    "ampel.test": ["test-data/*"],
 }
 
 
-extras_require = {
-	'archive': ['ampel-ztf-archive>=0.7.0-alpha.0']
-}
+extras_require = {"archive": ["ampel-ztf-archive>=0.7.0-alpha.0"]}
 
 setup(
-    name = 'ampel-ztf',
-    version = '0.8.3a10',
-    description = 'Zwicky Transient Facility support for the Ampel system',
-    author = 'Valery Brinnel',
-    maintainer = 'Jakob van Santen',
-    maintainer_email = 'jakob.van.santen@desy.de',
-    url = 'https://ampelproject.github.io',
-    packages = find_namespace_packages(),
-    package_data = package_data,
-    extras_require = extras_require,
-    python_requires = '>=3.10,<3.11'
+    name="ampel-ztf",
+    version="0.9.0",
+    description="Zwicky Transient Facility support for the Ampel system",
+    author="Valery Brinnel",
+    maintainer="Jakob van Santen",
+    maintainer_email="jakob.van.santen@desy.de",
+    url="https://ampelproject.github.io",
+    packages=find_namespace_packages(),
+    package_data=package_data,
+    extras_require=extras_require,
+    python_requires=">=3.10,<3.11",
 )

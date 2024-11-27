@@ -7,15 +7,17 @@
 # Last Modified Date:  10.05.2021
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Any
-from bson import encode
 from collections.abc import Iterable, Sequence
-from ampel.base.AmpelUnit import AmpelUnit
-from ampel.types import StockId, Tag
+from typing import Any
+
+from bson import encode
+
 from ampel.abstract.AbsT0Unit import AbsT0Unit
+from ampel.base.AmpelUnit import AmpelUnit
 from ampel.content.DataPoint import DataPoint
-from ampel.ztf.ingest.tags import tags
+from ampel.types import StockId, Tag
 from ampel.util.hash import hash_payload
+from ampel.ztf.ingest.tags import tags
 
 
 class ZiDataPointShaperBase(AmpelUnit):

@@ -8,20 +8,21 @@
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import sys
-import pandas as pd
-import matplotlib.pyplot as plt
-from os.path import basename
-from bson import encode
 from hashlib import blake2b
+from os.path import basename
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from bson import encode
 from bts_phot.calibrate_fps import get_baseline  # type: ignore[import]
 
-from ampel.ztf.util.ZTFIdMapper import to_ampel_id
-from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
-from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
-from ampel.model.PlotProperties import PlotProperties, FormatModel
+from ampel.model.PlotProperties import FormatModel, PlotProperties
 from ampel.plot.create import create_plot_record
+from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
+from ampel.view.ReadOnlyDict import ReadOnlyDict
+from ampel.ztf.util.ZTFIdMapper import to_ampel_id
 
 dcast = {
     "field": int,
@@ -116,11 +117,11 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         """
 
         fpath = next(self.alert_loader)  # type: ignore
-        with open(fpath, "r") as f:  # type: ignore
+        with open(fpath) as f:  # type: ignore
             li = iter(f)
-            for line in li:
-                if "# Requested input R.A." in line:
-                    ra = float(line.split("=")[1].split(" ")[1])
+            for l in li:
+                if "# Requested input R.A." in l:
+                    ra = float(l.split("=")[1].split(" ")[1])
                     dec = float(next(li).split("=")[1].split(" ")[1])
                     break
 
@@ -141,9 +142,9 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         all_ids = b""
         pps = []
 
-        for index, row in df.iterrows():
+        for _, row in df.iterrows():
             pp = {
-                str(k): dcast[str(k)](v) if (k in dcast and v is not None) else v
+                k: dcast[k](v) if (k in dcast and v is not None) else v
                 for k, v in row.items()
             }
 

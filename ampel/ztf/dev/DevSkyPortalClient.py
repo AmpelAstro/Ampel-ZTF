@@ -9,27 +9,26 @@
 import gzip
 import io
 from collections import defaultdict
+from collections.abc import Generator, Sequence
 from datetime import datetime
 from typing import Any
-from collections.abc import Sequence, Generator
 
 import numpy as np
 import requests
-from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from astropy.io import fits
 from astropy.time import Time
 from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
+
+from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 
 
 def render_thumbnail(cutout_data: bytes) -> bytes:
     """
     Render gzipped FITS as PNG
     """
-    with gzip.open(io.BytesIO(cutout_data), "rb") as f:
-        with fits.open(f) as hdu:
-            header = hdu[0].header
-            img = np.flipud(hdu[0].data)
+    with gzip.open(io.BytesIO(cutout_data), "rb") as f, fits.open(f) as hdu:
+        img = np.flipud(hdu[0].data)
     mask = np.isfinite(img)
 
     fig = Figure(figsize=(1, 1))
@@ -119,8 +118,7 @@ class DevSkyPortalClient:
             response = self.post(endpoint, json=default or params, raise_exc=True)
         if isinstance(response["data"], list):
             return response["data"][0]["id"]
-        else:
-            return response["data"]["id"]
+        return response["data"]["id"]
 
     def request(self, verb, endpoint, raise_exc=False, **kwargs):
         response = self.session.request(
@@ -150,7 +148,9 @@ class DevSkyPortalClient:
                 content[k].append(v)
         return {**base, **content}
 
-    def _transform_datapoints(self, dps: Sequence[dict[str,Any]], after=-float("inf")) -> Generator[dict[str,Any],None,None]:
+    def _transform_datapoints(
+        self, dps: Sequence[dict[str, Any]], after=-float("inf")
+    ) -> Generator[dict[str, Any], None, None]:
         ztf_filters = {1: "ztfg", 2: "ztfr", 3: "ztfi"}
         for dp in dps:
             if dp["jd"] <= after:
@@ -189,4 +189,4 @@ class DevSkyPortalClient:
             after = Time(datetime.fromisoformat(candidate["data"]["last_detected"])).jd
         # post only if there are new photopoints
         if "mjd" in (photometry := self.make_photometry(alert, after=after)):
-            response = self.post("/photometry", json=photometry, raise_exc=True)
+            self.post("/photometry", json=photometry, raise_exc=True)

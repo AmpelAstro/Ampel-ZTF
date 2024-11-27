@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ampel-ztf"
-version = "0.8.16"
+version = "0.10.2"
 description = "Zwicky Transient Facility support for the Ampel system"
 authors = [
     "Valery Brinnel",
@@ -36,36 +36,37 @@ include = [
 
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
-astropy = "^5.0"
+python = "^3.10"
+astropy = ">=5.0"
 matplotlib = "^3.3.4"
 aiohttp = "^3.7.3"
 nest-asyncio = "^1.4.3"
 backoff = "^2.0.0"
 fastavro = "^1.9.2"
 requests = "^2.25.1"
-requests-toolbelt = ">=1"
+requests-toolbelt = "^1.0.0"
 confluent-kafka = {version = "^2.0.0", optional = true}
 healpy = {version = "^1.15", optional = true}
-light-curve = {version = ">=0.7,<0.8", optional = true}
+light-curve = {version = ">=0.9,<0.10", optional = true}
 ampel-ztf-archive = {version = "^0.8.0-alpha.0", optional = true}
-ampel-interface = "^0.8.7,<0.9"
-ampel-core = ">=0.8.9,<0.9"
-ampel-photometry = "^0.8.3,<0.9"
-ampel-alerts = "^0.8.4,<0.9"
-ampel-plot = {version = "^0.8.3-3,<0.9", optional = true}
-pandas = {version = "^1.5.2", optional = true}
+ampel-core = ">=0.10.1,<0.11"
+ampel-alerts = ">=0.10.1,<0.11"
+ampel-photometry = ">=0.10.0a0,<0.11"
+ampel-plot = {version = "^0.9.0a2", optional = true}
+pandas = {version = ">=1.5", optional = true}
 scipy = "^1.9.3"
-planobs = {version = "^0.6.1", optional = true}
+planobs = {version = "^0.7.0", optional = true}
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.4.2"
-pytest-cov = "^4.1.0"
-pytest-mock = "^3.11.1"
+pytest = "^8.3.3"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
 mongomock = "^4.1.2"
-mypy = "^1.6.0"
-pytest-timeout = "^2.2.0"
-pytest-asyncio = "^0.21.1"
+# mongomock uses pkg_resources
+setuptools = {version = "*", python = ">=3.12"}
+mypy = "^1.11.2"
+pytest-timeout = "^2.3.1"
+pytest-asyncio = "^0.24.0"
 types-requests = "^2.25.9"
 before_after = "^1.0.1"
 
@@ -78,6 +79,9 @@ plot = ["ampel-plot"]
 fp = ["pandas", "planobs"]
 bayes = ["pandas", "planobs", "ampel-plot"]
 
+[tool.poetry.group.dev.dependencies]
+types-pytz = "^2023.3.1.1"
+
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools >= 40.6.0", "wheel"]
 build-backend = "poetry.core.masonry.api"
@@ -86,7 +90,19 @@ build-backend = "poetry.core.masonry.api"
 relative_files = true
 
 [tool.pytest.ini_options]
-addopts = "--showlocals -rsx"
+minversion = "6.0"
+addopts = "--showlocals -ra"
+filterwarnings = [
+    "error",
+    # pulled in by matplotlib
+    "ignore:datetime.datetime.utcfromtimestamp\\(\\) is deprecated:DeprecationWarning:dateutil",
+    # Expected `list[definition-ref]` but got `tuple` - serialized value may not be as expected
+    "ignore:Pydantic serializer warnings:UserWarning",
+    # UserWarning: Field name "job_sig" shadows an attribute in parent "AbsEventUnit"
+    "ignore:Field name \".*\" shadows an attribute in parent:UserWarning",
+    "ignore:pkg_resources is deprecated:DeprecationWarning",
+    "ignore:Deprecated call to `pkg_resources:DeprecationWarning",
+]
 
 [tool.mypy]
 namespace_packages = true
@@ -95,14 +111,13 @@ show_error_codes = true
 [[tool.mypy.overrides]]
 module = [
   "astropy.*",
-  "fastavro.*",
   "confluent_kafka.*",
-  "ampel.ztf.t0.ArchiveUpdater",
+  #"ampel.ztf.t0.ArchiveUpdater",
   "pandas.*",
-  "matplotlib.*",
+  #"matplotlib.*",
   "requests_toolbelt.*",
   "scipy.*",
-  "ztfquery",
+  #"ztfquery",
   "nest_asyncio",
   "healpy",
   "light_curve",
@@ -113,3 +128,37 @@ ignore_missing_imports = true
 [tool.black]
 line-length = 88
 
+[tool.ruff]
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E4",
+    "E7",
+    "E9",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "DTZ",
+    # "T20",
+    "PT",
+    "RET",
+    "SLF",
+    "SIM",
+    # # "ARG", # sometimes your arguments have to conform to an interface
+    # # "ERA", # seems to prohibit all comments, that's bad
+    "PL",
+    "PERF",
+    "RUF",
+]
+ignore = [
+    "E741", # ambiguous variable name
+    "UP009", # UTF-8 encoding declaration is unnecessary
+    "PLR09", # too many (arguments|branches)
+    "PLR2004", # Magic value used in comparison
+    "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
+]
+
+[tool.ruff.lint.flake8-unused-arguments]
+ignore-variadic-names = true

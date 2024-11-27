@@ -1,15 +1,13 @@
 {
-  "lockFileMaintenance": {
-    "enabled": false
-  },
+  "extends": [
+    "github>AmpelProject/renovate-config",
+    "github>AmpelProject/renovate-config//regexManagers/githubActionsVersions"
+  ],
+  "baseBranches": ["master", "stable/v0.8"],
   "packageRules": [
     {
       "matchPackagePatterns": ["^ampel-.*"],
-      "allowedVersions": "<0.9"
-    },
-    {
-      "matchManagers": ["poetry"],
-      "rangeStrategy": "in-range-only"
+      "allowedVersions": "<0.11"
     }
   ]
 }

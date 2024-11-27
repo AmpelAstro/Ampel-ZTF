@@ -1,6 +1,6 @@
-
-from ampel.config.builder.DistConfigBuilder import DistConfigBuilder
 from ampel.config.builder.DisplayOptions import DisplayOptions
+from ampel.config.builder.DistConfigBuilder import DistConfigBuilder
+
 
 def test_build_config() -> None:
     cb = DistConfigBuilder(DisplayOptions(verbose=True, debug=True))
@@ -10,3 +10,4 @@ def test_build_config() -> None:
         config_validator="ConfigValidator",
         get_unit_env=False,
     )
+    assert config is not None

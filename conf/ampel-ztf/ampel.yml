@@ -26,7 +26,7 @@ unit:
 - ampel.ztf.t2.T2CatalogMatch
 - ampel.ztf.t2.T2LightCurveFeatures
 - ampel.ztf.t3.skyportal.SkyPortalPublisher
-- ampel.ztf.t3.resource.T3ZTFArchiveTokenGenerator
+- ampel.ztf.t4.T4ZTFArchiveTokenGenerator
 
 # Ops units
 - ampel.ztf.t0.load.ZTFAlertArchiverV3
@@ -46,8 +46,6 @@ unit:
 - ampel.ztf.util.ZTFIdMapper
 - ampel.ztf.util.ZTFNoisifiedIdMapper
 - ampel.ztf.ingest.ZiCompilerOptions
-- ampel.ztf.t0.T0HealpixPathProcessor
-- ampel.ztf.t0.T0HealpixProcessor
 - ampel.ztf.alert.load.ZTFHealpixAlertLoader
 - ampel.ztf.alert.ZiHealpixAlertSupplier
 

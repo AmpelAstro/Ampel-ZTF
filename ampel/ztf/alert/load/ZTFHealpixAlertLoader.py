@@ -7,23 +7,21 @@
 # Last Modified Date: 05.05.2022
 # Last Modified By  : Marcus Fenner <mf@physik.hu-berlin.de>
 
+from collections.abc import Generator, Iterator
 from datetime import datetime
 from functools import cached_property
 from typing import (
     Any,
-    Generator,
-    Iterator,
 )
 
 import backoff
 import requests
+from astropy.time import Time
+
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.base.AmpelBaseModel import AmpelBaseModel
-from ampel.log.AmpelLogger import AmpelLogger
-from ampel.ztf.base.ArchiveUnit import BearerAuth, BaseUrlSession
 from ampel.secret.NamedSecret import NamedSecret
-
-from astropy.time import Time
+from ampel.ztf.base.ArchiveUnit import BaseUrlSession, BearerAuth
 
 
 class HealpixSource(AmpelBaseModel):
@@ -33,13 +31,14 @@ class HealpixSource(AmpelBaseModel):
     time: datetime
     with_history: bool = False
 
+
 class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     """
     Create iterator of alerts found within a Healpix map.
     """
 
-    history_days: float = 30.
-    future_days: float = 30.
+    history_days: float = 30.0
+    future_days: float = 30.0
     chunk_size: int = 500
     query_size: int = 500  # number of ipix to query in one request
     query_start: int = 0  # first ipix index to query
@@ -53,38 +52,21 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     source: None | HealpixSource = None
     # If not set at init, needs to be set by alert proceessor
 
-    archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
+    archive_token: NamedSecret[str] = NamedSecret[str](label="ztf/archive/token")
 
     # NB: init lazily, as Secret properties are not resolved until after __init__()
     @cached_property
     def session(self) -> BaseUrlSession:
         """Pre-authorized requests.Session"""
         session = BaseUrlSession(
-            base_url=(
-                url
-                if (
-                    url := self.archive
-                ).endswith("/")
-                else url + "/"
-            )
+            base_url=(url if (url := self.archive).endswith("/") else url + "/")
         )
         session.auth = BearerAuth(self.archive_token.get())
         return session
-    
-    class Config:
-        """
-        This is needed to not get pickle errors with python3.10
-        see https://github.com/samuelcolvin/pydantic/issues/1241
-        """
-        keep_untouched = (cached_property,)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.logger: AmpelLogger = AmpelLogger.get_logger()
         self._it: None | Iterator[dict[str, Any]] = None
-
-    def set_logger(self, logger: AmpelLogger) -> None:
-        self.logger = logger
 
     def set_source(
         self,
@@ -117,14 +99,12 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
             if self.stream is None:
                 self.stream = chunk["resume_token"]
             try:
-                yield from chunk["alerts"] if isinstance(
-                    chunk, dict
-                ) else chunk
+                yield from chunk["alerts"] if isinstance(chunk, dict) else chunk
             except GeneratorExit:
                 self.logger.error(
                     f"Chunk from stream {self.stream} partially consumed."
                 )
-                raise GeneratorExit
+                raise
             if chunk["remaining"]["chunks"] == 0:
                 self.query_start += self.query_size
                 self.stream = None
@@ -152,12 +132,10 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
                         "$lt": jd + self.future_days,
                     },
                     "chunk_size": self.chunk_size,
-                    "latest": "false"
-                }
+                    "latest": "false",
+                },
             )
         else:
-            response = self.session.get(
-                f"{self.archive}/stream/{self.stream}/chunk"
-            )
+            response = self.session.get(f"{self.archive}/stream/{self.stream}/chunk")
         response.raise_for_status()
         return response.json()

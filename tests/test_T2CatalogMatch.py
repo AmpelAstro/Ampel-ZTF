@@ -1,54 +1,48 @@
-from typing import Any
-from ampel.base.LogicalUnit import LogicalUnit
-from ampel.core.AmpelContext import AmpelContext
-from ampel.model.UnitModel import UnitModel
-from ampel.protocol.LoggerProtocol import LoggerProtocol
-from ampel.struct.T3Store import T3Store
-import pytest
 from pathlib import Path
-import yaml
-import logging
-import requests
+from typing import Any
 
-from ampel.ztf.t3.complement.TNSNames import TNSNames
-from ampel.ztf.t3.complement.TNSReports import TNSReports
-from ampel.ztf.t2.T2CatalogMatch import T2CatalogMatch
-from ampel.ztf.t0.DecentFilter import DecentFilter
+import pytest
+import requests
+import yaml
 
 from ampel.content.DataPoint import DataPoint
 from ampel.content.StockDocument import StockDocument
 from ampel.content.T2Document import T2Document
-
-from ampel.struct.AmpelBuffer import AmpelBuffer
-from ampel.log.AmpelLogger import AmpelLogger
+from ampel.core.AmpelContext import AmpelContext
 from ampel.enum.DocumentCode import DocumentCode
+from ampel.log.AmpelLogger import AmpelLogger
+from ampel.model.UnitModel import UnitModel
+from ampel.struct.AmpelBuffer import AmpelBuffer
+from ampel.struct.T3Store import T3Store
+from ampel.ztf.t0.DecentFilter import DecentFilter
+from ampel.ztf.t2.T2CatalogMatch import T2CatalogMatch
+from ampel.ztf.t3.complement.TNSNames import TNSNames
 
 
-@pytest.fixture
+@pytest.fixture()
 def catalogmatch_config():
     with open(Path(__file__).parent / "test-data" / "catalogmatch_config.yaml") as f:
         return yaml.safe_load(f)
 
 
 @pytest.fixture(scope="session")
-def catalogmatch_service_reachable():
+def _catalogmatch_service_reachable():
     try:
         requests.head("https://ampel.zeuthen.desy.de/", timeout=0.5)
     except requests.exceptions.Timeout:
         pytest.skip("https://ampel.zeuthen.desy.de/ is unreachable")
 
 
-@pytest.fixture
+@pytest.fixture()
 def ampel_logger():
     return AmpelLogger.get_logger()
 
 
+@pytest.mark.usefixtures("_patch_mongo", "_catalogmatch_service_reachable")
 def test_catalogmatch(
-    patch_mongo,
     dev_context: AmpelContext,
     catalogmatch_config: dict[str, Any],
     ampel_logger: AmpelLogger,
-    catalogmatch_service_reachable,
 ):
     unit: T2CatalogMatch = dev_context.loader.new_logical_unit(
         model=UnitModel(unit="T2CatalogMatch", config=catalogmatch_config),
@@ -56,9 +50,7 @@ def test_catalogmatch(
         sub_type=T2CatalogMatch,
     )
     result = unit.process(DataPoint({"id": 0, "body": {"ra": 0, "dec": 0}}))
-    base_config: dict[str, Any] = {
-        k: None for k in catalogmatch_config["catalogs"].keys()
-    }
+    base_config: dict[str, Any] = {k: None for k in catalogmatch_config["catalogs"]}
     assert result == (
         base_config
         | {
@@ -81,8 +73,8 @@ def test_catalogmatch(
     )
 
 
+@pytest.mark.usefixtures("_patch_mongo")
 def test_decentfilter_star_in_gaia(
-    patch_mongo,
     dev_context: AmpelContext,
     ampel_logger: AmpelLogger,
 ):
@@ -99,9 +91,8 @@ def test_decentfilter_star_in_gaia(
     assert not unit.is_star_in_gaia({"ra": 0, "dec": 0})
 
 
-def test_tnsnames(
-    patch_mongo, dev_context: AmpelContext, ampel_logger: AmpelLogger
-) -> None:
+@pytest.mark.usefixtures("_patch_mongo")
+def test_tnsnames(dev_context: AmpelContext, ampel_logger: AmpelLogger) -> None:
     unit: TNSNames = dev_context.loader.new_context_unit(
         UnitModel(unit="TNSNames"),
         logger=ampel_logger,
@@ -136,7 +127,7 @@ def test_tnsnames(
     unit.complement([buf], T3Store())
     assert (stockdoc := buf["stock"]) is not None
     assert stockdoc["name"] == ("sourceysource", "TNS2020ubb")
-    assert not "extra" in buf
+    assert "extra" not in buf
 
     unit = dev_context.loader.new_context_unit(
         UnitModel(unit="TNSReports"),

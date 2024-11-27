@@ -1,16 +1,17 @@
-from datetime import datetime
-from ampel.model.UnitModel import UnitModel
-import pytest
 import os
-from ampel.secret.NamedSecret import NamedSecret
+from datetime import datetime
 
+import pytest
+
+from ampel.model.UnitModel import UnitModel
+from ampel.secret.NamedSecret import NamedSecret
+from ampel.ztf.alert.HealpixPathSupplier import HealpixPathSupplier
 from ampel.ztf.alert.load.ZTFHealpixAlertLoader import HealpixSource
 from ampel.ztf.alert.ZiHealpixAlertSupplier import ZiHealpixAlertSupplier
-from ampel.ztf.alert.HealpixPathSupplier import HealpixPathSupplier
 from ampel.ztf.util.ZTFIdMapper import to_ampel_id
 
 
-@pytest.fixture
+@pytest.fixture()
 def healpix_dict():
     return {
         "nside": 128,
@@ -19,12 +20,12 @@ def healpix_dict():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def healpix_source(healpix_dict):
     return HealpixSource(**healpix_dict)
 
 
-@pytest.fixture
+@pytest.fixture()
 def healpix_loader(archive_token):
     return {
         "unit": "ZTFHealpixAlertLoader",
@@ -36,13 +37,11 @@ def healpix_loader(archive_token):
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 def archive_token():
     if not (token := os.environ.get("ARCHIVE_TOKEN")):
         pytest.skip("archive test requires api token")
-    archive_token: NamedSecret[str] = NamedSecret(label="ztf/archive/token")
-    archive_token.set(token)
-    return archive_token
+    return NamedSecret[str](label="ztf/archive/token", value=token)
 
 
 def test_healpix_alertsupplier(mock_context, healpix_source, healpix_loader):

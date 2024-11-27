@@ -10,23 +10,18 @@
 import sys
 from hashlib import blake2b
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from astropy.coordinates import SkyCoord
-from bson import encode
 from astropy.time import Time
+from bson import encode
 
 from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
-from ampel.ztf.util.ZTFIdMapper import to_ampel_id
-from ampel.contrib.hu.alert.calibrate_fps_fork import (
-    search_peak,  # type: ignore[import]
-)
-
-
-# from ampel.plot.create import create_plot_record
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.view.ReadOnlyDict import ReadOnlyDict
+from ampel.ztf.alert.calibrate_fps_fork import search_peak
+from ampel.ztf.util.ZTFIdMapper import to_ampel_id
 
 dcast = {
     "jd": float,

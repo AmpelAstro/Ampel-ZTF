@@ -13,10 +13,9 @@ from datetime import datetime
 import healpy as hp
 import numpy as np
 import requests
-from ampel.log import AmpelLogger
-from ampel.ztf.alert.load.ZTFHealpixAlertLoader import HealpixSource
-from ampel.ztf.alert.ZiHealpixAlertSupplier import ZiHealpixAlertSupplier
+
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
+from ampel.ztf.alert.ZiHealpixAlertSupplier import ZiHealpixAlertSupplier
 
 
 class HealpixPathSupplier(ZiHealpixAlertSupplier):
@@ -46,11 +45,11 @@ class HealpixPathSupplier(ZiHealpixAlertSupplier):
 
             # Process map
             hpx, headers = hp.read_map(temp.name, h=True, nest=True)
-            self.trigger_time = [
+            self.trigger_time = next(
                 datetime.fromisoformat(header[1])
                 for header in headers
                 if header[0] == "DATE-OBS"
-            ][0]
+            )
             self.nside = int(hp.pixelfunc.npix2nside(len(hpx)))
 
             # Find credible levels
@@ -65,7 +64,6 @@ class HealpixPathSupplier(ZiHealpixAlertSupplier):
             mask[credible_levels <= self.pvalue_limit] = 1
             ipix = mask.nonzero()[0].tolist()
             self.set_healpix(nside=self.nside, pixels=ipix, time=self.trigger_time)
-        return
 
     def __next__(self) -> AmpelAlertProtocol:
         alert_pvalue = None

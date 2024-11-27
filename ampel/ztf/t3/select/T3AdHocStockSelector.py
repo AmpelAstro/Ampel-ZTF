@@ -10,8 +10,8 @@
 
 from pymongo.cursor import Cursor
 
-from ampel.log.AmpelLogger import AmpelLogger
 from ampel.abstract.AbsT3Selector import AbsT3Selector
+from ampel.log.AmpelLogger import AmpelLogger
 from ampel.ztf.util.ZTFIdMapper import to_ampel_id
 
 
@@ -25,20 +25,17 @@ class T3AdHocStockSelector(AbsT3Selector):
     name: list[str]
 
     def __init__(self, **kwargs):
-
-        if isinstance(name := kwargs.get("name"), str):
+        if isinstance(kwargs.get("name"), str):
             kwargs["name"] = [str]
 
         super().__init__(**kwargs)
 
     # Override/Implement
     def fetch(self) -> None | Cursor:
-        """ The returned Iterator is a pymongo Cursor """
+        """The returned Iterator is a pymongo Cursor"""
 
-        cursor = (
+        return (
             self.context.db.get_collection("stock")
             .find({"_id": {"$in": to_ampel_id(self.name)}}, {"_id": 1})
             .hint("_id_1_channel_1")
         )
-
-        return cursor

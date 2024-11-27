@@ -8,14 +8,14 @@
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 
-from typing import Any
 from collections.abc import Iterable
+from typing import Any
 
-from ampel.struct.AmpelBuffer import AmpelBuffer
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement
-from ampel.ztf.base.CatalogMatchUnit import CatalogMatchContextUnit
 from ampel.enum.DocumentCode import DocumentCode
+from ampel.struct.AmpelBuffer import AmpelBuffer
 from ampel.struct.T3Store import T3Store
+from ampel.ztf.base.CatalogMatchUnit import CatalogMatchContextUnit
 
 
 class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
@@ -24,24 +24,23 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
     """
 
     #: Matching radius in arcsec
-    search_radius: float = 3.
+    search_radius: float = 3.0
     include_report: bool = False
 
     def complement(self, records: Iterable[AmpelBuffer], t3s: T3Store) -> None:
         for record in records:
-
             # find the latest T2LightCurveSummary result
             if (summary := self._get_t2_result(record, "T2LightCurveSummary")) is None:
                 raise ValueError(
-                    f"No T2LightCurveSummary found for stock {str(record['id'])}"
+                    f"No T2LightCurveSummary found for stock {record['id']!s}"
                 )
             if (ra := summary.get("ra")) is None:
                 raise ValueError(
-                    f"No T2LightCurveSummary contains no right ascension for stock {str(record['id'])}"
+                    f"No T2LightCurveSummary contains no right ascension for stock {record['id']!s}"
                 )
             if (dec := summary.get("dec")) is None:
                 raise ValueError(
-                    f"No T2LightCurveSummary contains no declination for stock {str(record['id'])}"
+                    f"No T2LightCurveSummary contains no declination for stock {record['id']!s}"
                 )
             if not (
                 matches := self.cone_search_all(
@@ -68,9 +67,9 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
                 new_names = tuple(
                     n
                     for item in matches
-                    if not (n := "TNS" + item["body"]["objname"]) in existing_names
+                    if (n := "TNS" + item["body"]["objname"]) not in existing_names
                 )
-                dict.__setitem__(stock, "name", existing_names + new_names) # type: ignore[index]
+                dict.__setitem__(stock, "name", existing_names + new_names)  # type: ignore[index]
 
             if self.include_report:
                 reports = [item["body"] for item in matches]
@@ -92,6 +91,7 @@ class TNSNames(CatalogMatchContextUnit, AbsBufferComplement):
                 for meta, result in zip(
                     (m for m in reversed(t2_doc["meta"]) if m["tier"] == 2),
                     reversed(body),
+                    strict=False,
                 ):
                     if meta["code"] == DocumentCode.OK:
                         assert isinstance(result, dict)
