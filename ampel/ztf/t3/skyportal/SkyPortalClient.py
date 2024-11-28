@@ -5,7 +5,6 @@
 # Last Modified Date:  24.11.2022
 # Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
 
-import asyncio
 import base64
 import gzip
 import io
@@ -14,14 +13,14 @@ import math
 import time
 from collections import defaultdict
 from collections.abc import Generator, Iterable, Sequence
-from contextlib import asynccontextmanager, suppress
+from contextlib import suppress
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, TypedDict, overload
 from urllib.parse import urlparse
 
-import aiohttp
 import backoff
 import numpy as np
+import requests
 from astropy.io import fits
 from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
@@ -38,10 +37,6 @@ from ampel.util.collections import ampel_iter
 from ampel.util.mappings import flatten_dict
 
 if TYPE_CHECKING:
-    from typing import Unpack
-
-    from aiohttp.client import _RequestOptions
-
     from ampel.config.AmpelConfig import AmpelConfig
     from ampel.content.DataPoint import DataPoint
     from ampel.view.T2DocView import T2DocView
@@ -187,139 +182,135 @@ class SkyPortalClient(AmpelUnit):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self._auth_header = {"Authorization": f"token {self.token.get()}"}
         self._ids: dict[str, dict[str, int]] = {}
-        self._session: None | aiohttp.ClientSession = None
-        self._semaphore: None | asyncio.Semaphore = None
-
-    @asynccontextmanager
-    async def session(self, limit_per_host=0):
-        async with aiohttp.ClientSession(
-            connector=aiohttp.TCPConnector(limit_per_host=limit_per_host)
-        ) as session:
-            self._session = session
-            self._semaphore = asyncio.Semaphore(self.max_parallel_connections)
-            yield self
-            self._session = None
-            self._semaphore = None
+        self._session = requests.Session()
+        self._session.headers["Authorization"] = f"token {self.token.get()}"
 
     @overload
-    async def request(
+    def request(
         self,
         verb: str,
         endpoint: str,
         raise_exc: bool,
+        *,
+        headers: None | dict[str, str] = None,
+        params: None | dict[str, Any] = None,
+        data: None | dict[str, Any] = None,
         _decode_json: None,
-        **kwargs: "Unpack[_RequestOptions]",
-    ) -> aiohttp.ClientResponse: ...
+    ) -> requests.Response: ...
 
     @overload
-    async def request(
+    def request(
         self,
         verb: str,
         endpoint: str,
         raise_exc: bool,
+        *,
+        headers: None | dict[str, str] = None,
+        params: None | dict[str, Any] = None,
+        data: None | dict[str, Any] = None,
         _decode_json: bool,
-        **kwargs: "Unpack[_RequestOptions]",
     ) -> dict[str, Any]: ...
 
     @backoff.on_exception(
         backoff.expo,
         (
-            aiohttp.ClientResponseError,
-            aiohttp.ClientConnectionError,
-            asyncio.TimeoutError,
+            requests.exceptions.HTTPError,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
         ),
         max_time=1200,
         factor=10,
     )
-    async def request(
+    def request(
         self,
         verb: str,
         endpoint: str,
         raise_exc: bool = True,
+        *,
+        headers: None | dict[str, str] = None,
+        params: None | dict[str, Any] = None,
+        data: None | dict[str, Any] = None,
         _decode_json: None | bool = True,
-        **kwargs: "Unpack[_RequestOptions]",
-    ) -> aiohttp.ClientResponse | dict[str, Any]:
-        if self._session is None or self._semaphore is None:
-            raise ValueError(
-                "call operations within an `async with self.session()` block"
-            )
+        # **kwargs: "Unpack[_RequestOptions]",
+    ) -> requests.Response | dict[str, Any]:
         if endpoint.startswith("/"):
             url = self.base_url + endpoint
         else:
             url = self.base_url + "/api/" + endpoint
-        kwargs["headers"] = dict(kwargs.get("headers") or {}) | self._auth_header
         labels = (verb, endpoint.split("/")[0])
-        async with self._semaphore:
-            with (
-                stat_http_time.labels(*labels).time(),
-                stat_http_errors.labels(*labels).count_exceptions(
-                    (  # type: ignore[arg-type]
-                        aiohttp.ClientResponseError,
-                        aiohttp.ClientConnectionError,
-                        asyncio.TimeoutError,
-                    )
-                ),
-                stat_concurrent_requests.labels(*labels).track_inprogress(),
-            ):
-                async with self._session.request(verb, url, **kwargs) as response:
-                    if response.status == 429 or response.status >= 500:
-                        response.raise_for_status()
-                    stat_http_responses.labels(*labels).inc()
-                    if _decode_json:
-                        payload = await response.json(content_type=None)
-                        if raise_exc:
-                            # only check status if endpoint knows it was returning JSON
-                            if (
-                                response.content_type == "application/json"
-                                and payload["status"] != "success"
-                            ):
-                                raise SkyPortalAPIError(payload["message"], url, kwargs)
-                            # otherwise, believe status code
-                            response.raise_for_status()
-                        return payload
-                    return response
+        with (
+            stat_http_time.labels(*labels).time(),
+            stat_http_errors.labels(*labels).count_exceptions(
+                (  # type: ignore[arg-type]
+                    requests.exceptions.HTTPError,
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout,
+                )
+            ),
+            stat_concurrent_requests.labels(*labels).track_inprogress(),
+        ):
+            response = self._session.request(
+                verb,
+                url,
+                headers=headers,
+                params=params,
+                data=data,
+            )
+            if response.status_code == 429 or response.status_code >= 500:
+                response.raise_for_status()
+            stat_http_responses.labels(*labels).inc()
+            if _decode_json:
+                payload = response.json()
+                if raise_exc:
+                    # only check status if endpoint knows it was returning JSON
+                    if (
+                        response.headers["content-type"] == "application/json"
+                        and payload["status"] != "success"
+                    ):
+                        raise SkyPortalAPIError(payload["message"], url)
+                    # otherwise, believe status code
+                    response.raise_for_status()
+                return payload
+            return response
 
-    async def get_id(self, endpoint, params, default=None):
+    def get_id(self, endpoint, params, default=None):
         """Query for an object by id, inserting it if not found"""
-        if not (response := await self.get(endpoint, params=params, raise_exc=False))[
-            "data"
-        ]:
-            response = await self.post(endpoint, json=default or params)
+        if not (response := self.get(endpoint, params=params, raise_exc=False))["data"]:
+            response = self.post(endpoint, json=default or params)
         if isinstance(response["data"], list):
             return response["data"][0]["id"]
         return response["data"]["id"]
 
-    async def get_by_name(self, endpoint, name):
+    def get_by_name(self, endpoint, name):
         if endpoint not in self._ids:
             self._ids[endpoint] = {}
         if name not in self._ids[endpoint]:
-            self._ids[endpoint][name] = await self._get_by_name(endpoint, name)
+            self._ids[endpoint][name] = self._get_by_name(endpoint, name)
         return self._ids[endpoint][name]
 
-    async def _get_by_name(self, endpoint, name):
+    def _get_by_name(self, endpoint, name):
         try:
             return next(
                 d["id"]
-                for d in (await self.get(endpoint, params={"name": name}))["data"]
+                for d in (self.get(endpoint, params={"name": name}))["data"]
                 if d["name"] == name
             )
         except StopIteration:
             pass
         raise KeyError(f"No {endpoint} named {name}")
 
-    async def get(self, endpoint: str, **kwargs) -> dict[str, Any]:
-        return await self.request("GET", endpoint, **kwargs)
+    def get(self, endpoint: str, **kwargs) -> dict[str, Any]:
+        return self.request("GET", endpoint, **kwargs)
 
-    async def post(self, endpoint: str, **kwargs) -> dict[str, Any]:
-        return await self.request("POST", endpoint, **kwargs)
+    def post(self, endpoint: str, **kwargs) -> dict[str, Any]:
+        return self.request("POST", endpoint, **kwargs)
 
-    async def put(self, endpoint: str, **kwargs) -> dict[str, Any]:
-        return await self.request("PUT", endpoint, **kwargs)
+    def put(self, endpoint: str, **kwargs) -> dict[str, Any]:
+        return self.request("PUT", endpoint, **kwargs)
 
-    async def head(self, endpoint: str, **kwargs) -> aiohttp.ClientResponse:
-        return await self.request("HEAD", endpoint, _decode_json=None, **kwargs)
+    def head(self, endpoint: str, **kwargs) -> requests.Response:
+        return self.request("HEAD", endpoint, _decode_json=None, **kwargs)
 
 
 class FilterGroupProvisioner(SkyPortalClient):
@@ -337,20 +328,20 @@ class FilterGroupProvisioner(SkyPortalClient):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    async def create_filter(self, name, stream, group):
+    def create_filter(self, name, stream, group):
         try:
-            return await self.get_by_name("filters", name)
+            return self.get_by_name("filters", name)
         except KeyError:
             ...
         doc = {
             "name": name,
-            "stream_id": await self.get_by_name("streams", self.stream_names[stream]),
-            "group_id": await self.get_by_name("groups", group),
+            "stream_id": self.get_by_name("streams", self.stream_names[stream]),
+            "group_id": self.get_by_name("groups", group),
         }
-        await self.post("filters", json=doc)
-        return await self.get_by_name("filters", name)
+        self.post("filters", json=doc)
+        return self.get_by_name("filters", name)
 
-    async def create_filters(
+    def create_filters(
         self, config: "AmpelConfig", group: str, stream: None | str = None
     ) -> None:
         """
@@ -366,16 +357,16 @@ class FilterGroupProvisioner(SkyPortalClient):
                 continue
             name = f"AMPEL.{channel['channel']}"
             try:
-                await self.get_by_name("filters", name)
+                self.get_by_name("filters", name)
                 continue
             except KeyError:
                 ...
-            await self.create_filter(name, stream or channel["template"], group)
+            self.create_filter(name, stream or channel["template"], group)
 
 
-async def provision_seed_data(client: SkyPortalClient):
+def provision_seed_data(client: SkyPortalClient):
     """Set up instruments and groups for a test instance"""
-    p48 = await client.get_id(
+    p48 = client.get_id(
         "telescope",
         {"name": "P48"},
         {
@@ -402,19 +393,17 @@ async def provision_seed_data(client: SkyPortalClient):
                 "name": "ZTF",
             },
         ),
-        "stream": await client.get_id("streams", {"name": "ztf_partnership"}),
+        "stream": client.get_id("streams", {"name": "ztf_partnership"}),
         "group": 1,  # root group
     }
     if source["stream"] not in [
         groupstream["id"]
-        for groupstream in (await client.get(f"groups/{source['group']}"))["data"][
-            "streams"
-        ]
+        for groupstream in (client.get(f"groups/{source['group']}"))["data"]["streams"]
     ]:
-        await client.post(
+        client.post(
             f"groups/{source['group']}/streams", json={"stream_id": source["stream"]}
         )
-    source["filter"] = await client.get_id(
+    source["filter"] = client.get_id(
         "filters",
         {"name": "highlander"},
         {
@@ -427,11 +416,11 @@ async def provision_seed_data(client: SkyPortalClient):
     # ensure that all users are in the root group
     users = [
         users["username"]
-        for users in (await client.get(f"groups/{source['group']}"))["data"]["users"]
+        for users in (client.get(f"groups/{source['group']}"))["data"]["users"]
     ]
-    for user in (await client.get("user"))["data"]:
+    for user in (client.get("user"))["data"]:
         if user["username"] not in users:
-            await client.post(
+            client.post(
                 f"groups/{source['group']}/users",
                 json={"username": user["username"]},
             )
@@ -494,13 +483,13 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 content[k].append(v)
         return dict(content)
 
-    async def _find_instrument(self, tags: Sequence[int | str]) -> int:
-        with suppress(KeyError, aiohttp.ClientError):
+    def _find_instrument(self, tags: Sequence[int | str]) -> int:
+        with suppress(KeyError, requests.exceptions.RequestException):
             for tag in tags:
-                return await self.get_by_name("instrument", tag)
+                return self.get_by_name("instrument", tag)
         raise KeyError(f"None of {tags} match a known instrument")
 
-    async def post_t2_annotations(
+    def post_t2_annotations(
         self,
         name: str,
         t2_views: Iterable["T2DocView"],
@@ -520,7 +509,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 # post new annotation
                 self.logger.debug(f"posting {t2.unit}")
                 try:
-                    await self.post(
+                    self.post(
                         f"sources/{name}/annotation",
                         json={
                             "origin": f"ampel:{t2.unit}",
@@ -535,7 +524,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             if last_modified > datetime.fromisoformat(annotation["updated"]):
                 self.logger.debug(f"updating {t2.unit}")
                 try:
-                    await self.put(
+                    self.put(
                         f"sources/{name}/annotation/{annotation['id']}",
                         json={
                             "obj_id": name,
@@ -550,7 +539,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             else:
                 self.logger.debug(f"{t2.unit} exists and is current")
 
-    async def post_t2_comments(
+    def post_t2_comments(
         self,
         name: str,
         t2_views: Iterable["T2DocView"],
@@ -568,7 +557,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 # post new comment
                 self.logger.debug(f"posting {t2.unit}")
                 try:
-                    await self.post(
+                    self.post(
                         f"sources/{name}/comment",
                         json={
                             "text": t2.unit,
@@ -584,14 +573,14 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 continue
             # update previous comment
             previous_body = decode_t2_body(
-                await self.get(
+                self.get(
                     f"sources/{name}/comments/{comment['id']}/attachment",
                 )
             )
             if (t2.body is not None) and (t2.meta[-1]["ts"] > previous_body["ts"]):
                 self.logger.debug(f"updating {t2.unit}")
                 try:
-                    await self.put(
+                    self.put(
                         f"sources/{name}/comment/{comment['id']}",
                         json={
                             "attachment_bytes": encode_t2_body(t2),
@@ -606,7 +595,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             else:
                 self.logger.debug(f"{t2.unit} exists and is current")
 
-    async def post_candidate(
+    def post_candidate(
         self,
         view: "TransientView",
         *,
@@ -655,21 +644,21 @@ class BaseSkyPortalPublisher(SkyPortalClient):
 
         assert view.stock, f"{self.__class__} requires stock records"
         filter_ids = {
-            name: await self.get_by_name("filters", name)
+            name: self.get_by_name("filters", name)
             for name in (
                 filters
                 or [f"AMPEL.{channel}" for channel in ampel_iter(view.stock["channel"])]
             )
         }
-        group_ids = {await self.get_by_name("groups", name) for name in (groups or [])}
+        group_ids = {self.get_by_name("groups", name) for name in (groups or [])}
         assert (
             "tag" in view.stock
         ), f"{self.__class__} requires stocks with a `tag` field. Did you remember to set AlertConsumer.compiler_opts?"
         assert view.stock["tag"] is not None
         instrument_id = (
-            await self.get_by_name("instrument", instrument)
+            self.get_by_name("instrument", instrument)
             if instrument
-            else await self._find_instrument(view.stock["tag"])
+            else self._find_instrument(view.stock["tag"])
         )
 
         assert view.stock
@@ -709,7 +698,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         new_filters = set(filter_ids.values())
 
         if (
-            response := await self.get(
+            response := self.get(
                 f"candidates/{name}",
                 params={"includeComments": 1, "includeAlerts": 1},
                 raise_exc=False,
@@ -746,7 +735,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 continue
             new_filters.difference_update(fids)
             candidate_ids = (
-                await self.post(
+                self.post(
                     "candidates",
                     json={
                         "id": name,
@@ -765,13 +754,13 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         # Save source to groups, if specified
         if groups:
             try:
-                source = (await self.get(f"sources/{name}"))["data"]
+                source = (self.get(f"sources/{name}"))["data"]
                 prev_groups = {group["id"] for group in source["groups"]}
             except SkyPortalAPIError:
                 prev_groups = set()
             if groups_to_post := group_ids.difference(prev_groups):
                 try:
-                    await self.post(
+                    self.post(
                         "sources", json={"id": name, "group_ids": list(groups_to_post)}
                     )
                 except SkyPortalAPIError as exc:
@@ -792,7 +781,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             }
             datapoint_ids = photometry.pop("id")
             try:
-                photometry_response = await self.put("photometry", json=photometry)
+                photometry_response = self.put("photometry", json=photometry)
                 photometry_ids = photometry_response["data"]["ids"]
                 assert len(datapoint_ids) == len(photometry_ids)
                 ret["photometry_count"] = len(photometry_ids)
@@ -814,7 +803,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                         continue
                     assert isinstance(blob, bytes)
                     # FIXME: switch back to FITS when SkyPortal supports it
-                    await self.post(
+                    self.post(
                         "thumbnail",
                         json={
                             "obj_id": name,
@@ -839,14 +828,14 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 latest_t2[t2.unit] = t2
 
         if annotate:
-            await self.post_t2_annotations(
+            self.post_t2_annotations(
                 name,
                 latest_t2.values(),
                 response["data"] if response["status"] == "success" else None,
                 ret,
             )
         else:
-            await self.post_t2_comments(
+            self.post_t2_comments(
                 name,
                 latest_t2.values(),
                 response["data"] if response["status"] == "success" else None,
