@@ -6,13 +6,16 @@
 # Last Modified Date:  10.05.2021
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Any
+
+from bson import encode
 
 from ampel.abstract.AbsT0Unit import AbsT0Unit
 from ampel.base.AmpelUnit import AmpelUnit
 from ampel.content.DataPoint import DataPoint
-from ampel.types import StockId
+from ampel.types import StockId, Tag
+from ampel.util.hash import hash_payload
 from ampel.ztf.ingest.tags import tags
 
 
@@ -24,6 +27,8 @@ class ZiDataPointShaperBase(AmpelUnit):
 
     # JD2017 is used to define upper limits primary IDs
     JD2017: float = 2457754.5
+    #: Byte width of datapoint ids
+    digest_size: int = 8
 
     # Mandatory implementation
     def process(self, arg: Iterable[dict[str, Any]], stock: StockId) -> list[DataPoint]:  # type: ignore[override]
@@ -61,7 +66,12 @@ class ZiDataPointShaperBase(AmpelUnit):
 
                 popitem(photo_dict, "candid", None)
                 popitem(photo_dict, "programpi", None)
-
+            elif "forcediffimflux" in photo_dict:
+                ret_list.append(self._create_datapoint(stock, ["ZTF_FP"], photo_dict))
+            elif "fcqfid" in photo_dict:
+                ret_list.append(
+                    self._create_datapoint(stock, ["ZTF_FP", "BTS_PHOT"], photo_dict)
+                )
             else:
                 ret_list.append(
                     {  # type: ignore[typeddict-item]
@@ -85,6 +95,22 @@ class ZiDataPointShaperBase(AmpelUnit):
                 )
 
         return ret_list
+
+    def _create_datapoint(
+        self, stock: StockId, tag: Sequence[Tag], body: dict[str, Any]
+    ) -> DataPoint:
+        """
+        Create a Datapoint from stock, body, and tags, using the hash of the body as id
+        """
+        # ensure that keys are ordered
+        sorted_body = dict(sorted(body.items()))
+        # This is not a complete DataPoint as (channel,meta) is missing, set later. Should these be optional? or added default?
+        return {  # type: ignore
+            "id": hash_payload(encode(sorted_body), size=-self.digest_size * 8),
+            "stock": stock,
+            "tag": [*tags[body["programid"]][body["fid"]], *tag],
+            "body": sorted_body,
+        }
 
     def ul_identity(self, uld: dict[str, Any]) -> int:
         """

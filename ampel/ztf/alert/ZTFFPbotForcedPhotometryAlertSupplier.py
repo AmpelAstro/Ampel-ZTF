@@ -15,8 +15,6 @@ from typing import Any, Literal
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-# from appdirs import user_cache_dir
 from astropy.time import Time
 from bson import encode
 from scipy.stats import median_abs_deviation
@@ -103,7 +101,7 @@ def get_fpbot_baseline(
     min_det_per_field_band: int = 10,
     zp_max_deviation_from_median: float = 0.5,
     reference_days_before_peak: None | float = 50.0,
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, dict[str, Any]]:
     """
     For each unique baseline combination, estimate and store baseline.
     Partially taken from
@@ -126,10 +124,7 @@ def get_fpbot_baseline(
 
     """
     df["fcqfid"] = np.array(
-        df.fieldid.values * 10000
-        + df.ccdid.values * 100
-        + df.qid.values * 10
-        + df.filterid.values
+        df["fieldid"] * 10000 + df["ccdid"] * 100 + df["qid"] * 10 + df["filterid"]
     )
 
     if primary_grid_only:
@@ -157,7 +152,7 @@ def get_fpbot_baseline(
     df["zp_median_deviation"] = np.abs(np.log10(median_zp / df.magzp))
     df.query("zp_median_deviation < @zp_max_deviation_from_median", inplace=True)
 
-    unique_fid = np.unique(df.fcqfid.values).astype(int)
+    unique_fid = np.unique(df.fcqfid).astype(int)
 
     # Time index for use for rolling window
     df = df.sort_values("obsmjd")
@@ -176,13 +171,13 @@ def get_fpbot_baseline(
 
         fcqf_df = df.iloc[this_fcqfid].copy()
         # Use the pulls from mean to find largest deviation
-        pull_series = fcqf_df.ampl / fcqf_df["ampl.err"]
+        pull_series = fcqf_df["ampl"] / fcqf_df["ampl.err"]
         roll_med = pull_series.rolling(window, center=True).median().values
         # Only use medians with a min nbr of values (otherwise we get edge results)
         t_max = fcqf_df.obsmjd.values[np.argmax(roll_med)]
         #        flux_max = np.max(roll_med)
-        flux_max = fcqf_df.ampl.values[np.argmax(roll_med)]
-        flux_scatt = median_abs_deviation(fcqf_df.ampl.values, scale="normal")
+        flux_max = fcqf_df["ampl"].values[np.argmax(roll_med)]
+        flux_scatt = median_abs_deviation(fcqf_df["ampl"].values, scale="normal")
         peak_snr = flux_max / flux_scatt
         if (peak_snr > min_peak_snr) and (ufid < 10000000):
             fcqfid_dict[str(ufid)]["det_sn"] = True

@@ -64,12 +64,14 @@ def mongod(pytestconfig):
 
 @pytest.fixture
 def dev_context(mongod):
-    return DevAmpelContext.load(
+    ctx = DevAmpelContext.load(
         config=Path(__file__).parent / "test-data" / "testing-config.yaml",
         purge_db=True,
         custom_conf={"resource.mongo": mongod},
         vault=AmpelVault([PotemkinSecretProvider()]),
     )
+    yield ctx
+    ctx.db.close()
 
 
 @pytest.fixture
