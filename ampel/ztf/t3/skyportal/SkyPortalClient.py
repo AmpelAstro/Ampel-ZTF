@@ -759,18 +759,6 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         if self.head(f"sources/{name}", raise_exc=False).status_code == 404:
             self.post(f"alerts/{name}", json={"group_ids": list(group_ids)})
 
-        # Get the source record (now guaranteed to exist)
-        source = self.get(f"sources/{name}")["data"]
-        if groups_to_post := group_ids.difference(
-            group["id"] for group in source["groups"]
-        ):
-            try:
-                self.post(
-                    "sources", json={"id": name, "group_ids": list(groups_to_post)}
-                )
-            except SkyPortalAPIError as exc:
-                ret["save_error"] = exc.args[0]
-
         # represent latest T2 results as a comments
         latest_t2: dict[str, T2DocView] = {}
         for t2 in view.t2 or []:
@@ -783,20 +771,38 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             ):
                 latest_t2[t2.unit] = t2
 
-        if annotate:
-            self.post_t2_annotations(
-                name,
-                latest_t2.values(),
-                source,
-                ret,
-            )
-        else:
-            self.post_t2_comments(
-                name,
-                latest_t2.values(),
-                source,
-                ret,
-            )
+        # Get the source record (now guaranteed to exist)
+        source = self.get(
+            f"sources/{name}",
+            params={
+                "includeComments": 1 if latest_t2 and not annotate else 0,
+            },
+        )["data"]
+        if groups_to_post := group_ids.difference(
+            group["id"] for group in source["groups"]
+        ):
+            try:
+                self.post(
+                    "sources", json={"id": name, "group_ids": list(groups_to_post)}
+                )
+            except SkyPortalAPIError as exc:
+                ret["save_error"] = exc.args[0]
+
+        if latest_t2:
+            if annotate:
+                self.post_t2_annotations(
+                    name,
+                    latest_t2.values(),
+                    source,
+                    ret,
+                )
+            else:
+                self.post_t2_comments(
+                    name,
+                    latest_t2.values(),
+                    source,
+                    ret,
+                )
 
         ret["dt"] += time.time()
 
