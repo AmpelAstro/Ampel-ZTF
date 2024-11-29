@@ -595,15 +595,125 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             else:
                 self.logger.debug(f"{t2.unit} exists and is current")
 
+    def get_filter_ids(
+        self, view: "TransientView", filters: Sequence[str] | None = None
+    ) -> dict[str, int]:
+        assert view.stock, f"{self.__class__} requires stock records"
+        return {
+            name: self.get_by_name("filters", name)
+            for name in (
+                filters
+                or [f"AMPEL.{channel}" for channel in ampel_iter(view.stock["channel"])]
+            )
+        }
+
+    def get_filter_updates(
+        self,
+        view: "TransientView",
+        passed_filters: Sequence[int],
+        filters: None | Sequence[str] = None,
+    ) -> Generator[tuple[int, datetime, list[int]], None, None]:
+        """
+        Generates updates for filters based on journal entries in a given view.
+        Args:
+            view (TransientView): The view containing journal entries and stock information.
+            passed_filters (Sequence[int]): A sequence of filter IDs that have already been passed.
+            filters (None | Sequence[str], optional): A sequence of filter names to check. If None, defaults to filters based on the channels in the view's stock.
+        Yields:
+            tuple[int, datetime, list[int]]: A tuple containing the alert ID, the timestamp of the journal entry, and a list of filter IDs that passed for the first time.
+        """
+
+        assert view.stock, f"{self.__class__} requires stock records"
+        new_filters = {
+            self.get_by_name("filters", name)
+            for name in (
+                filters
+                or [f"AMPEL.{channel}" for channel in ampel_iter(view.stock["channel"])]
+            )
+        }.difference(passed_filters)
+        # Walk through the non-autocomplete journal entries in time order,
+        # finding the time and alert id at which each filter passed for the
+        # first time.
+        for jentry in view.get_journal_entries(tier=0):
+            if jentry.get("extra", {}).get("ac", False):
+                continue
+            # no more filters left to update
+            if not new_filters:
+                break
+            # set all filters to passing on the first go if filters were
+            # specified explicitly
+            fids = (
+                list(new_filters)
+                if filters
+                else [
+                    fid
+                    for channel in ampel_iter(jentry["channel"])
+                    if (fid := self.get_by_name("filters", f"AMPEL.{channel}"))
+                    in new_filters
+                ]
+            )
+            # no new filters passed on this alert
+            if not fids:
+                continue
+            yield (
+                jentry["alert"],  # type: ignore[typeddict-item]
+                datetime.fromtimestamp(jentry["ts"], tz=timezone.utc),
+                fids,
+            )
+            new_filters.difference_update(fids)
+
     def post_candidate(
         self,
         view: "TransientView",
         *,
         filters: None | list[str] = None,
-        groups: None | list[str] = None,
-        instrument: None | str = None,
-        post_photometry: bool = True,
-        post_cutouts: None | CutoutSpec = None,
+    ):
+        """Post candidate for this object. post_source() must be called first."""
+        name = self.get_source_name(view)
+
+        if (
+            response := self.get(
+                f"candidates/{name}",
+                params={"includeAlerts": 1},
+                raise_exc=False,
+            )
+        )["status"] == "success":
+            # Only update filters, not the candidate itself
+            passed_filters = response["data"]["filter_ids"]
+        else:
+            passed_filters = []
+
+        # Walk through the non-autocomplete journal entries in time order,
+        # finding the time and alert id at which each filter passed for the
+        # first time.
+        for alert_id, passed_at, fids in self.get_filter_updates(
+            view, passed_filters, filters
+        ):
+            self.post(
+                "candidates",
+                json={
+                    "id": name,
+                    "filter_ids": fids,
+                    "passing_alert_id": alert_id,
+                    "passed_at": passed_at.isoformat(),
+                },
+            )
+
+    def get_source_name(self, view: "TransientView") -> str:
+        assert view.stock, f"{self.__class__} requires stock records"
+        assert (
+            "name" in view.stock
+        ), f"{self.__class__} requires stocks with a `name` field. Did you remember to set AlertConsumer.compiler_opts?"
+        assert view.stock["name"] is not None
+        return next(
+            n for n in view.stock["name"] if isinstance(n, str) and n.startswith("ZTF")
+        )
+
+    def post_source(
+        self,
+        view: "TransientView",
+        *,
+        groups: list[str],  # groups are required
         annotate: bool = False,
     ) -> PostReport:
         """
@@ -642,178 +752,24 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             "dt": -time.time(),
         }
 
-        assert view.stock, f"{self.__class__} requires stock records"
-        filter_ids = {
-            name: self.get_by_name("filters", name)
-            for name in (
-                filters
-                or [f"AMPEL.{channel}" for channel in ampel_iter(view.stock["channel"])]
-            )
-        }
-        group_ids = {self.get_by_name("groups", name) for name in (groups or [])}
-        assert (
-            "tag" in view.stock
-        ), f"{self.__class__} requires stocks with a `tag` field. Did you remember to set AlertConsumer.compiler_opts?"
-        assert view.stock["tag"] is not None
-        instrument_id = (
-            self.get_by_name("instrument", instrument)
-            if instrument
-            else self._find_instrument(view.stock["tag"])
-        )
+        name = self.get_source_name(view)
 
-        assert view.stock
-        assert (
-            "name" in view.stock
-        ), f"{self.__class__} requires stocks with a `name` field. Did you remember to set AlertConsumer.compiler_opts?"
-        assert view.stock["name"] is not None
-        name = next(
-            n for n in view.stock["name"] if isinstance(n, str) and n.startswith("ZTF")
-        )
+        # Check if source exists. If not, instruct Kowalski to create it
+        group_ids = {self.get_by_name("groups", name) for name in groups}
+        if self.head(f"sources/{name}", raise_exc=False).status_code == 404:
+            self.post(f"alerts/{name}", json={"group_ids": list(group_ids)})
 
-        # all photometry, in time order
-        assert view.t0 is not None
-        dps = sorted(view.t0, key=lambda pp: pp["body"]["jd"])
-        # detections, in time order
-        pps = [pp for pp in dps if pp["id"] > 0]
-
-        # post transient
-        candidate = {
-            "ra": pps[-1]["body"]["ra"],
-            "dec": pps[-1]["body"]["dec"],
-            "ra_dis": pps[0]["body"]["ra"],
-            "dec_dis": pps[0]["body"]["dec"],
-            "origin": "Ampel",
-            "score": max(drb)
-            if (
-                drb := [
-                    rb
-                    for pp in pps
-                    if (rb := pp["body"].get("drb", pp["body"]["rb"])) is not None
-                ]
-            )
-            else None,
-            "detect_photometry_count": len(pps),
-            "transient": True,  # sure, why not
-        }
-        new_filters = set(filter_ids.values())
-
-        if (
-            response := self.get(
-                f"candidates/{name}",
-                params={"includeComments": 1, "includeAlerts": 1},
-                raise_exc=False,
-            )
-        )["status"] == "success":
-            # Only update filters, not the candidate itself
-            new_filters.difference_update(response["data"]["filter_ids"])
-            candidate = {}
-            ret["new"] = False
-
-        # Walk through the non-autocomplete journal entries in time order,
-        # finding the time and alert id at which each filter passed for the
-        # first time. If the candidate has not yet been posted, do so for the
-        # first alert that passes a filter.
-        for jentry in view.get_journal_entries(tier=0):
-            if jentry.get("extra", {}).get("ac", False):
-                continue
-            # no more filters left to update
-            if not new_filters:
-                break
-            # set all filters to passing on the first go if filters were
-            # specified explicitly
-            fids = (
-                list(new_filters)
-                if filters
-                else [
-                    fid
-                    for channel in ampel_iter(jentry["channel"])
-                    if (fid := filter_ids[f"AMPEL.{channel}"]) in new_filters
-                ]
-            )
-            # no new filters passed on this alert
-            if not fids:
-                continue
-            new_filters.difference_update(fids)
-            candidate_ids = (
+        # Get the source record (now guaranteed to exist)
+        source = self.get(f"sources/{name}")["data"]
+        if groups_to_post := group_ids.difference(
+            group["id"] for group in source["groups"]
+        ):
+            try:
                 self.post(
-                    "candidates",
-                    json={
-                        "id": name,
-                        "filter_ids": fids,
-                        "passing_alert_id": jentry["alert"],  # type: ignore[typeddict-item]
-                        "passed_at": datetime.fromtimestamp(
-                            jentry["ts"], tz=timezone.utc
-                        ).isoformat(),
-                        **candidate,
-                    },
+                    "sources", json={"id": name, "group_ids": list(groups_to_post)}
                 )
-            )["data"]["ids"]
-            ret["candidates"] += candidate_ids
-            candidate = {}
-
-        # Save source to groups, if specified
-        if groups:
-            try:
-                source = (self.get(f"sources/{name}"))["data"]
-                prev_groups = {group["id"] for group in source["groups"]}
-            except SkyPortalAPIError:
-                prev_groups = set()
-            if groups_to_post := group_ids.difference(prev_groups):
-                try:
-                    self.post(
-                        "sources", json={"id": name, "group_ids": list(groups_to_post)}
-                    )
-                except SkyPortalAPIError as exc:
-                    ret["save_error"] = exc.args[0]
-
-        if post_photometry:
-            # Post photometry for the latest light curve.
-            # For ZTF, the id of the most recent detection is the alert id
-            # NB: we rely on the advertised, but as of 2020-09-17, unimplemented,
-            # feature that repeated POST /api/photometry with the same alert_id and
-            # group_ids are idempotent
-            photometry = {
-                "obj_id": name,
-                "group_ids": "all",
-                "magsys": "ab",
-                "instrument_id": instrument_id,
-                **self.make_photometry(dps),
-            }
-            datapoint_ids = photometry.pop("id")
-            try:
-                photometry_response = self.put("photometry", json=photometry)
-                photometry_ids = photometry_response["data"]["ids"]
-                assert len(datapoint_ids) == len(photometry_ids)
-                ret["photometry_count"] = len(photometry_ids)
             except SkyPortalAPIError as exc:
-                ret["photometry_error"] = exc.args[0]
-
-        if post_cutouts is not None:
-            # SkyPortal only supports one of thumbnail per object and type
-            # ('new', 'ref', 'sub', 'sdss', 'dr8', 'new_gz', 'ref_gz', 'sub_gz')
-            # Post one of each type only if they do not yet exist.
-            existing_cutouts: set[str] = (
-                {t["type"] for t in response["data"]["thumbnails"]}
-                if response["status"] == "success"
-                else set()
-            )
-            for cutouts in (view.extra or {}).get(post_cutouts.key, {}).values():
-                for kind, blob in (cutouts or {}).items():
-                    if post_cutouts.types[kind] in existing_cutouts:
-                        continue
-                    assert isinstance(blob, bytes)
-                    # FIXME: switch back to FITS when SkyPortal supports it
-                    self.post(
-                        "thumbnail",
-                        json={
-                            "obj_id": name,
-                            "data": render_thumbnail(blob),
-                            "ttype": post_cutouts.types[kind],
-                        },
-                        raise_exc=True,
-                    )
-                    existing_cutouts.add(post_cutouts.types[kind])
-                    ret["thumbnail_count"] += 1
+                ret["save_error"] = exc.args[0]
 
         # represent latest T2 results as a comments
         latest_t2: dict[str, T2DocView] = {}
@@ -831,14 +787,14 @@ class BaseSkyPortalPublisher(SkyPortalClient):
             self.post_t2_annotations(
                 name,
                 latest_t2.values(),
-                response["data"] if response["status"] == "success" else None,
+                source,
                 ret,
             )
         else:
             self.post_t2_comments(
                 name,
                 latest_t2.values(),
-                response["data"] if response["status"] == "success" else None,
+                source,
                 ret,
             )
 

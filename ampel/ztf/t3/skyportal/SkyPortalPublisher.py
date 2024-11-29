@@ -7,11 +7,13 @@
 
 from collections.abc import Generator
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated, Literal
+
+from annotated_types import MinLen
 
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
 from ampel.struct.JournalAttributes import JournalAttributes
-from ampel.ztf.t3.skyportal.SkyPortalClient import BaseSkyPortalPublisher, CutoutSpec
+from ampel.ztf.t3.skyportal.SkyPortalClient import BaseSkyPortalPublisher
 
 if TYPE_CHECKING:
     from ampel.content.JournalRecord import JournalRecord
@@ -21,14 +23,17 @@ if TYPE_CHECKING:
 
 class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
     #: Save sources to these groups
-    groups: None | list[str] = None
+    groups: Annotated[list[str], MinLen(1)]
+    #: Save as candidates for these filters. If None, save for filters
+    # "AMPEL.{channel}". If a list, save for these filters. If an empty list,
+    # post no candidates.
     filters: None | list[str] = None
     #: Post T2 results as annotations instead of comments
     annotate: bool = False
     #: Explicitly post photometry for each stock. If False, rely on some backend
     #: service (like Kowalski on Fritz) to fill in photometry for sources.
-    include_photometry: bool = True
-    cutouts: None | CutoutSpec = CutoutSpec()
+    include_photometry: Literal[False] = False
+    cutouts: Literal[None] = None
 
     process_name: None | str = None
 
@@ -40,14 +45,16 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
         """Pass each view to :meth:`post_candidate`."""
         for view in tviews:
             if self.requires_update(view):
-                self.post_candidate(
+                self.post_source(
                     view,
                     groups=self.groups,
-                    filters=self.filters,
                     annotate=self.annotate,
-                    post_photometry=self.include_photometry,
-                    post_cutouts=self.cutouts,
                 )
+                if self.filters is not None and self.filters:
+                    self.post_candidate(
+                        view,
+                        filters=self.filters,
+                    )
 
     def _filter_journal_entries(self, jentry: "JournalRecord", after: float):
         """Select journal entries from SkyPortalPublisher newer than last update"""
