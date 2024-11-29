@@ -191,11 +191,11 @@ class SkyPortalClient(AmpelUnit):
         self,
         verb: str,
         endpoint: str,
-        raise_exc: bool,
         *,
+        raise_exc: bool = True,
         headers: None | dict[str, str] = None,
         params: None | dict[str, Any] = None,
-        data: None | dict[str, Any] = None,
+        json: None | dict[str, Any] = None,
         _decode_json: None,
     ) -> requests.Response: ...
 
@@ -204,12 +204,12 @@ class SkyPortalClient(AmpelUnit):
         self,
         verb: str,
         endpoint: str,
-        raise_exc: bool,
         *,
+        raise_exc: bool = True,
         headers: None | dict[str, str] = None,
         params: None | dict[str, Any] = None,
-        data: None | dict[str, Any] = None,
-        _decode_json: bool,
+        json: None | dict[str, Any] = None,
+        _decode_json: bool = True,
     ) -> dict[str, Any]: ...
 
     @backoff.on_exception(
@@ -226,13 +226,12 @@ class SkyPortalClient(AmpelUnit):
         self,
         verb: str,
         endpoint: str,
-        raise_exc: bool = True,
         *,
+        raise_exc: bool = True,
         headers: None | dict[str, str] = None,
         params: None | dict[str, Any] = None,
-        data: None | dict[str, Any] = None,
+        json: None | dict[str, Any] = None,
         _decode_json: None | bool = True,
-        # **kwargs: "Unpack[_RequestOptions]",
     ) -> requests.Response | dict[str, Any]:
         if endpoint.startswith("/"):
             url = self.base_url + endpoint
@@ -255,7 +254,7 @@ class SkyPortalClient(AmpelUnit):
                 url,
                 headers=headers,
                 params=params,
-                data=data,
+                json=json,
             )
             if response.status_code == 429 or response.status_code >= 500:
                 response.raise_for_status()
@@ -274,7 +273,12 @@ class SkyPortalClient(AmpelUnit):
                 return payload
             return response
 
-    def get_id(self, endpoint, params, default=None):
+    def get_id(
+        self,
+        endpoint: str,
+        params: dict[str, Any],
+        default: None | dict[str, Any] = None,
+    ) -> int:
         """Query for an object by id, inserting it if not found"""
         if not (response := self.get(endpoint, params=params, raise_exc=False))["data"]:
             response = self.post(endpoint, json=default or params)
@@ -282,14 +286,14 @@ class SkyPortalClient(AmpelUnit):
             return response["data"][0]["id"]
         return response["data"]["id"]
 
-    def get_by_name(self, endpoint, name):
+    def get_by_name(self, endpoint: str, name: str) -> int:
         if endpoint not in self._ids:
             self._ids[endpoint] = {}
         if name not in self._ids[endpoint]:
             self._ids[endpoint][name] = self._get_by_name(endpoint, name)
         return self._ids[endpoint][name]
 
-    def _get_by_name(self, endpoint, name):
+    def _get_by_name(self, endpoint: str, name: str) -> int:
         try:
             return next(
                 d["id"]
@@ -300,17 +304,41 @@ class SkyPortalClient(AmpelUnit):
             pass
         raise KeyError(f"No {endpoint} named {name}")
 
-    def get(self, endpoint: str, **kwargs) -> dict[str, Any]:
-        return self.request("GET", endpoint, **kwargs)
+    def get(
+        self,
+        endpoint: str,
+        *,
+        params: None | dict[str, Any] = None,
+        raise_exc: bool = True,
+    ) -> dict[str, Any]:
+        return self.request("GET", endpoint, params=params, raise_exc=raise_exc)
 
-    def post(self, endpoint: str, **kwargs) -> dict[str, Any]:
-        return self.request("POST", endpoint, **kwargs)
+    def post(
+        self,
+        endpoint: str,
+        *,
+        params: None | dict[str, Any] = None,
+        json: None | dict[str, Any] = None,
+        raise_exc: bool = True,
+    ) -> dict[str, Any]:
+        return self.request(
+            "POST", endpoint, params=params, json=json, raise_exc=raise_exc
+        )
 
-    def put(self, endpoint: str, **kwargs) -> dict[str, Any]:
-        return self.request("PUT", endpoint, **kwargs)
+    def put(
+        self,
+        endpoint: str,
+        *,
+        params: None | dict[str, Any] = None,
+        json: None | dict[str, Any] = None,
+        raise_exc: bool = True,
+    ) -> dict[str, Any]:
+        return self.request(
+            "PUT", endpoint, params=params, json=json, raise_exc=raise_exc
+        )
 
-    def head(self, endpoint: str, **kwargs) -> requests.Response:
-        return self.request("HEAD", endpoint, _decode_json=None, **kwargs)
+    def head(self, endpoint: str) -> requests.Response:
+        return self.request("HEAD", endpoint, _decode_json=None)
 
 
 class FilterGroupProvisioner(SkyPortalClient):
@@ -486,7 +514,8 @@ class BaseSkyPortalPublisher(SkyPortalClient):
     def _find_instrument(self, tags: Sequence[int | str]) -> int:
         with suppress(KeyError, requests.exceptions.RequestException):
             for tag in tags:
-                return self.get_by_name("instrument", tag)
+                if isinstance(tag, str):
+                    return self.get_by_name("instrument", tag)
         raise KeyError(f"None of {tags} match a known instrument")
 
     def post_t2_annotations(
@@ -756,7 +785,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
 
         # Check if source exists. If not, instruct Kowalski to create it
         group_ids = {self.get_by_name("groups", name) for name in groups}
-        if self.head(f"sources/{name}", raise_exc=False).status_code == 404:
+        if self.head(f"sources/{name}").status_code == 404:
             self.post(f"alerts/{name}", json={"group_ids": list(group_ids)})
 
         # represent latest T2 results as a comments
