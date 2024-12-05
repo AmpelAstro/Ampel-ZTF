@@ -180,15 +180,8 @@ class Observatory:
             )
         end = time.time()
         self.logger.debug(
-            "Computing %s motion from %s to %s (res: %.2f min, %d steps). Took %.2f sec"
-            % (
-                which,
-                times.min().iso,
-                times.max().iso,
-                dt_min,
-                len(times),
-                (end - start),
-            )
+            f"Computing {which} motion from {times.min().iso} to {times.max().iso}"
+            f" (res: {dt_min:.2f} min, {len(times)} steps). Took {end-start:.2f} sec"
         )
         return skypos
 
@@ -245,9 +238,7 @@ class Observatory:
         am = (
             np.sqrt(((r + y) * cosz) ** 2 + 2 * r * (1 - y) - y**2 + 1) - (r + y) * cosz
         )
-        self.logger.debug(
-            "Computed airmass for %d apparent sky positions" % len(zeniths)
-        )
+        self.logger.debug(f"Computed airmass for {len(zeniths)} apparent sky positions")
         return am
 
     def compute_visibility(
