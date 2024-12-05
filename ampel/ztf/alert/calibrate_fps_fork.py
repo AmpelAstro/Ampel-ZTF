@@ -328,10 +328,8 @@ def search_peak(
     # print(
     #    f"peaksearch max over scatt {max_over_scatt} peaksnr {peak_snr} fluxmax {flux_max} fluxscatt {flux_scatt}"
     # )
-    if (
-        (max_over_scatt > single_significance and peak_snr > single_significance)
-        or (max_over_scatt + peak_snr) > combined_significance
-        and peak_snr > 3
+    if (max_over_scatt > single_significance and peak_snr > single_significance) or (
+        (max_over_scatt + peak_snr) > combined_significance and peak_snr > 3
     ):
         sumdict["det_sn"] = True
         sumdict["t_fcqfid_max"] = t_max
@@ -881,7 +879,9 @@ def get_baseline(
                     pre_rise_em = False
                     if len(pre_em) == 0:
                         fcqfid_dict[key]["which_bl"] = "post SN"
-                    if len(pre_em) >= 1 and len(pre_bl[0]) < 5 or sum(pre_em >= 7) >= 2:
+                    if (len(pre_em) >= 1 and len(pre_bl[0]) < 5) or sum(
+                        pre_em >= 7
+                    ) >= 2:
                         if (len(post_em) >= 10) and (
                             fcqfid_dict[key]["N_post_peak"] > 2
                         ):
