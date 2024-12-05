@@ -101,8 +101,8 @@ class DevAlertConsumer:
                 break
 
         self._logger.info(
-            "%i alert(s) processed (time required: %is)"
-            % (iter_count - iter_offset, int(time.time() - run_start))
+            f"{iter_count - iter_offset} alert(s) processed"
+            f" (time required: {time.time() - run_start:.0f}s)"
         )
 
         # Return number of processed alerts
