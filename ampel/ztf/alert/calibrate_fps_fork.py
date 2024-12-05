@@ -728,12 +728,12 @@ def get_baseline(
             which_base = np.zeros_like(fp_df.forcediffimflux.values).astype(int)
             C_baseline = np.zeros_like(fp_df.forcediffimflux.values)
 
-        for key in fcqfid_dict:
-            if fcqfid_dict[key]["N_bl"] > 1:
+        for key, value in fcqfid_dict.items():
+            if value["N_bl"] > 1:
                 ufid = int(key)
                 this_fcqfid = np.where(fp_df.fcqfid.values == ufid)
                 if deprecated:
-                    sys_unc = max(fcqfid_dict[key]["chi_pre"] ** 0.5, 1)
+                    sys_unc = max(value["chi_pre"] ** 0.5, 1)
                 else:
                     good_fcqfid = np.where(
                         (fp_df.fcqfid.values == ufid)
@@ -810,33 +810,31 @@ def get_baseline(
                 sys_unc = np.where(sys_unc < 1, 1, sys_unc)
 
                 if deprecated:
-                    if (fcqfid_dict[key]["N_pre_peak"] >= 25) or (
-                        (fcqfid_dict[key]["N_pre_peak"] >= 10)
-                        and (fcqfid_dict[key]["N_post_peak"] < 25)
+                    if (value["N_pre_peak"] >= 25) or (
+                        (value["N_pre_peak"] >= 10) and (value["N_post_peak"] < 25)
                     ):
-                        baseline = fcqfid_dict[key]["C_pre"]
-                        n_baseline = fcqfid_dict[key]["N_pre_peak"]
+                        baseline = value["C_pre"]
+                        n_baseline = value["N_pre_peak"]
                         pre_or_post = -1
-                    elif (fcqfid_dict[key]["N_post_peak"] >= 25) or (
-                        (fcqfid_dict[key]["N_pre_peak"] < 10)
-                        and (fcqfid_dict[key]["N_post_peak"] >= 10)
+                    elif (value["N_post_peak"] >= 25) or (
+                        (value["N_pre_peak"] < 10) and (value["N_post_peak"] >= 10)
                     ):
-                        baseline = fcqfid_dict[key]["C_post"]
-                        n_baseline = fcqfid_dict[key]["N_post_peak"]
+                        baseline = value["C_post"]
+                        n_baseline = value["N_post_peak"]
                         pre_or_post = 1
                     else:
-                        n_base_obs[this_fcqfid] = fcqfid_dict[key]["N_pre_peak"]
+                        n_base_obs[this_fcqfid] = value["N_pre_peak"]
                         which_base[this_fcqfid] = -1
                         continue
                 else:
                     # determine if there is emission in pre/post SN baseline
-                    if "C_bl" not in fcqfid_dict[key]:
+                    if "C_bl" not in value:
                         print(f"{ipac_name}, {key} no C_bl")
                         continue
-                    baseline = fcqfid_dict[key]["median_bl"]
-                    baseline_unc = fcqfid_dict[key]["median_unc_bl"]
-                    base_scat = fcqfid_dict[key]["scatter_bl"]
-                    fcqfid_dict[key]["which_bl"] = "pre+post SN"
+                    baseline = value["median_bl"]
+                    baseline_unc = value["median_unc_bl"]
+                    base_scat = value["scatter_bl"]
+                    value["which_bl"] = "pre+post SN"
 
                     good_df = fp_df.iloc[good_fcqfid].copy()
                     flux_series = good_df.forcediffimflux
@@ -866,7 +864,7 @@ def get_baseline(
                         )
                         ** 2
                     ) / len(good_df.iloc[bl])
-                    fcqfid_dict[key]["chi2nu"] = chi2nu
+                    value["chi2nu"] = chi2nu
                     if chi2nu > 2:
                         print("Warning! scaled unc are underestimated")
                         print(f"{ipac_name} {key} has chi2nu = {chi2nu:.3f}")
@@ -878,47 +876,45 @@ def get_baseline(
 
                     pre_rise_em = False
                     if len(pre_em) == 0:
-                        fcqfid_dict[key]["which_bl"] = "post SN"
+                        value["which_bl"] = "post SN"
                     if (len(pre_em) >= 1 and len(pre_bl[0]) < 5) or sum(
                         pre_em >= 7
                     ) >= 2:
-                        if (len(post_em) >= 10) and (
-                            fcqfid_dict[key]["N_post_peak"] > 2
-                        ):
-                            baseline = fcqfid_dict[key]["median_post"]
-                            baseline_unc = fcqfid_dict[key]["median_unc_post"]
-                            base_scat = fcqfid_dict[key]["scatter_post"]
-                            fcqfid_dict[key]["which_bl"] = "post SN"
+                        if (len(post_em) >= 10) and (value["N_post_peak"] > 2):
+                            baseline = value["median_post"]
+                            baseline_unc = value["median_unc_post"]
+                            base_scat = value["scatter_post"]
+                            value["which_bl"] = "post SN"
                         if sum(pre_em >= 7) >= 2:
                             print(f"Warning {ipac_name} {ufid} pre-SN")
-                            fcqfid_dict[key]["Warning"] = "pre-SN emission"
+                            value["Warning"] = "pre-SN emission"
                             pre_rise_em = True
                             fp_df.loc[fp_df.fcqfid == ufid, "flags"] += 2
 
                     post_rise_em = False
                     if len(post_em) == 0:
-                        fcqfid_dict[key]["which_bl"] = "pre SN"
+                        value["which_bl"] = "pre SN"
                     if len(post_em) >= 1 and (
                         len(post_em) < 5 or sum(post_em >= 7) >= 2
                     ):
-                        if (len(pre_em) >= 10) and (fcqfid_dict[key]["N_pre_peak"] > 2):
-                            baseline = fcqfid_dict[key]["median_pre"]
-                            baseline_unc = fcqfid_dict[key]["median_unc_pre"]
-                            base_scat = fcqfid_dict[key]["scatter_pre"]
-                            fcqfid_dict[key]["which_bl"] = "pre SN"
+                        if (len(pre_em) >= 10) and (value["N_pre_peak"] > 2):
+                            baseline = value["median_pre"]
+                            baseline_unc = value["median_unc_pre"]
+                            base_scat = value["scatter_pre"]
+                            value["which_bl"] = "pre SN"
                         if sum(post_em >= 7) >= 2:
                             print(f"Warning {ipac_name} {ufid} post-SN")
-                            fcqfid_dict[key]["Warning"] = "post-SN emission"
+                            value["Warning"] = "post-SN emission"
                             post_rise_em = True
                             fp_df.loc[fp_df.fcqfid == ufid, "flags"] += 4
 
                     if pre_rise_em + post_rise_em == 2:
-                        baseline = fcqfid_dict[key]["median_bl"]
-                        baseline_unc = fcqfid_dict[key]["median_unc_bl"]
-                        base_scat = fcqfid_dict[key]["scatter_bl"]
+                        baseline = value["median_bl"]
+                        baseline_unc = value["median_unc_bl"]
+                        base_scat = value["scatter_bl"]
                         print(f"Warning {ipac_name} {ufid} bad baseline")
-                        fcqfid_dict[key]["Warning"] = "bad baseline"
-                        fcqfid_dict[key]["which_bl"] = "pre+post SN"
+                        value["Warning"] = "bad baseline"
+                        value["which_bl"] = "pre+post SN"
                         # fp_df.loc[fp_df.fcqfid == ufid, 'flags'] += 512
                 if base_scat > 100:
                     fp_df.loc[fp_df.fcqfid == ufid, "flags"] += 16
@@ -984,16 +980,15 @@ def get_baseline(
         nplots = 0
         jdstart = 2458119.5
 
-        for key in fcqfid_dict:
-            if fcqfid_dict[key]["N_bl"] > 1:
+        for key, value in fcqfid_dict.items():
+            if value["N_bl"] > 1:
                 this_fcqfid_good = np.where(
                     (fp_df.fcqfid.values == int(key)) & (bad_obs == 0)
                 )
                 plot_flux = fnu_microJy[this_fcqfid_good]
 
                 if (plot_flux == -999).sum() != len(plot_flux) and (
-                    (fcqfid_dict[key]["N_pre_peak"] > 2)
-                    or (fcqfid_dict[key]["N_post_peak"] > 2)
+                    (value["N_pre_peak"] > 2) or (value["N_post_peak"] > 2)
                 ):
                     nplots += 1
 
