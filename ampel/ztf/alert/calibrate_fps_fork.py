@@ -1,10 +1,10 @@
 import gc
+import importlib.resources
 
 import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pkg_resources  # type: ignore
 from astropy.coordinates import AltAz, EarthLocation, SkyCoord
 from astropy.time import Time
 from matplotlib.pyplot import Figure
@@ -14,8 +14,6 @@ from scipy.stats import median_abs_deviation
 # Methods copied from https://github.com/BrightTransientSurvey/ztf_forced_phot/
 # as these are not pip available (yet).
 ################
-
-pkg_resources.require("pandas>=1.3")
 
 
 def read_ipac_fps(fps_file):
@@ -220,7 +218,9 @@ def read_ipac_fps(fps_file):
     }
 
     rcid_df = pd.read_csv(
-        pkg_resources.resource_stream(__name__, "cal_data/zp_thresholds_quadID.txt"),
+        importlib.resources.files(__name__).joinpath(
+            "cal_data", "zp_thresholds_quadID.txt"
+        ),
         **read_opts,
     )
 
@@ -743,8 +743,8 @@ def get_baseline(
                     # good_diffl = fp_df.forcediffimflux.iloc[good_fcqfid].values
                     this_diffl = fp_df.forcediffimflux.iloc[this_fcqfid].values
                     chi_df = pd.read_csv(
-                        pkg_resources.resource_stream(
-                            __name__, "cal_data/chi_lookup.csv"
+                        importlib.resources.files(__name__).joinpath(
+                            "cal_data", "chi_lookup.csv"
                         )
                     )
                     if ufid % 10 == 1:
