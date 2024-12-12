@@ -26,10 +26,6 @@ from ampel.types import Tag
 from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.ztf.util.ZTFNoisifiedIdMapper import ZTFNoisifiedIdMapper
 
-# Only works directly on filenames
-# from bts_phot.calibrate_fps import get_baseline # type: ignore[import]
-
-
 dcast = {
     "sigma": float,
     "sigma.err": float,
