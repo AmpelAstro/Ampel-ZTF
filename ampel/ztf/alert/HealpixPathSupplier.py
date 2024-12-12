@@ -59,9 +59,7 @@ class HealpixPathSupplier(ZiHealpixAlertSupplier):
             self.healpix_pvalues = list(credible_levels)
 
             # Create mask for pixel selection
-            mask = np.zeros(len(credible_levels), int)
-            mask[credible_levels <= self.pvalue_limit] = 1
-            ipix = mask.nonzero()[0].tolist()
+            ipix = (credible_levels <= self.pvalue_limit).nonzero()[0].tolist()
             self.set_healpix(nside=self.nside, pixels=ipix, time=self.trigger_time)
 
     def __next__(self) -> AmpelAlertProtocol:
