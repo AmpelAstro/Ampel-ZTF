@@ -217,9 +217,11 @@ def read_ipac_fps(fps_file):
         "comment": "#",
     }
 
+    # Find directory path for calibration file access - __name__ includes file reference
+    calpath = ".".join(__name__.split(".")[0:-1])
     rcid_df = pd.read_csv(
-        importlib.resources.files(__name__).joinpath(
-            "cal_data", "zp_thresholds_quadID.txt"
+        importlib.resources.files(calpath).joinpath(
+            "cal_data/zp_thresholds_quadID.txt"
         ),
         **read_opts,
     )
@@ -742,9 +744,11 @@ def get_baseline(
                     # chi_ser = fp_df.forcediffimchisq.iloc[good_fcqfid].copy()
                     # good_diffl = fp_df.forcediffimflux.iloc[good_fcqfid].values
                     this_diffl = fp_df.forcediffimflux.iloc[this_fcqfid].values
+                    # Find directory path for calibration file access - __name__ includes file reference
+                    calpath = ".".join(__name__.split(".")[0:-1])
                     chi_df = pd.read_csv(
-                        importlib.resources.files(__name__).joinpath(
-                            "cal_data", "chi_lookup.csv"
+                        importlib.resources.files(calpath).joinpath(
+                            "cal_data/chi_lookup.csv"
                         )
                     )
                     if ufid % 10 == 1:
