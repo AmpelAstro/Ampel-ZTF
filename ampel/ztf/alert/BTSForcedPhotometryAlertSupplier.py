@@ -146,7 +146,7 @@ class BTSForcedPhotometryAlertSupplier(BaseAlertSupplier):
             allpeaks = {}
             for obs_group, df_group in df.groupby("fcqfid"):
                 # Skip secondary grid
-                if obs_group > 10000000:  # type: ignore
+                if obs_group > 10000000:
                     continue
                 if not self.allow_iband_peak and str(obs_group)[-1] == "3":
                     continue

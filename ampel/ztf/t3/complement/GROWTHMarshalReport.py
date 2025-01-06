@@ -9,7 +9,7 @@
 from collections.abc import Iterable, Sequence
 from typing import Any
 
-import backoff  # type: ignore[import]
+import backoff
 import requests
 
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement

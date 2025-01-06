@@ -9,8 +9,8 @@ from base64 import b64decode
 from collections.abc import Iterable
 from typing import Literal
 
-import backoff  # type: ignore[import]
-import requests  # type: ignore[import]
+import backoff
+import requests
 from requests_toolbelt.sessions import BaseUrlSession
 
 from ampel.abstract.AbsBufferComplement import AbsBufferComplement

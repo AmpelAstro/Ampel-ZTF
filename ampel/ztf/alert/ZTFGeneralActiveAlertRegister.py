@@ -26,7 +26,7 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
 
     __slots__: ClassVar[tuple[str, ...]] = (
         "_write",
-        "alert_max",  # type: ignore
+        "alert_max",
         "alert_min",
         "stock_max",
         "stock_min",
@@ -40,14 +40,14 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
     }
 
     new_header_size: int | str = "+4096"
-    header_hints: ClassVar[Sequence[str]] = ("alert", "stock")  # type: ignore
+    header_hints: ClassVar[Sequence[str]] = ("alert", "stock")
     alert_min: int
     alert_max: int
     stock_min: int
     stock_max: int
     ztf_years: set[int]
 
-    def __init__(self, **kwargs) -> None:  # type: ignore[override]
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         hdr = self.header["payload"]
         if "ztf_years" in hdr:

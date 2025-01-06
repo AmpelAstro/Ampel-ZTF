@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from typing import Any
 
-import backoff  # type: ignore
+import backoff
 import requests
 
 from ampel.abstract.AbsT0Muxer import AbsT0Muxer

@@ -66,7 +66,7 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
             )
 
         if not any(model.unit == "T2LightCurveSummary" for model in self.t2_compute):
-            self.t2_compute.append(T2Compute(unit="T2LightCurveSummary"))  # type: ignore[arg-type]
+            self.t2_compute.append(T2Compute(unit="T2LightCurveSummary"))
 
         mongo_muxer = {"unit": "ZiMongoMuxer"} if self.live_history else None
         archive_muxer = (

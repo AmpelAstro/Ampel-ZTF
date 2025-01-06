@@ -54,7 +54,7 @@ class ZTFNoisifiedIdMapper(AbsIdMapper):
     def to_ext_id(cls, ampel_id: StrictIterable[StockId]) -> list[str]: ...
 
     @classmethod
-    def to_ext_id(cls, ampel_id: StockId | StrictIterable[StockId]) -> str | list[str]:  # type: ignore[override]
+    def to_ext_id(cls, ampel_id: StockId | StrictIterable[StockId]) -> str | list[str]:
         """
         Return the original name of the noisified lightcurve
         """

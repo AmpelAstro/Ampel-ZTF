@@ -23,7 +23,7 @@ from ampel.model.PlotProperties import FormatModel, PlotProperties
 # from ampel.plot.create import create_plot_record
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.view.ReadOnlyDict import ReadOnlyDict
-from ampel.ztf.alert.calibrate_fps_fork import get_baseline  # type: ignore[import]
+from ampel.ztf.alert.calibrate_fps_fork import get_baseline
 from ampel.ztf.util.ZTFIdMapper import to_ampel_id
 
 dcast = {
@@ -166,7 +166,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             )
             self.name_values = df[self.name_key]
 
-        with open(fpath) as f:  # type: ignore
+        with open(fpath) as f:
             li = iter(f)
             for line in li:
                 if "# Requested input R.A." in line:
@@ -175,8 +175,8 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
                     break
 
         # Parse filename for info
-        tags = basename(fpath).split(".")[1:-1] or None  # type: ignore
-        sn_name: str | int = basename(fpath).split(".")[0]  # type: ignore
+        tags = basename(fpath).split(".")[1:-1] or None
+        sn_name: str | int = basename(fpath).split(".")[0]
 
         df = pd.DataFrame()
         d = get_baseline(

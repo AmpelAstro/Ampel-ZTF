@@ -93,7 +93,7 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
 
     def _get_alerts(self) -> Generator[dict[str, Any], None, None]:
         assert self.source is not None
-        while self.query_start < len(self.source.pixels):  # type: ignore[union-attr]
+        while self.query_start < len(self.source.pixels):
             chunk = self._get_chunk()
             if self.stream is None:
                 self.stream = chunk["resume_token"]

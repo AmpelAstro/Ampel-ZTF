@@ -31,7 +31,7 @@ class ZiDataPointShaperBase(AmpelUnit):
     digest_size: int = 8
 
     # Mandatory implementation
-    def process(self, arg: Iterable[dict[str, Any]], stock: StockId) -> list[DataPoint]:  # type: ignore[override]
+    def process(self, arg: Iterable[dict[str, Any]], stock: StockId) -> list[DataPoint]:
         """
         :param arg: sequence of unshaped pps
         IMPORTANT:

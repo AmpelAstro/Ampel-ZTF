@@ -81,7 +81,7 @@ def archive_topic():
 def list_kafka():
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
-    from pykafka import KafkaClient  # type: ignore[import]
+    from pykafka import KafkaClient  # type: ignore[import-not-found]
 
     parser = ArgumentParser(
         description=__doc__, formatter_class=ArgumentDefaultsHelpFormatter

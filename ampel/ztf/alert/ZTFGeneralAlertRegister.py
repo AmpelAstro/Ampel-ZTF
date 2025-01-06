@@ -24,7 +24,7 @@ class ZTFGeneralAlertRegister(BaseAlertRegister):
     Logs: alert_id, filter_res, stock
     """
 
-    __slots__: ClassVar[tuple[str, ...]] = ("_write",)  # type: ignore
+    __slots__: ClassVar[tuple[str, ...]] = ("_write",)
     struct: Literal["<QB5s"] = "<QB5s"
 
     def file(self, alert: AmpelAlertProtocol, filter_res: int = 0) -> None:
