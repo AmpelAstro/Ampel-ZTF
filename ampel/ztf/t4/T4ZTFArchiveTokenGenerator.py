@@ -11,8 +11,8 @@ import time
 from datetime import datetime
 from typing import Any
 
-from astropy.time import Time  # type: ignore[import]
-from requests_toolbelt.sessions import BaseUrlSession  # type: ignore[import]
+from astropy.time import Time
+from requests_toolbelt.sessions import BaseUrlSession
 
 from ampel.abstract.AbsT4Unit import AbsT4Unit
 from ampel.secret.NamedSecret import NamedSecret

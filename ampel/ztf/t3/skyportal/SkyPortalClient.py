@@ -241,7 +241,7 @@ class SkyPortalClient(AmpelUnit):
         with (
             stat_http_time.labels(*labels).time(),
             stat_http_errors.labels(*labels).count_exceptions(
-                (  # type: ignore[arg-type]
+                (
                     requests.exceptions.HTTPError,
                     requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout,

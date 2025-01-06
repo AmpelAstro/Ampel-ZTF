@@ -31,7 +31,7 @@ class ZTFIdMapper(AbsIdMapper):
     def to_ampel_id(cls, ztf_id: StrictIterable[str]) -> list[int]: ...
 
     @classmethod
-    def to_ampel_id(cls, ztf_id: str | StrictIterable[str]) -> int | list[int]:  # type: ignore[override]
+    def to_ampel_id(cls, ztf_id: str | StrictIterable[str]) -> int | list[int]:
         """
         :returns: ampel id (positive integer).
 
@@ -113,7 +113,7 @@ class ZTFIdMapper(AbsIdMapper):
     def to_ext_id(cls, ampel_id: StrictIterable[StockId]) -> list[str]: ...
 
     @classmethod
-    def to_ext_id(cls, ampel_id: StockId | StrictIterable[StockId]) -> str | list[str]:  # type: ignore[override]
+    def to_ext_id(cls, ampel_id: StockId | StrictIterable[StockId]) -> str | list[str]:
         """
         %timeit to_ext_id(274878346346)
         1.54 µs ± 77.9 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)

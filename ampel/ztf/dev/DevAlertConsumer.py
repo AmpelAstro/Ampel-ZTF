@@ -7,7 +7,7 @@
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 
-import logging  # type: ignore[import]
+import logging
 import sys
 import tarfile
 import time

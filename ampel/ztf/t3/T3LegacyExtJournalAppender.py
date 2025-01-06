@@ -24,9 +24,7 @@ class T3LegacyExtJournalAppender(T3ExtJournalAppender):
         """
 
         if ext_stock := next(
-            self.col.find(
-                {"_id": legacy_to_ampel_id(to_ztf_id(stock_id))}  # type: ignore[arg-type]
-            ),
+            self.col.find({"_id": legacy_to_ampel_id(to_ztf_id(stock_id))}),
             None,
         ):
             for j in ext_stock["journal"]:

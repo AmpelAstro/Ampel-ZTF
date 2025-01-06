@@ -138,7 +138,7 @@ class ZTFAlertStreamController(AbsProcessController):
         try:
             while self._process.active and len(pending) > 1:
                 try:
-                    done, pending = await asyncio.wait(  # type: ignore[assignment]
+                    done, pending = await asyncio.wait(
                         pending, return_when="FIRST_COMPLETED"
                     )
                     for task in list(done):

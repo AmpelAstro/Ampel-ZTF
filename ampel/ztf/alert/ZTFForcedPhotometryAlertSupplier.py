@@ -80,7 +80,7 @@ class ZTFForcedPhotometryAlertSupplier(BaseAlertSupplier):
         :raises AttributeError: if alert_loader was not set properly before this method is called
         """
 
-        fpath = next(self.alert_loader)  # type: ignore
+        fpath = next(self.alert_loader)
         with open(fpath) as fd:  # type: ignore
             # Convert first line comment "# key1: val1, key2: val2" into dict (requires loader binary_mode=False)
             cdict = {

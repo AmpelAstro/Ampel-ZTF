@@ -53,5 +53,5 @@ class ZiHealpixAlertSupplier(BaseAlertSupplier):
         :raises AttributeError: if alert_loader was not set properly before this method is called
         """
 
-        d = self._deserialize(next(self.alert_loader))  # type: ignore
+        d = self._deserialize(next(self.alert_loader))
         return ZiAlertSupplier.shape_alert_dict(d)
