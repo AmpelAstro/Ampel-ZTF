@@ -9,7 +9,7 @@
 
 import sys
 from hashlib import blake2b
-from os.path import basename
+from os.path import basename, join
 
 import astropy.units as u
 import pandas as pd
@@ -111,6 +111,13 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
     # You can provide a file containing {ra,dec} maps to (ZTF) IDs, otherwise the file names will be used.
     name_file: str | None = None
     name_key: str = "ztfID"  # Name column in file
+    file_keys: dict[str, str] = {
+        "id": "ztfID",
+        "ra": "ra",
+        "dec": "dec",
+        "raunit": "deg",
+        "decunit": "deg",
+    }  # Name column in file
     name_coordinates = None  # Loaded at first run
     name_values = None  # Loaded at first run
     name_match_radius: float = 1.0  # Search radius to accept name
@@ -131,6 +138,9 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
     transient_hashid: list = []
     alert_counter: int = 0
 
+    # Store the baseline corrected files
+    save_file_dir: str | None
+
     plot_props: PlotProperties = PlotProperties(
         tags=["IFP", "BASELINE"],
         file_name=FormatModel(format_str="ifp_raw_%s.svg", arg_keys=["sn_name"]),
@@ -142,9 +152,11 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         if self.name_file:
             df = pd.read_csv(self.name_file)
             self.name_coordinates = SkyCoord(
-                ra=df["ra"], dec=df["dec"], unit=(u.deg, u.deg)
+                ra=df[self.file_keys["ra"]],
+                dec=df[self.file_keys["dec"]],
+                unit=(self.file_keys["raunit"], self.file_keys["decunit"]),
             )
-            self.name_values = df[self.name_key]
+            self.name_values = df[self.file_keys["id"]]
         else:
             self.name_coordinates, self.name_values = None, None
 
@@ -162,9 +174,11 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             # Move to init when configured correctly
             df = pd.read_csv(self.name_file)
             self.name_coordinates = SkyCoord(
-                ra=df["ra"], dec=df["dec"], unit=(u.deg, u.deg)
+                ra=df[self.file_keys["ra"]],
+                dec=df[self.file_keys["dec"]],
+                unit=(self.file_keys["raunit"], self.file_keys["decunit"]),
             )
-            self.name_values = df[self.name_key]
+            self.name_values = df[self.file_keys["id"]]
 
         with open(fpath) as f:
             li = iter(f)
@@ -260,11 +274,12 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         if self.name_coordinates:
             c = SkyCoord(ra=pps[0]["ra"], dec=pps[0]["dec"], unit=(u.deg, u.deg))
             idx, d2d, d3d = c.match_to_catalog_sky(self.name_coordinates)
-            # print(
-            #    "trying to find name", idx, d2d, d2d.to(u.arcsec), self.name_values[idx]
-            # )
             if d2d.to(u.arcsec)[0].value < self.name_match_radius:
                 sn_name = to_ampel_id(self.name_values[idx])  # type: ignore
+
+        # Store baseline corrected file
+        if self.save_file_dir:
+            df.to_csv(join(self.save_file_dir, str(sn_name) + "_basecorr.csv"))
 
         self.transient_name = sn_name
         self.transient_tags = tags  # type: ignore
