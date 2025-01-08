@@ -24,7 +24,7 @@ from ampel.model.PlotProperties import FormatModel, PlotProperties
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.ztf.alert.calibrate_fps_fork import get_baseline
-from ampel.ztf.util.ZTFIdMapper import to_ampel_id
+from ampel.ztf.util.ZTFIdMapper import to_ampel_id, to_ztf_id
 
 dcast = {
     "field": int,
@@ -243,7 +243,10 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             )
 
             # Enforce error floor
-            if pp["flux_unc"] / pp["flux"] < self.flux_unc_floor:
+            if (
+                abs(pp["flux"]) > 0
+                and pp["flux_unc"] / pp["flux"] < self.flux_unc_floor
+            ):
                 if tags is None:
                     tags = ["FLOOR"]
                 else:
@@ -279,7 +282,17 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         # Store baseline corrected file
         if self.save_file_dir:
-            df.to_csv(join(self.save_file_dir, str(sn_name) + "_basecorr.csv"))
+            # Only int if ampel id, then trnaslate back
+            if isinstance(sn_name, int):
+                df.to_csv(
+                    join(self.save_file_dir, to_ztf_id(sn_name) + "_basecorr.csv"),
+                    index=False,
+                )
+            else:
+                df.to_csv(
+                    join(self.save_file_dir, str(sn_name) + "_basecorr.csv"),
+                    index=False,
+                )
 
         self.transient_name = sn_name
         self.transient_tags = tags  # type: ignore
