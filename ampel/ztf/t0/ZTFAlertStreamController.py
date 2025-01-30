@@ -51,9 +51,9 @@ class ZTFAlertStreamController(AbsProcessController):
         process = copy.deepcopy(processes[0])
 
         assert process.active
-        assert (
-            process.processor.unit == "AlertConsumer"
-        ), "Lead process is an AlertConsumer"
+        assert process.processor.unit == "AlertConsumer", (
+            "Lead process is an AlertConsumer"
+        )
         assert isinstance(process.processor.config, dict)
 
         def strip(config):
@@ -74,15 +74,15 @@ class ZTFAlertStreamController(AbsProcessController):
             assert process.controller.config == pm.controller.config
             assert process.controller.override == pm.controller.override
             assert isinstance(pm.processor.config, dict)
-            assert (
-                process.processor.unit == pm.processor.unit
-            ), "All processes are AlertConsumers"
-            assert strip(process.processor.config) == strip(
-                pm.processor.config
-            ), "AlertConsumer configs are compatible"
-            assert strip(process.processor.override) == strip(
-                pm.processor.override
-            ), "AlertConsumer overrides are compatible"
+            assert process.processor.unit == pm.processor.unit, (
+                "All processes are AlertConsumers"
+            )
+            assert strip(process.processor.config) == strip(pm.processor.config), (
+                "AlertConsumer configs are compatible"
+            )
+            assert strip(process.processor.override) == strip(pm.processor.override), (
+                "AlertConsumer overrides are compatible"
+            )
             process.processor.config["directives"] += pm.processor.config["directives"]
 
         process.name = Counter(
