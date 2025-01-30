@@ -537,7 +537,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 plt.savefig(
                     os.path.join(
                         self.plot_dir,
-                        f'fpbase_{headerdict["name"]}.{self.plot_suffix}',
+                        f"fpbase_{headerdict['name']}.{self.plot_suffix}",
                     )
                 )
                 plt.close("fig")

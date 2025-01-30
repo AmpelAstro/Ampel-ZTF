@@ -181,7 +181,7 @@ class Observatory:
         end = time.time()
         self.logger.debug(
             f"Computing {which} motion from {times.min().iso} to {times.max().iso}"
-            f" (res: {dt_min:.2f} min, {len(times)} steps). Took {end-start:.2f} sec"
+            f" (res: {dt_min:.2f} min, {len(times)} steps). Took {end - start:.2f} sec"
         )
         return skypos
 
@@ -311,6 +311,6 @@ class Observatory:
         tot_vis_time = len(times_when_visible) * dt_min
         end = time.time()
         self.logger.info(
-            f"source is visible for a total of {tot_vis_time / 60.0:.3f} hours. Took {end-start:.2e} sec"
+            f"source is visible for a total of {tot_vis_time / 60.0:.3f} hours. Took {end - start:.2e} sec"
         )
         return times_when_visible

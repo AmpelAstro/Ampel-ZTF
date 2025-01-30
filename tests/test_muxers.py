@@ -492,6 +492,6 @@ def test_superseded_candidates_concurrent(mock_context, superseded_alerts, order
     assert_superseded(candids[0], candids[1])
     assert_superseded(candids[0], candids[2])
     assert_superseded(candids[1], candids[2])
-    assert (
-        "SUPERSEDED" not in t0.find_one({"id": candids[2]})["tag"]
-    ), f"candid {candids[2]} not superseded"
+    assert "SUPERSEDED" not in t0.find_one({"id": candids[2]})["tag"], (
+        f"candid {candids[2]} not superseded"
+    )
