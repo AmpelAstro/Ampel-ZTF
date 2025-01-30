@@ -730,9 +730,9 @@ class BaseSkyPortalPublisher(SkyPortalClient):
 
     def get_source_name(self, view: "TransientView") -> str:
         assert view.stock, f"{self.__class__} requires stock records"
-        assert (
-            "name" in view.stock
-        ), f"{self.__class__} requires stocks with a `name` field. Did you remember to set AlertConsumer.compiler_opts?"
+        assert "name" in view.stock, (
+            f"{self.__class__} requires stocks with a `name` field. Did you remember to set AlertConsumer.compiler_opts?"
+        )
         assert view.stock["name"] is not None
         return next(
             n for n in view.stock["name"] if isinstance(n, str) and n.startswith("ZTF")

@@ -178,8 +178,8 @@ class ZiMongoMuxer(AbsT0Muxer):
                 and dp["id"] in ids_dps_superseded
             ):
                 self.logger.info(
-                    f'Marking datapoint {dp["id"]} '
-                    f'as superseded by {ids_dps_superseded[dp["id"]]}'
+                    f"Marking datapoint {dp['id']} "
+                    f"as superseded by {ids_dps_superseded[dp['id']]}"
                 )
 
                 # point is newly superseded
@@ -213,8 +213,8 @@ class ZiMongoMuxer(AbsT0Muxer):
             for dp in dps_db or []:
                 if dp["id"] in ids_dps_superseded:
                     self.logger.info(
-                        f'Marking datapoint {dp["id"]} '
-                        f'as superseded by {ids_dps_superseded[dp["id"]]}'
+                        f"Marking datapoint {dp['id']} "
+                        f"as superseded by {ids_dps_superseded[dp['id']]}"
                     )
 
                     # point is newly superseded

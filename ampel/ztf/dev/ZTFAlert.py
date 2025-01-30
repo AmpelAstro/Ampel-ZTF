@@ -41,9 +41,9 @@ class ZTFAlert:
     @staticmethod
     def _upper_limit_id(el: dict[str, Any]) -> int:
         return int(
-            f'{(2457754.5 - el["jd"]) * 1000000:.0f}'
-            f'{str(el["pid"])[8:10]}'
-            f'{round(abs(el["diffmaglim"]) * 1000):.0f}'
+            f"{(2457754.5 - el['jd']) * 1000000:.0f}"
+            f"{str(el['pid'])[8:10]}"
+            f"{round(abs(el['diffmaglim']) * 1000):.0f}"
         )
 
     @classmethod
