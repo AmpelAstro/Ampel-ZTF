@@ -22,7 +22,7 @@ class BaseCatalogMatchRequest(AmpelBaseModel):
     rs_arcsec: float
 
 
-class ExtcatsMatchRequest(BaseCatalogMatchRequest):  # type: ignore[override]
+class ExtcatsMatchRequest(BaseCatalogMatchRequest):
     use: Literal["extcats"]
     pre_filter: None | dict[str, Any]
     post_filter: None | dict[str, Any]

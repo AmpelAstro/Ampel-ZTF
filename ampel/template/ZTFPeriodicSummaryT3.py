@@ -11,7 +11,7 @@ from collections.abc import Sequence
 from ampel.template.PeriodicSummaryT3 import LoaderDirective, PeriodicSummaryT3
 
 
-class ZTFPeriodicSummaryT3(PeriodicSummaryT3):  # type: ignore[override]
+class ZTFPeriodicSummaryT3(PeriodicSummaryT3):
     """
     Periodic summary process with sensible defaults for ZTF.
     """
