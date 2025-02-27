@@ -75,12 +75,13 @@ astropy = ">=5"
 
 [[package]]
 name = "ampel-plot"
-version = "0.9.0a2"
+version = "0.9.0"
 description = ""
 optional = true
 python-versions = ">=3.10"
 files = [
-    {file = "ampel-plot-0.9.0a2.tar.gz", hash = "sha256:ccf76499de5160124fbcc14a3290c0ba0735bbd3ceaafd028d303c261977e540"},
+    {file = "ampel-plot-0.9.0.tar.gz", hash = "sha256:df094541617c9c1e0560f8f8c2ab1d497506e7801afdb81c1b76b92d6165cce9"},
+    {file = "ampel_plot-0.9.0-py3-none-any.whl", hash = "sha256:6ab216aea19d620dfd812104c6626bc189263b00d5ebe06401b75bbc2e02bc71"},
 ]
 
 [package.extras]
@@ -3161,4 +3162,4 @@ plot = ["ampel-plot"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "16d2a57775a4be1ea74b8914a61369d020f99ce3574043c45240bf2313c9d653"
+content-hash = "45b657a574ce18360d746f85a2ccf6266c396794aec6186cd29848039ebf556a"
