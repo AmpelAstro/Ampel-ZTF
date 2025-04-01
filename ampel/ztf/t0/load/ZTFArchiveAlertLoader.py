@@ -110,7 +110,7 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
                     if remaining_chunks is not None:
                         self.logger.info(f"Remaining chunks: {remaining_chunks}")
                 except:
-                    pass
+                    self.logger.info("Chunk retrieval fail.")
 
         response.raise_for_status()
         return response.json()
