@@ -103,14 +103,11 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
                 params={"with_history": self.with_history},
             )
             if response.status_code == 200:
-                try:
-                    remaining_chunks: int | None = (
-                        response.json().get("remaining", {}).get("chunks")
-                    )
-                    if remaining_chunks is not None:
-                        self.logger.info(f"Remaining chunks: {remaining_chunks}")
-                except:
-                    self.logger.info("Chunk retrieval fail.")
+                remaining_chunks: int | None = (
+                    response.json().get("remaining", {}).get("chunks")
+                )
+                if remaining_chunks is not None:
+                    self.logger.info(f"Remaining chunks: {remaining_chunks}")
 
         response.raise_for_status()
         return response.json()
