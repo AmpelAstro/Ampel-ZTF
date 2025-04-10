@@ -197,7 +197,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             fpath,
             write_lc=df,
             make_plot=True,
-            save_path="/home/jnordin/tmp/bts_phot_fp/",
+            save_path="default",
             save_fig=True,
         )
 
