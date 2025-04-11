@@ -13,6 +13,7 @@ from os.path import basename, join
 
 import astropy.units as u
 import pandas as pd
+import numpy as np
 from astropy.coordinates import SkyCoord
 from bson import encode
 
@@ -23,7 +24,7 @@ from ampel.model.PlotProperties import FormatModel, PlotProperties
 # from ampel.plot.create import create_plot_record
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.view.ReadOnlyDict import ReadOnlyDict
-from ampel.ztf.alert.calibrate_fps_fork import get_baseline
+from ampel.ztf.alert.calibrate_fps_fork import get_baseline, read_ipac_fps
 from ampel.ztf.util.ZTFIdMapper import to_ampel_id, to_ztf_id
 
 dcast = {
@@ -128,6 +129,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
     detection_threshold: float = (
         5.0  # S/N above this considered a significant detection
     )
+    photometry_type: str = 'diff' # diff for difference photometry and abs for absolute phtometry
 
     # Loaded transient datapoints (for alert mode)
     # Dynamically updated during
@@ -193,26 +195,51 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         sn_name: str | int = basename(fpath).split(".")[0]
 
         df = pd.DataFrame()
-        d = get_baseline(
-            fpath,
-            write_lc=df,
-            make_plot=True,
-            save_path="default",
-            save_fig=True,
-        )
 
-        # Parse baseline correction for peak estimate
-        t_peak = None
-        for basedict in d.values():
-            if (t_peak := basedict.get("t_peak", None)) is not None:
-                break
+        if self.photometry_type == 'diff':
+            d = get_baseline(
+                fpath,
+                write_lc=df,
+                make_plot=True,
+                save_path="default",
+                save_fig=True,
+            )
+            # Parse baseline correction for peak estimate
+            t_peak = None
+            for basedict in d.values():
+                if (t_peak := basedict.get("t_peak", None)) is not None:
+                    break
 
-        if not t_peak:
-            print(f"OBS NO PEAK for{fpath} {sn_name}")
-            return False
+            if not t_peak:
+                print(f"OBS NO PEAK for{fpath} {sn_name}")
+                return False
 
-        t_min = t_peak - self.days_prepeak
-        t_max = t_peak + self.days_postpeak
+            t_min = t_peak - self.days_prepeak
+            t_max = t_peak + self.days_postpeak
+        
+        elif self.photometry_type == 'abs':
+            df = read_ipac_fps(fpath)
+
+            bad_obs_fl = 512
+
+            df["flags"] = np.zeros(len(df)).astype(int)
+            df.loc[df.scisigpix.values > 25, "flags"] += 64
+            df.loc[df.sciinpseeing.values > 5, "flags"] += 128
+            df.loc[df.infobitssci.values > 0, "flags"] += 512
+            df.loc[df.forcediffimfluxunc == -99999, "flags"] += 1024
+            bad_obs = np.where(df["flags"].values >= bad_obs_fl, 1, 0)
+
+            df.loc[df.dnearestrefsrc.values < 1, 'nearestref_flags'] += 64 # ensure reference source exists close to target
+            df.loc[df.nearestrefsharp.values > 0.1, 'nearesref_flags' ] += 128 # discard if source is extended
+
+            df['nearestrefflux'] = 10 ** (0.4 * (df['zpdiff'] - df['nearestrefmag'])) # reference source flux
+            df['ref_unc_times_flux'] = df['nearestrefmagunc'] * df['nearestrefflux'] / 1.08057 # reference source flux uncertainty
+            
+            df['flux_dn'] = df['forcediffimflux'] + df['nearestrefflux'] # total flux in DN
+            df['flux_dn_unc'] = np.sqrt(df['forcediffimflux']**2 + df['nearestrefflux']**2) # total flux uncertainty in DN
+            df['fnu_microJy'] = df['flux_dn'] * 10 ** (29 - 48.6 / 2.5 - 0.4 * df['zpdiff']) # total flux in Jy
+            df['fnu_microJy_unc'] = df['flux_dn_unc'] * 10 ** (29 - 48.6 / 2.5 - 0.4 * df['zpdiff']) # total flux uncertainty in Jy
+
         pps = []
         alert_ids: list[bytes] = []
 
@@ -222,7 +249,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 for k, v in row.items()
             }
 
-            if (
+            if (self.photometry_type=='diff') and (
                 pp["jd"] < t_min
                 or pp["jd"] > t_max
                 or (self.baseline_flag_cut <= pp["flags"])
