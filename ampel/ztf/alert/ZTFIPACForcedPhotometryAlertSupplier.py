@@ -221,6 +221,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             df = read_ipac_fps(fpath)
 
             bad_obs_fl = 512
+            bad_ref_fl = 60
 
             df["flags"] = np.zeros(len(df)).astype(int)
             df.loc[df.scisigpix.values > 25, "flags"] += 64
@@ -229,8 +230,11 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             df.loc[df.forcediffimfluxunc == -99999, "flags"] += 1024
             bad_obs = np.where(df["flags"].values >= bad_obs_fl, 1, 0)
 
+            df["nearestref_flags"] = np.zeros(len(df)).astype(int)
             df.loc[df.dnearestrefsrc.values < 1, 'nearestref_flags'] += 64 # ensure reference source exists close to target
-            df.loc[df.nearestrefsharp.values > 0.1, 'nearesref_flags' ] += 128 # discard if source is extended
+            df.loc[df.nearestrefsharp.values > 0.1, 'nearestref_flags' ] += 128 # discard if source is extended
+            bad_ref = np.where(df["nearestref_flags"].values >= bad_ref_fl, 1, 0)
+            bad = bad_obs | bad_ref
 
             df['nearestrefflux'] = 10 ** (0.4 * (df['zpdiff'] - df['nearestrefmag'])) # reference source flux
             df['ref_unc_times_flux'] = df['nearestrefmagunc'] * df['nearestrefflux'] / 1.08057 # reference source flux uncertainty
@@ -239,7 +243,9 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             df['flux_dn_unc'] = np.sqrt(df['forcediffimflux']**2 + df['nearestrefflux']**2) # total flux uncertainty in DN
             df['fnu_microJy'] = df['flux_dn'] * 10 ** (29 - 48.6 / 2.5 - 0.4 * df['zpdiff']) # total flux in Jy
             df['fnu_microJy_unc'] = df['flux_dn_unc'] * 10 ** (29 - 48.6 / 2.5 - 0.4 * df['zpdiff']) # total flux uncertainty in Jy
-
+            df.loc['fnu_microJy', bad] = -999.0
+            df.loc['fnu_microJy_unc', bad] = -999.0
+            
         pps = []
         alert_ids: list[bytes] = []
 
@@ -324,7 +330,10 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         self.transient_name = sn_name
         self.transient_tags = tags  # type: ignore
         self.transient_pps = pps
-        self.transient_baselineinfo = d
+        if self.photometry_type == 'diff':
+            self.transient_baselineinfo = d
+        else:
+            self.transient_baselineinfo = None
         self.transient_hashid = alert_ids
         self.alert_counter = 0
         return True
