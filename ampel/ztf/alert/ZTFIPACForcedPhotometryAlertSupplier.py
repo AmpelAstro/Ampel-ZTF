@@ -245,7 +245,9 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             df['fnu_microJy_unc'] = df['flux_dn_unc'] * 10 ** (29 - 48.6 / 2.5 - 0.4 * df['zpdiff']) # total flux uncertainty in Jy
             df.loc['fnu_microJy', bad] = -999.0
             df.loc['fnu_microJy_unc', bad] = -999.0
-            
+
+            df['passband'] = df['filter']
+
         pps = []
         alert_ids: list[bytes] = []
 
