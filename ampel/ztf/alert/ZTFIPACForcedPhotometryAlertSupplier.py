@@ -218,33 +218,36 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             t_max = t_peak + self.days_postpeak
         
         elif self.photometry_type == 'abs':
+            choosen_keys = ["jd", "forcediffimflux", 'forcediffimfluxunc',"filter", "forcediffimchisq", "programid", "fcqfid", "zpdiff", "ccdid", "qid", 'nearestrefmag', 'nearestrefmagunc']
             df = read_ipac_fps(fpath)
-
-            bad_obs_fl = 512
-            bad_ref_fl = 60
+    
+            bad_obs_fl = 150
+            bad_ref_fl = 100
 
             df["flags"] = np.zeros(len(df)).astype(int)
             df.loc[df.scisigpix.values > 25, "flags"] += 64
             df.loc[df.sciinpseeing.values > 5, "flags"] += 128
             df.loc[df.infobitssci.values > 0, "flags"] += 512
             df.loc[df.forcediffimfluxunc == -99999, "flags"] += 1024
-            bad_obs = np.where(df["flags"].values >= bad_obs_fl, 1, 0)
+            bad_obs = df["flags"].values >= bad_obs_fl
 
             df["nearestref_flags"] = np.zeros(len(df)).astype(int)
             df.loc[df.dnearestrefsrc.values < 1, 'nearestref_flags'] += 64 # ensure reference source exists close to target
             df.loc[df.nearestrefsharp.values > 0.1, 'nearestref_flags' ] += 128 # discard if source is extended
-            bad_ref = np.where(df["nearestref_flags"].values >= bad_ref_fl, 1, 0)
+            bad_ref = df["nearestref_flags"].values >= bad_ref_fl
             bad = bad_obs | bad_ref
 
+            df = df[choosen_keys]
+
             df['nearestrefflux'] = 10 ** (0.4 * (df['zpdiff'] - df['nearestrefmag'])) # reference source flux
-            df['ref_unc_times_flux'] = df['nearestrefmagunc'] * df['nearestrefflux'] / 1.08057 # reference source flux uncertainty
+            df['nearestreffluxunc'] = df['nearestrefmagunc'] * df['nearestrefflux'] / 1.08057 # reference source flux uncertainty
             
             df['flux_dn'] = df['forcediffimflux'] + df['nearestrefflux'] # total flux in DN
-            df['flux_dn_unc'] = np.sqrt(df['forcediffimflux']**2 + df['nearestrefflux']**2) # total flux uncertainty in DN
+            df['flux_dn_unc'] = np.sqrt(df['forcediffimfluxunc']**2 + df['nearestreffluxunc']**2) # total flux uncertainty in DN
             df['fnu_microJy'] = df['flux_dn'] * 10 ** (29 - 48.6 / 2.5 - 0.4 * df['zpdiff']) # total flux in Jy
             df['fnu_microJy_unc'] = df['flux_dn_unc'] * 10 ** (29 - 48.6 / 2.5 - 0.4 * df['zpdiff']) # total flux uncertainty in Jy
-            df.loc['fnu_microJy', bad] = -999.0
-            df.loc['fnu_microJy_unc', bad] = -999.0
+            df.loc[bad, 'fnu_microJy'] = -999.0
+            df.loc[bad, 'fnu_microJy_unc'] = -999.0
 
             df['passband'] = df['filter']
 
@@ -252,6 +255,11 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         alert_ids: list[bytes] = []
 
         for _, row in df.iterrows():
+
+            # Ignore flagged rows 
+            if row["fnu_microJy"] == -999.0 or row["fnu_microJy_unc"] == -999.0:
+                continue
+
             pp = {
                 k: dcast[k](v) if (k in dcast and v is not None) else v
                 for k, v in row.items()
@@ -268,6 +276,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             pp["ra"] = ra
             pp["dec"] = dec
             pp["rcid"] = (pp["ccdid"] - 1) * 4 + pp["qid"] - 1
+
 
             # Convert jansky to flux
             pp["flux"] = pp[self.flux_key] * 2.75406
