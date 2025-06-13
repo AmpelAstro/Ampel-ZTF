@@ -105,6 +105,8 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
     )
     days_prepeak: float = 40.0
     days_postpeak: float = 150.0
+    baseline_min_det_pre: float = 25.0 # Min detections prior to transient region in a band/quad to include 
+    baseline_min_det_post: float = 25.0 # Min detections after transient region in a band/quad to include 
 
     # Transient naming
     # IPAC FP files do not contain any ZTF names, but are named according to a running index.
@@ -197,22 +199,27 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             fpath,
             write_lc=df,
             make_plot=True,
-            save_path="/home/jnordin/tmp/bts_phot_fp/",
+            save_path="/Users/jnordin/tmp/bts_phot_fp/",
             save_fig=True,
         )
 
         # Parse baseline correction for peak estimate
-        t_peak = None
-        for basedict in d.values():
+        t_peaks = []
+        use_fqids = set()
+        for fqid, basedict in d.items():
+#            print('fqid', fqid, basedict.get("N_pre_peak", -1), basedict.get("N_post_peak", -1))
+            if self.baseline_min_det_pre> basedict.get("N_pre_peak", -1) or self.baseline_min_det_post> basedict.get("N_post_peak", -1):
+                continue
             if (t_peak := basedict.get("t_peak", None)) is not None:
-                break
+                t_peaks.append(t_peak)
+            use_fqids.add(int(fqid))
 
-        if not t_peak:
-            print(f"OBS NO PEAK for{fpath} {sn_name}")
+        if len(t_peaks)==0:
             return False
 
-        t_min = t_peak - self.days_prepeak
-        t_max = t_peak + self.days_postpeak
+        m = sum(t_peaks) / len(t_peaks)
+        t_min = m - self.days_prepeak
+        t_max = m + self.days_postpeak
         pps = []
         alert_ids: list[bytes] = []
 
@@ -227,6 +234,8 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 or pp["jd"] > t_max
                 or (self.baseline_flag_cut <= pp["flags"])
             ):
+                continue
+            if pp["fcqfid"] not in use_fqids:
                 continue
 
             pp["fid"] = ZTF_FILTER_MAP[pp["passband"]]
@@ -270,7 +279,6 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
         if len(pps) == 0:
             # No datapoints assebled, e.g. if the
-            print(f"OBS NO DPS for{fpath} {sn_name}")
             return False
 
         # Was a list of ZTF names to use supplied?
@@ -356,11 +364,6 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             # Make sure we return full history
             # create - make alert function...
             self.alert_counter = len(self.transient_pps)
-            # print(
-            #    "yep, need to issue a final alert",
-            #    self.alert_counter,
-            #    len(self.transient_hashid),
-            # )
             return self._build_alert(self.alert_counter)
 
         return self.__next__()
