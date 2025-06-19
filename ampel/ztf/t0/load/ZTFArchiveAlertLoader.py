@@ -102,11 +102,12 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
                 f"{self.archive}/stream/{self.stream}/chunk",
                 params={"with_history": self.with_history},
             )
-            remaining_chunks: int | None = (
-                response.json().get("remaining", {}).get("chunks")
-            )
-            if remaining_chunks is not None:
-                self.logger.info(f"Remaining chunks: {remaining_chunks}")
+            if response.status_code == 200:
+                remaining_chunks: int | None = (
+                    response.json().get("remaining", {}).get("chunks")
+                )
+                if remaining_chunks is not None:
+                    self.logger.info(f"Remaining chunks: {remaining_chunks}")
 
         response.raise_for_status()
         return response.json()
