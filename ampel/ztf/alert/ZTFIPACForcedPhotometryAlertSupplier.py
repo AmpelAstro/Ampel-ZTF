@@ -312,8 +312,8 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             stock=self.transient_name,  # internal ampel id - for forced photometry we still have not associated to unique ZTF ... do we need to do that later?
             # Ampel alert structure assumes most recent detection to come first
             datapoints=tuple(
-                [self.transient_pps[datapoints - 1]]
-                + self.transient_pps[0 : datapoints - 1]
+                self.transient_pps[datapoints - 1],
+                *self.transient_pps[0 : datapoints - 1],
             ),
             extra=ReadOnlyDict(
                 {
