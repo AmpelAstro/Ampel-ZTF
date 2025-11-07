@@ -158,6 +158,9 @@ ignore = [
     "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
 ]
 
+[tool.ruff.lint.isort]
+known-first-party = ["ampel"]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["RUF018"] # assignment in assert is just fine in tests
 
