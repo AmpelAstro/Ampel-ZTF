@@ -276,7 +276,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         # Was a list of ZTF names to use supplied?
         if self.name_coordinates:
             c = SkyCoord(ra=pps[0]["ra"], dec=pps[0]["dec"], unit=(u.deg, u.deg))
-            idx, d2d, d3d = c.match_to_catalog_sky(self.name_coordinates)
+            idx, d2d, _ = c.match_to_catalog_sky(self.name_coordinates)
             if d2d.to(u.arcsec)[0].value < self.name_match_radius:
                 sn_name = to_ampel_id(self.name_values[idx])  # type: ignore
 
