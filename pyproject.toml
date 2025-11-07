@@ -60,12 +60,12 @@ planobs = {version = "^0.7.0", optional = true}
 # need to be able to build a config with AmpelExceptionPublisher included
 ampel-core = {version = "*", extras = ["slack"]}
 pytest = "^8.3.3"
-pytest-cov = "^6.0.0"
+pytest-cov = "^7.0.0"
 pytest-mock = "^3.14.0"
 mongomock = "^4.3"
 mypy = "^1.11.2"
 pytest-timeout = "^2.3.1"
-pytest-asyncio = "^0.26.0"
+pytest-asyncio = "^1.0.0"
 types-requests = "^2.25.9"
 before_after = "^1.0.1"
 
