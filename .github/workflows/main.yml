@@ -23,7 +23,7 @@ jobs:
       mongo: true
       format: true
       lint: true
-      # renovate: datasource=conda depName=conda-forge/python
+      # renovate: datasource=python-version depName=python
       python-version: "3.14.0"
       # renovate: datasource=pypi depName=ruff versioning=pep440
       ruff-version: "0.14.4"
