@@ -259,7 +259,7 @@ def read_ipac_fps(fps_file):
             )
         )
     )
-    cloudy[flag_clouds] = int(2**25)
+    cloudy[flag_clouds] = 2**25
     fp_det["infobitssci"] = fp_det.infobitssci.values + cloudy
 
     obs_jd = Time(fp_det.jd.values, format="jd")

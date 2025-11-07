@@ -199,13 +199,13 @@ class ZTFAlertStreamController(AbsProcessController):
         p: dict[str, Any],
     ) -> bool:
         try:
-            import setproctitle  # type: ignore
+            import setproctitle  # type: ignore # noqa: PLC0415
 
             setproctitle.setproctitle(f"ampel.t{p['tier']}.{p['name']}")
         except Exception:
             ...
 
-        from ampel.alert.AlertConsumer import AlertConsumer
+        from ampel.alert.AlertConsumer import AlertConsumer  # noqa: PLC0415
 
         # Create new context with frozen config
         context = AmpelContext.load(

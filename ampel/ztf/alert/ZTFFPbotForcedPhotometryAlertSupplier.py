@@ -341,7 +341,7 @@ def get_reference_mjds(fcqfid_list: list) -> dict:
     """
     Get list of references from IPAC and return dates for all unique combinations of fieldid, CCD and filter
     """
-    from planobs.utils import get_references
+    from planobs.utils import get_references  # noqa: PLC0415
 
     fieldids = list(
         set([int(str(fcqfid)[: len(str(fcqfid)) - 4]) for fcqfid in fcqfid_list])

@@ -276,7 +276,7 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
         # Was a list of ZTF names to use supplied?
         if self.name_coordinates:
             c = SkyCoord(ra=pps[0]["ra"], dec=pps[0]["dec"], unit=(u.deg, u.deg))
-            idx, d2d, d3d = c.match_to_catalog_sky(self.name_coordinates)
+            idx, d2d, _ = c.match_to_catalog_sky(self.name_coordinates)
             if d2d.to(u.arcsec)[0].value < self.name_match_radius:
                 sn_name = to_ampel_id(self.name_values[idx])  # type: ignore
 
@@ -312,8 +312,8 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
             stock=self.transient_name,  # internal ampel id - for forced photometry we still have not associated to unique ZTF ... do we need to do that later?
             # Ampel alert structure assumes most recent detection to come first
             datapoints=tuple(
-                [self.transient_pps[datapoints - 1]]
-                + self.transient_pps[0 : datapoints - 1]
+                self.transient_pps[datapoints - 1],
+                *self.transient_pps[0 : datapoints - 1],
             ),
             extra=ReadOnlyDict(
                 {
