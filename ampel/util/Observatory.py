@@ -11,7 +11,7 @@ import time
 
 import astropy.units as u
 import numpy as np
-from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_moon, get_sun
+from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_body
 from astropy.time import Time
 
 logging.basicConfig(level=logging.INFO)
@@ -170,10 +170,8 @@ class Observatory:
 
         # define the observatory reference frame and move the sun
         obs_altaz = self.get_alt_az()
-        if which.lower() == "sun":
-            skypos = get_sun(times).transform_to(obs_altaz)
-        elif which.lower() == "moon":
-            skypos = get_moon(times).transform_to(obs_altaz)
+        if which.lower() in ["sun", "moon"]:
+            skypos = get_body(which.lower(), times).transform_to(obs_altaz)
         else:
             raise ValueError(
                 f"compute_sun_moon accepts either 'sun' or 'moon'. Got {which}"
