@@ -1,31 +1,46 @@
-[tool.poetry]
+[project]
 name = "ampel-ztf"
 version = "0.10.3a6"
 description = "Zwicky Transient Facility support for the Ampel system"
+requires-python = ">=3.10, <4"
 authors = [
-    "Valery Brinnel",
-    "Jakob van Santen <jakob.van.santen@desy.de>",
-    "Sjoert van Velzen",
-    "Jakob Nordin",
+    { name = "Valery Brinnel" },
+    { name = "Jakob van Santen", email = "jakob.van.santen@desy.de" },
+    { name = "Sjoert van Velzen" },
+    { name = "Jakob Nordin" }
 ]
 maintainers = [
-    "Jakob van Santen <jakob.van.santen@desy.de>"
+    { name = "Jakob van Santen", email = "jakob.van.santen@desy.de" },
 ]
 license = "BSD-3-Clause"
 readme = "README.md"
 homepage = "https://ampelproject.github.io"
-repository = "https://github.com/AmpelProject/Ampel-ZTF"
+repository = "https://github.com/AmpelAstro/Ampel-ZTF"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: Information Analysis",
     "Topic :: Scientific/Engineering :: Astronomy",
     "Typing :: Typed",
 ]
+dependencies = [
+    "ampel-interface (>=0.10.4.post2,<0.11)",
+]
+
+[dependency-groups]
+dev = [
+    "pytest-ampel-core (>=0.10.0a3,<0.11)",
+    "mypy (>=1.13,<2.0)",
+]
+
+[tool.poetry]
 packages = [
     {include = "ampel"}
 ]
-exclude = ["ampel/py.typed"]
+exclude = [
+    "ampel/py.typed",
+]
 include = [
     'conf/*/*.json',
     'conf/*/*/*.json',
@@ -35,52 +50,9 @@ include = [
     'conf/*/*/*.yml',
 ]
 
-
-[tool.poetry.dependencies]
-python = "^3.10"
-astropy = ">=5.0"
-matplotlib = "^3.3.4"
-backoff = "^2.0.0"
-fastavro = "^1.9.2"
-requests = "^2.25.1"
-requests-toolbelt = "^1.0.0"
-confluent-kafka = {version = "^2.0.0", optional = true}
-healpy = {version = "^1.15", optional = true}
-light-curve = {version = ">=0.10,<0.11", optional = true}
-ampel-ztf-archive = {version = "^0.8.0-alpha.0", optional = true}
-ampel-core = ">=0.10.4.post0,<0.11"
-ampel-alerts = ">=0.10.1,<0.11"
-ampel-photometry = ">=0.10.1,<0.11"
-ampel-plot = {version = "^0.9.1", optional = true}
-pandas = {version = ">=1.5", optional = true}
-scipy = "^1.9.3"
-planobs = {version = "^0.7.0", optional = true}
-
-[tool.poetry.dev-dependencies]
-# need to be able to build a config with AmpelExceptionPublisher included
-ampel-core = {version = "*", extras = ["slack"]}
-pytest = "^8.3.3"
-pytest-cov = "^7.0.0"
-pytest-mock = "^3.14.0"
-mongomock = "^4.3"
-mypy = "^1.11.2"
-pytest-timeout = "^2.3.1"
-pytest-asyncio = "^1.0.0"
-types-requests = "^2.25.9"
-before_after = "^1.0.1"
-
-[tool.poetry.extras]
-archive = ["ampel-ztf-archive"]
-healpix = ["healpy"]
-light-curve = ["light-curve"]
-kafka = ["confluent-kafka"]
-plot = ["ampel-plot"]
-fp = ["pandas", "planobs"]
-bayes = ["pandas", "planobs", "ampel-plot"]
-
-[tool.poetry.group.dev.dependencies]
-types-pytz = "^2023.3.1.1"
-types-requests = "^2.32.0.20241016"
+[project.urls]
+homepage = "https://ampelproject.github.io"
+repository = "https://github.com/AmpelAstro/Ampel-ZTF"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools >= 40.6.0", "wheel"]
@@ -104,8 +76,15 @@ filterwarnings = [
 
 [tool.mypy]
 namespace_packages = true
+packages = [
+  "ampel"
+]
+plugins = [
+  "pydantic.mypy",
+]
 show_error_codes = true
 warn_unused_ignores = true
+check_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -127,6 +106,7 @@ ignore_missing_imports = true
 line-length = 88
 
 [tool.ruff]
+line-length = 79
 target-version = "py310"
 
 [tool.ruff.lint]
@@ -151,18 +131,20 @@ select = [
     "RUF",
 ]
 ignore = [
-    "E741", # ambiguous variable name
-    "UP009", # UTF-8 encoding declaration is unnecessary
-    "PLR09", # too many (arguments|branches)
+    "E741",    # ambiguous variable name
+    "UP009",   # UTF-8 encoding declaration is unnecessary
+    "E501",    # line too long
+    "PLR09",   # too many (arguments|branches)
     "PLR2004", # Magic value used in comparison
-    "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
+    "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
+               # fine for AmpelUnit, actually (ruff has a special case for pydantic)
 ]
 
 [tool.ruff.lint.isort]
 known-first-party = ["ampel"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["RUF018"] # assignment in assert is just fine in tests
+"tests/*" = ["RUF018", "SLF001"]
 
 [tool.ruff.lint.flake8-unused-arguments]
 ignore-variadic-names = true

@@ -186,8 +186,8 @@ def get_handler(context, directives, run_id=0) -> ChainedIngestionHandler:
     )
 
 
-@pytest.mark.usefixtures("_patch_mongo", "_mock_get_photopoints")
-def test_integration(dev_context, alerts):
+@pytest.mark.usefixtures("_mock_get_photopoints")
+def test_integration(mock_context, alerts):
     directive = {
         "channel": "EXAMPLE_TNS_MSIP",
         "ingest": {
@@ -207,12 +207,12 @@ def test_integration(dev_context, alerts):
         },
     }
 
-    handler = get_handler(dev_context, [IngestDirective(**directive)])
+    handler = get_handler(mock_context, [IngestDirective(**directive)])
 
-    stock = dev_context.db.get_collection("stock")
-    t0 = dev_context.db.get_collection("t0")
-    t1 = dev_context.db.get_collection("t1")
-    t2 = dev_context.db.get_collection("t2")
+    stock = mock_context.db.get_collection("stock")
+    t0 = mock_context.db.get_collection("t0")
+    t1 = mock_context.db.get_collection("t1")
+    t2 = mock_context.db.get_collection("t2")
     assert t0.count_documents({}) == 0
 
     alert_list = list(alerts())
@@ -353,7 +353,7 @@ def _ingest(handler: ChainedIngestionHandler, alert: AmpelAlertProtocol):
     assert len(updates := handler.updates_buffer.db_ops["t1"]) == 1
     update = updates[0]
     assert isinstance(update, UpdateOne)
-    dps = update._doc["$setOnInsert"]["dps"]  # noqa: SLF001
+    dps = update._doc["$setOnInsert"]["dps"]
     handler.updates_buffer.push_updates()
     return dps
 
@@ -442,7 +442,7 @@ def test_superseded_candidates_concurrent(mock_context, superseded_alerts, order
 
     def _ingest(indexes: list[int]):
         for i in indexes:
-            next(iter(ingesters[i]._mux_cache.values())).index = i  # noqa: SLF001
+            next(iter(ingesters[i]._mux_cache.values())).index = i
             ingesters[i].ingest(
                 alerts[i].datapoints,
                 filter_results=[(0, True)],
