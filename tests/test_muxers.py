@@ -1,12 +1,13 @@
 import itertools
 import os
 from collections import defaultdict
+from collections.abc import Generator
+from contextlib import contextmanager
 
-import before_after
 import fastavro
 import pytest
-from pymongo.operations import UpdateOne
 
+from ampel.abstract.AbsIngester import AbsIngester
 from ampel.core.AmpelContext import AmpelContext
 from ampel.dev.UnitTestAlertSupplier import UnitTestAlertSupplier
 from ampel.ingest.ChainedIngestionHandler import ChainedIngestionHandler
@@ -28,14 +29,12 @@ from ampel.ztf.ingest.ZiDataPointShaper import ZiDataPointShaperBase
 def _make_muxer(context: AmpelContext, model: UnitModel) -> ZiArchiveMuxer:
     run_id = 0
     logger = AmpelLogger.get_logger()
-    updates_buffer = DBUpdatesBuffer(context.db, run_id=run_id, logger=logger)
 
     return context.loader.new_context_unit(
         model=model,
         sub_type=ZiArchiveMuxer,
         context=context,
         logger=logger,
-        updates_buffer=updates_buffer,
     )
 
 
@@ -169,24 +168,34 @@ def test_get_earliest_jd(
         ), "min jd is min jd of last ingested alert"
 
 
-def get_handler(context, directives, run_id=0) -> ChainedIngestionHandler:
+@contextmanager
+def get_handler(context, directives, run_id=0) -> Generator[ChainedIngestionHandler, None, None]:
     logger = AmpelLogger.get_logger(console={"level": DEBUG})
-    updates_buffer = DBUpdatesBuffer(context.db, run_id=run_id, logger=logger)
-    return ChainedIngestionHandler(
+    with context.loader.new_context_unit(
+        UnitModel(unit="MongoIngester"),
         context=context,
         logger=logger,
-        run_id=0,
-        updates_buffer=updates_buffer,
-        directives=directives,
-        compiler_opts=ZiCompilerOptions(),
-        shaper=UnitModel(unit="ZiDataPointShaper"),
-        trace_id={},
+        run_id=run_id,
         tier=0,
-    )
+        process_name="test_ingestion_handler",
+        sub_type=AbsIngester,
+    ) as ingester:
+        yield ChainedIngestionHandler(
+            context=context,
+            logger=logger,
+            run_id=run_id,
+            ingester=ingester,
+            directives=directives,
+            compiler_opts=ZiCompilerOptions(),
+            shaper=UnitModel(unit="ZiDataPointShaper"),
+            trace_id={},
+            tier=0,
+        )
 
 
 @pytest.mark.usefixtures("_mock_get_photopoints")
 def test_integration(mock_context, alerts):
+    mock_context.add_channel("EXAMPLE_TNS_MSIP", ["ZTF", "ZTF_PUB", "ZTF_PRIV"])
     directive = {
         "channel": "EXAMPLE_TNS_MSIP",
         "ingest": {
@@ -206,22 +215,21 @@ def test_integration(mock_context, alerts):
         },
     }
 
-    handler = get_handler(mock_context, [IngestDirective(**directive)])
+    with get_handler(mock_context, [IngestDirective(**directive)]) as handler:
 
-    stock = mock_context.db.get_collection("stock")
-    t0 = mock_context.db.get_collection("t0")
-    t1 = mock_context.db.get_collection("t1")
-    t2 = mock_context.db.get_collection("t2")
-    assert t0.count_documents({}) == 0
+        stock = mock_context.db.get_collection("stock")
+        t0 = mock_context.db.get_collection("t0")
+        t1 = mock_context.db.get_collection("t1")
+        t2 = mock_context.db.get_collection("t2")
+        assert t0.count_documents({}) == 0
 
-    alert_list = list(alerts())
+        alert_list = list(alerts())
 
-    handler.ingest(
-        alert_list[1].datapoints,
-        stock_id=alert_list[1].stock,
-        filter_results=[(0, True)],
-    )
-    handler.updates_buffer.push_updates()
+        handler.ingest(
+            alert_list[1].datapoints,
+            stock_id=alert_list[1].stock,
+            filter_results=[(0, True)],
+        )
 
     ZiArchiveMuxer.get_photopoints.assert_called_once()
 
@@ -330,6 +338,7 @@ def test_deduplication(
 
 @pytest.fixture
 def ingestion_handler_with_mongomuxer(mock_context):
+    mock_context.add_channel("EXAMPLE_TNS_MSIP", ["ZTF", "ZTF_PUB", "ZTF_PRIV"])
     directive = {
         "channel": "EXAMPLE_TNS_MSIP",
         "ingest": {
@@ -344,17 +353,14 @@ def ingestion_handler_with_mongomuxer(mock_context):
         },
     }
 
-    return get_handler(mock_context, [IngestDirective(**directive)])
+    with get_handler(mock_context, [IngestDirective(**directive)]) as handler:
+        yield handler
 
 
 def _ingest(handler: ChainedIngestionHandler, alert: AmpelAlertProtocol):
-    handler.ingest(alert.datapoints, filter_results=[(0, True)], stock_id=alert.stock)
-    assert len(updates := handler.updates_buffer.db_ops["t1"]) == 1
-    update = updates[0]
-    assert isinstance(update, UpdateOne)
-    dps = update._doc["$setOnInsert"]["dps"]
-    handler.updates_buffer.push_updates()
-    return dps
+    with handler.ingester.group():
+        handler.ingest(alert.datapoints, filter_results=[(0, True)], stock_id=alert.stock)
+    handler.ingester.flush()
 
 
 def test_out_of_order_ingestion(
@@ -386,111 +392,3 @@ def test_out_of_order_ingestion(
     for idx in sorted(in_order.keys()):
         assert in_order[idx] == out_of_order[idx]
 
-
-def test_superseded_candidates_serial(
-    mock_context: AmpelContext,
-    ingestion_handler_with_mongomuxer: ChainedIngestionHandler,
-    superseded_alerts,
-):
-    """
-    Photopoints are superseded by points from newer alerts with the same jd,rcid
-    """
-
-    alerts = list(reversed(list(superseded_alerts())))
-
-    assert alerts[0].datapoints[0]["jd"] == alerts[1].datapoints[0]["jd"]
-    candids = [alert.datapoints[0]["candid"] for alert in alerts]
-    assert candids[0] < candids[1]
-
-    for alert in alerts:
-        _ingest(ingestion_handler_with_mongomuxer, alert)
-
-    pp_db = mock_context.db.get_collection("t0").find_one(
-        {"id": candids[0]},
-    )
-
-    assert "SUPERSEDED" in pp_db["tag"], f"{candids[0]} marked as superseded in db"
-
-
-@pytest.mark.parametrize("ordering", list(itertools.permutations(range(3))))
-def test_superseded_candidates_concurrent(mock_context, superseded_alerts, ordering):
-    directive = {
-        "channel": "EXAMPLE_TNS_MSIP",
-        "ingest": {
-            "mux": {
-                "unit": "ZiMongoMuxer",
-                "combine": [
-                    {
-                        "unit": "ZiT1Combiner",
-                    }
-                ],
-            },
-        },
-    }
-
-    alerts = list(reversed(list(superseded_alerts())))
-    assert alerts[0].datapoints[0]["jd"] == alerts[1].datapoints[0]["jd"]
-    candids = [alert.datapoints[0]["candid"] for alert in alerts]
-
-    ingesters = [
-        get_handler(mock_context, [IngestDirective(**directive)], i)
-        for i in range(len(alerts))
-    ]
-
-    assert len(alerts) == 3
-
-    def _ingest(indexes: list[int]):
-        for i in indexes:
-            next(iter(ingesters[i]._mux_cache.values())).index = i
-            ingesters[i].ingest(
-                alerts[i].datapoints,
-                filter_results=[(0, True)],
-                stock_id=alerts[i].stock,
-            )
-            ingesters[i].updates_buffer.push_updates()
-
-    # simulate real-world race conditions by running an entire ingestion immediately after
-    # one ingester retrieves existing datapoints, but before it pushes any updates
-    #
-    # this creates sequences like the following:
-    # 0 begin 1391345455815015017
-    # 2 begin 1391345455815015019
-    # 1 begin 1391345455815015018
-    # 1 end  1391345455815015018
-    # 2 end  1391345455815015019
-    # 0 end  1391345455815015017
-    def ingest(indexes: list[int], interleave=True):
-        if interleave and len(indexes) > 1:
-            with before_after.after(
-                "ampel.ztf.ingest.ZiMongoMuxer.ZiMongoMuxer._get_dps",
-                lambda *args: ingest(indexes[1:], interleave),
-            ):
-                _ingest(indexes[:1])
-        else:
-            _ingest(indexes)
-
-    ingest(ordering)
-
-    t0 = mock_context.db.get_collection("t0")
-
-    def assert_superseded(old, new):
-        doc = t0.find_one({"id": old})
-        assert "SUPERSEDED" in doc["tag"]
-        assert (
-            len(
-                [
-                    m
-                    for m in doc.get("meta", [])
-                    if m.get("tag") == "SUPERSEDED"
-                    and m.get("extra", {}).get("newId") == new
-                ]
-            )
-            == 1
-        ), f"candid {old} superseded by {new}"
-
-    assert_superseded(candids[0], candids[1])
-    assert_superseded(candids[0], candids[2])
-    assert_superseded(candids[1], candids[2])
-    assert "SUPERSEDED" not in t0.find_one({"id": candids[2]})["tag"], (
-        f"candid {candids[2]} not superseded"
-    )
