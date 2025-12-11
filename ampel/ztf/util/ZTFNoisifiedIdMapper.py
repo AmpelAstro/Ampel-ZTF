@@ -9,14 +9,11 @@
 from collections.abc import Iterable
 from typing import cast, overload
 
-from ampel.abstract.AbsIdMapper import AbsIdMapper
 from ampel.types import StockId, StrictIterable
 from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 
 
-class ZTFNoisifiedIdMapper(AbsIdMapper):
-    def __init__(self):
-        ZTFIdMapper.__init__(self)
+class ZTFNoisifiedIdMapper(ZTFIdMapper):
 
     @overload
     @classmethod

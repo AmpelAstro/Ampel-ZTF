@@ -191,7 +191,7 @@ class AllConsumingConsumer:
                 for toppar in self._consumer.commit(
                     offsets=offsets, asynchronous=False
                 ):
-                    if toppar.error:
+                    if toppar.error and self._logger:
                         self._logger.error(
                             f"Commit {toppar} failed with {toppar.error}"
                         )

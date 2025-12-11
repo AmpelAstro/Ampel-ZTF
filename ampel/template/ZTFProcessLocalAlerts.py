@@ -18,7 +18,7 @@ from ampel.types import ChannelId
 
 
 # Inheritance orders matters in this case
-class ZTFProcessLocalAlerts(JobTaskModel, AbsConfigMorpher):  # type: ignore[misc]
+class ZTFProcessLocalAlerts(JobTaskModel, AbsConfigMorpher):
     """
     Returns adequate config for an alert consumer configured to process local alerts
     """
