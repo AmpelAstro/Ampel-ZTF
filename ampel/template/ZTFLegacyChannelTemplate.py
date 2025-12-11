@@ -103,7 +103,6 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
             0,
             self.craft_t0_process(
                 first_pass_config,
-                controller="ZTFAlertStreamController",
                 supplier=supplier,
                 shaper="ZiDataPointShaper",
                 muxer=muxer,
