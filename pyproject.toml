@@ -88,12 +88,9 @@ check_untyped_defs = true
 module = [
   "astropy.*",
   "confluent_kafka.*",
-  #"ampel.ztf.t0.ArchiveUpdater",
   "pandas.*",
-  #"matplotlib.*",
   "requests_toolbelt.*",
   "scipy.*",
-  #"ztfquery",
   "healpy",
   "light_curve",
   "planobs.*"
