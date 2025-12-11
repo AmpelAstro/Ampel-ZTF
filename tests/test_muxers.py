@@ -116,9 +116,8 @@ def consolidated_alert(raw_alert_dicts):
         UnitModel(unit="ZiArchiveMuxer", config={"history_days": 30}),
     ],
 )
-@pytest.mark.usefixtures("_patch_mongo")
-def test_instantiate(dev_context: AmpelContext, model):
-    _make_muxer(dev_context, model)
+def test_instantiate(mock_context: AmpelContext, model):
+    _make_muxer(mock_context, model)
 
 
 @pytest.fixture

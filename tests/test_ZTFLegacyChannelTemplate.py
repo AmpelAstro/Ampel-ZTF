@@ -1,8 +1,5 @@
-import pytest
 
-from ampel.base.AuxUnitRegister import AuxUnitRegister
-from ampel.config.AmpelConfig import AmpelConfig
-from ampel.core.UnitLoader import UnitLoader
+from ampel.core.AmpelContext import AmpelContext
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.model.ingest.FilterModel import FilterModel
 from ampel.model.ingest.IngestDirective import IngestDirective
@@ -12,19 +9,7 @@ from ampel.model.ProcessModel import ProcessModel
 from ampel.template.ZTFLegacyChannelTemplate import ZTFLegacyChannelTemplate
 
 
-@pytest.fixture
-def logger():
-    return AmpelLogger.get_logger()
-
-
-@pytest.fixture
-def unit_loader(first_pass_config):
-    config = AmpelConfig(first_pass_config, freeze=True)
-    AuxUnitRegister.initialize(config)
-    return UnitLoader(config, db=None, provenance=False)
-
-
-def test_alert_only(logger, first_pass_config, unit_loader: UnitLoader):
+def test_alert_only(mock_context: AmpelContext, ampel_logger: AmpelLogger):
     template = ZTFLegacyChannelTemplate(
         **{
             "channel": "EXAMPLE_TNS_MSIP",
@@ -37,10 +22,10 @@ def test_alert_only(logger, first_pass_config, unit_loader: UnitLoader):
         }
     )
     process = template.get_processes(
-        logger=logger, first_pass_config=first_pass_config
+        logger=ampel_logger, first_pass_config=mock_context.config.get()
     )[0]
     assert process["tier"] == 0
-    with unit_loader.validate_unit_models():
+    with mock_context.loader.validate_unit_models():
         directive = IngestDirective(**process["processor"]["config"]["directives"][0])
     assert isinstance(directive.filter, FilterModel)
     assert isinstance(directive.ingest.mux, MuxModel)
@@ -52,13 +37,13 @@ def test_alert_only(logger, first_pass_config, unit_loader: UnitLoader):
     assert units[0].unit == "T2LightCurveSummary"
     assert directive.ingest.combine is None
 
-    with unit_loader.validate_unit_models():
+    with mock_context.loader.validate_unit_models():
         ProcessModel(**(process | {"version": 0}))
 
     assert process["processor"]["config"]["compiler_opts"], "compiler options set"
 
 
-def test_alert_t2(logger, first_pass_config):
+def test_alert_t2(ampel_logger, mock_context: AmpelContext):
     """
     With live_history disabled, T2s run on alert history only
     """
@@ -78,7 +63,7 @@ def test_alert_t2(logger, first_pass_config):
         }
     )
     process = template.get_processes(
-        logger=logger, first_pass_config=first_pass_config
+        logger=ampel_logger, first_pass_config=mock_context.config.get()
     )[0]
     assert process["tier"] == 0
     directive = IngestDirective(**process["processor"]["config"]["directives"][0])
@@ -88,7 +73,7 @@ def test_alert_t2(logger, first_pass_config):
     assert {u.unit for u in units} == {"DemoLightCurveT2Unit", "T2LightCurveSummary"}
 
 
-def test_archive_t2(logger, first_pass_config):
+def test_archive_t2(ampel_logger, mock_context: AmpelContext):
     """
     With archive_history disabled, T2s run on alert history only
     """
@@ -109,7 +94,7 @@ def test_archive_t2(logger, first_pass_config):
         }
     )
     process = template.get_processes(
-        logger=logger, first_pass_config=first_pass_config
+        logger=ampel_logger, first_pass_config=mock_context.config.get()
     )[0]
     assert process["tier"] == 0
     directive = IngestDirective(**process["processor"]["config"]["directives"][0])

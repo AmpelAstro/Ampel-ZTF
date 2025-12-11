@@ -33,18 +33,13 @@ def _catalogmatch_service_reachable():
         pytest.skip("https://ampel.zeuthen.desy.de/ is unreachable")
 
 
-@pytest.fixture
-def ampel_logger():
-    return AmpelLogger.get_logger()
-
-
-@pytest.mark.usefixtures("_patch_mongo", "_catalogmatch_service_reachable")
+@pytest.mark.usefixtures("_catalogmatch_service_reachable")
 def test_catalogmatch(
-    dev_context: AmpelContext,
+    mock_context: AmpelContext,
     catalogmatch_config: dict[str, Any],
     ampel_logger: AmpelLogger,
 ):
-    unit: T2CatalogMatch = dev_context.loader.new_logical_unit(
+    unit: T2CatalogMatch = mock_context.loader.new_logical_unit(
         model=UnitModel(unit="T2CatalogMatch", config=catalogmatch_config),
         logger=ampel_logger,
         sub_type=T2CatalogMatch,
@@ -73,14 +68,13 @@ def test_catalogmatch(
     )
 
 
-@pytest.mark.usefixtures("_patch_mongo")
 def test_decentfilter_star_in_gaia(
-    dev_context: AmpelContext,
+    mock_context: AmpelContext,
     ampel_logger: AmpelLogger,
 ):
     with open(Path(__file__).parent / "test-data" / "decentfilter_config.yaml") as f:
         config = yaml.safe_load(f)
-    unit: DecentFilter = dev_context.loader.new_logical_unit(
+    unit: DecentFilter = mock_context.loader.new_logical_unit(
         UnitModel(unit="DecentFilter", config=config),
         logger=ampel_logger,
         sub_type=DecentFilter,
@@ -91,12 +85,11 @@ def test_decentfilter_star_in_gaia(
     assert not unit.is_star_in_gaia({"ra": 0, "dec": 0})
 
 
-@pytest.mark.usefixtures("_patch_mongo")
-def test_tnsnames(dev_context: AmpelContext, ampel_logger: AmpelLogger) -> None:
-    unit: TNSNames = dev_context.loader.new_context_unit(
+def test_tnsnames(mock_context: AmpelContext, ampel_logger: AmpelLogger) -> None:
+    unit: TNSNames = mock_context.loader.new_context_unit(
         UnitModel(unit="TNSNames"),
         logger=ampel_logger,
-        context=dev_context,
+        context=mock_context,
         sub_type=TNSNames,
     )
     buf = AmpelBuffer(
@@ -129,10 +122,10 @@ def test_tnsnames(dev_context: AmpelContext, ampel_logger: AmpelLogger) -> None:
     assert stockdoc["name"] == ("sourceysource", "TNS2020ubb")
     assert "extra" not in buf
 
-    unit = dev_context.loader.new_context_unit(
+    unit = mock_context.loader.new_context_unit(
         UnitModel(unit="TNSReports"),
         logger=ampel_logger,
-        context=dev_context,
+        context=mock_context,
         sub_type=TNSNames,
     )
     unit.complement([buf], T3Store())
