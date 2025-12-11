@@ -14,8 +14,6 @@ maintainers = [
 ]
 license = "BSD-3-Clause"
 readme = "README.md"
-homepage = "https://ampelproject.github.io"
-repository = "https://github.com/AmpelAstro/Ampel-ZTF"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -106,7 +104,7 @@ ignore_missing_imports = true
 line-length = 88
 
 [tool.ruff]
-line-length = 79
+line-length = 88
 target-version = "py310"
 
 [tool.ruff.lint]
