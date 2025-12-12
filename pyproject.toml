@@ -18,6 +18,9 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Information Analysis",
     "Topic :: Scientific/Engineering :: Astronomy",
     "Typing :: Typed",
@@ -57,18 +60,8 @@ dev = [
 
 [tool.poetry]
 packages = [
-    {include = "ampel"}
-]
-exclude = [
-    "ampel/py.typed",
-]
-include = [
-    'conf/*/*.json',
-    'conf/*/*/*.json',
-    'conf/*/*.yaml',
-    'conf/*/*/*.yaml',
-    'conf/*/*.yml',
-    'conf/*/*/*.yml',
+    {include = "ampel"},
+    {include = "ampel/conf/**/*.yml"},
 ]
 
 [project.urls]
@@ -125,7 +118,7 @@ line-length = 88
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
@@ -162,7 +155,11 @@ ignore = [
 known-first-party = ["ampel"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["RUF018", "SLF001"]
+"tests/*" = [
+    "RUF018",  # assignment in assert is just fine in tests
+    "SLF001",  # allow private member access
+    "T201",    # allow print()
+]
 
 [tool.ruff.lint.flake8-unused-arguments]
 ignore-variadic-names = true
