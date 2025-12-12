@@ -14,7 +14,7 @@ import time
 from collections import defaultdict
 from collections.abc import Generator, Iterable, Sequence
 from contextlib import suppress
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, TypedDict, overload
 from urllib.parse import urlparse
 
@@ -89,7 +89,7 @@ def encode_t2_body(t2: "T2DocView") -> str:
         json.dumps(
             {
                 "timestamp": datetime.fromtimestamp(
-                    t2.meta[-1]["ts"], tz=timezone.utc
+                    t2.meta[-1]["ts"], tz=UTC
                 ).isoformat(),
                 **{k: sanitize_json(v) for k, v in doc.items() if k != "ts"},
             },
@@ -117,7 +117,7 @@ def get_t2_result(
     else:
         return None, None
     assert isinstance(record, dict)
-    return datetime.fromtimestamp(meta["ts"], tz=timezone.utc), record
+    return datetime.fromtimestamp(meta["ts"], tz=UTC), record
 
 
 def render_thumbnail(cutout_data: bytes) -> str:
@@ -686,7 +686,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 continue
             yield (
                 jentry["alert"],  # type: ignore[typeddict-item]
-                datetime.fromtimestamp(jentry["ts"], tz=timezone.utc),
+                datetime.fromtimestamp(jentry["ts"], tz=UTC),
                 fids,
             )
             new_filters.difference_update(fids)
