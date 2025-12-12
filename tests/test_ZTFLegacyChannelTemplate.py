@@ -1,4 +1,3 @@
-
 from ampel.core.AmpelContext import AmpelContext
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.model.ingest.FilterModel import FilterModel

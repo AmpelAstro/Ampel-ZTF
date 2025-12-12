@@ -169,7 +169,9 @@ def test_get_earliest_jd(
 
 
 @contextmanager
-def get_handler(context, directives, run_id=0) -> Generator[ChainedIngestionHandler, None, None]:
+def get_handler(
+    context, directives, run_id=0
+) -> Generator[ChainedIngestionHandler, None, None]:
     logger = AmpelLogger.get_logger(console={"level": DEBUG})
     with context.loader.new_context_unit(
         UnitModel(unit="MongoIngester"),
@@ -216,7 +218,6 @@ def test_integration(mock_context, alerts):
     }
 
     with get_handler(mock_context, [IngestDirective(**directive)]) as handler:
-
         stock = mock_context.db.get_collection("stock")
         t0 = mock_context.db.get_collection("t0")
         t1 = mock_context.db.get_collection("t1")
@@ -359,7 +360,9 @@ def ingestion_handler_with_mongomuxer(mock_context):
 
 def _ingest(handler: ChainedIngestionHandler, alert: AmpelAlertProtocol):
     with handler.ingester.group():
-        handler.ingest(alert.datapoints, filter_results=[(0, True)], stock_id=alert.stock)
+        handler.ingest(
+            alert.datapoints, filter_results=[(0, True)], stock_id=alert.stock
+        )
     handler.ingester.flush()
 
 
@@ -391,4 +394,3 @@ def test_out_of_order_ingestion(
 
     for idx in sorted(in_order.keys()):
         assert in_order[idx] == out_of_order[idx]
-
