@@ -14,8 +14,9 @@ def lightcurve(mock_context):
     return ZTFAlert.to_lightcurve(file_path=path)
 
 
-def test_features(lightcurve, ampel_logger):
+def test_features(lightcurve, ampel_logger, snapshot):
     t2 = T2LightCurveFeatures.T2LightCurveFeatures(logger=ampel_logger)
     result = t2.process(lightcurve)
+    assert result == snapshot
     for prefix in t2.extractor.names:
         assert any(k.startswith(prefix) for k in result)
