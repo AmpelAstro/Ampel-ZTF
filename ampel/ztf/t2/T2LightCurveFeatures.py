@@ -6,18 +6,20 @@
 # Last Modified Date:  15.04.2021
 # Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
+from collections.abc import Iterable
 from contextlib import suppress
 from typing import Any
 
 import light_curve
 import numpy as np
 
-from ampel.abstract.AbsLightCurveT2Unit import AbsLightCurveT2Unit
-from ampel.types import UBson
-from ampel.view.LightCurve import LightCurve
+from ampel.abstract.AbsStateT2Unit import AbsStateT2Unit
+from ampel.abstract.AbsTabulatedT2Unit import AbsTabulatedT2Unit
+from ampel.content.DataPoint import DataPoint
+from ampel.content.T1Document import T1Document
 
 
-class T2LightCurveFeatures(AbsLightCurveT2Unit):
+class T2LightCurveFeatures(AbsStateT2Unit, AbsTabulatedT2Unit):
     """
     Calculate various features of the light curve using the light-curve
     package described in https://ui.adsabs.harvard.edu/abs/2021MNRAS.502.5147M%2F/abstract
@@ -30,8 +32,6 @@ class T2LightCurveFeatures(AbsLightCurveT2Unit):
         "LinearFit": None,
         "StetsonK": None,
     }
-    #: Bandpasses to use
-    bands: dict[str, int] = {"g": 1, "r": 2, "i": 3}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -39,25 +39,27 @@ class T2LightCurveFeatures(AbsLightCurveT2Unit):
             *(getattr(light_curve, k)(**(v or {})) for k, v in self.features.items())
         )
 
-    def process(self, lightcurve: LightCurve) -> UBson:
-        result = {}
-        for band, fid in self.bands.items():
-            if (
-                in_band := lightcurve.get_ntuples(
-                    ["jd", "magpsf", "sigmapsf"],
-                    {"attribute": "fid", "operator": "==", "value": fid},
-                )
-            ) is None:
-                continue
-            t, mag, magerr = np.array(sorted(in_band)).T
+    def process(
+        self, compound: T1Document, datapoints: Iterable[DataPoint]
+    ) -> dict[str, float]:
+        table = self.get_flux_table(datapoints).group_by("band")
+        # lightcurve package expects magnitudes
+        table["mag"] = -2.5 * np.log10(table["flux"]) + table["zp"]
+        table["magerr"] = np.abs(table["fluxerr"] / table["flux"]) * (2.5 / np.log(10))
 
+        result = {}
+        for band, bandtable in zip(
+            table.groups.keys["band"], table.groups, strict=True
+        ):
             with suppress(ValueError):  # raised if too few points
                 result.update(
                     {
                         f"{k}_{band}": v
                         for k, v in zip(
                             self.extractor.names,
-                            self.extractor(t, mag, magerr),
+                            self.extractor(
+                                bandtable["time"], bandtable["mag"], bandtable["magerr"]
+                            ),
                             strict=False,
                         )
                     }
