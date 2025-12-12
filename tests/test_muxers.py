@@ -27,7 +27,6 @@ from ampel.ztf.ingest.ZiDataPointShaper import ZiDataPointShaperBase
 
 
 def _make_muxer(context: AmpelContext, model: UnitModel) -> ZiArchiveMuxer:
-    run_id = 0
     logger = AmpelLogger.get_logger()
 
     return context.loader.new_context_unit(

@@ -16,7 +16,7 @@ def recent_alerts():
             Path(__file__).parent.parent / "alerts" / "recent_alerts.tar.gz"
         )
         for item in dap.tar_file:
-            yield dap._unpack(item)  # noqa: SLF001
+            yield dap._unpack(item)
 
     return gen
 

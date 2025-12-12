@@ -14,7 +14,6 @@ from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 
 
 class ZTFNoisifiedIdMapper(ZTFIdMapper):
-
     @overload
     @classmethod
     def to_ampel_id(cls, ztf_id: str) -> int: ...

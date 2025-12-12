@@ -7,14 +7,10 @@
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from bisect import bisect_right
-from contextlib import suppress
 from typing import Any
-
-from pymongo import UpdateOne
 
 from ampel.abstract.AbsT0Muxer import AbsT0Muxer
 from ampel.content.DataPoint import DataPoint
-from ampel.content.MetaRecord import MetaRecord
 from ampel.types import DataPointId, StockId
 from ampel.util.mappings import unflatten_dict
 
