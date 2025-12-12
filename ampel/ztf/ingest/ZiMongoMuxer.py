@@ -7,14 +7,10 @@
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from bisect import bisect_right
-from contextlib import suppress
 from typing import Any
-
-from pymongo import UpdateOne
 
 from ampel.abstract.AbsT0Muxer import AbsT0Muxer
 from ampel.content.DataPoint import DataPoint
-from ampel.content.MetaRecord import MetaRecord
 from ampel.types import DataPointId, StockId
 from ampel.util.mappings import unflatten_dict
 
@@ -30,17 +26,12 @@ class ConcurrentUpdateError(Exception):
 class ZiMongoMuxer(AbsT0Muxer):
     """
     This class compares info between alert and DB so that only the needed info is ingested later.
-    Also, it marks potentially reprocessed datapoints as superseded.
-
-    :param check_reprocessing: whether the ingester should check if photopoints were reprocessed
-    (costs an additional DB request per transient). Default is (and should be) True.
 
     :param alert_history_length: alerts must not contain all available info for a given transient.
     IPAC generated alerts for ZTF for example currently provide a photometric history of 30 days.
     Although this number is unlikely to change, there is no reason to use a constant in code.
     """
 
-    check_reprocessing: bool = True
     alert_history_length: int = 30
 
     # Be idempotent for the sake it (not required for prod)
@@ -71,11 +62,10 @@ class ZiMongoMuxer(AbsT0Muxer):
         # used to check potentially already inserted pps
         self._photo_col = self.context.db.get_collection("t0")
         self._projection_spec = unflatten_dict(self.projection)
-        self._run_id = (
-            self.updates_buffer.run_id[0]
-            if isinstance(self.updates_buffer.run_id, list)
-            else self.updates_buffer.run_id
-        )
+
+    # NB: this 1-liner is a separate method to provide a patch point for race condition testing
+    def _get_dps(self, stock_id: None | StockId) -> list[DataPoint]:
+        return list(self._photo_col.find({"stock": stock_id}, self.projection))
 
     def process(
         self, dps: list[DataPoint], stock_id: None | StockId = None
@@ -83,31 +73,6 @@ class ZiMongoMuxer(AbsT0Muxer):
         """
         :param dps: datapoints from alert
         :param stock_id: stock id from alert
-        Attempt to determine which pps/uls should be inserted into the t0 collection,
-        and which one should be marked as superseded.
-        """
-        # IPAC occasionally issues multiple subtraction candidates for the same
-        # exposure and source, and these may be received in parallel by two
-        # AlertConsumers.
-        for _ in range(10):
-            with suppress(ConcurrentUpdateError):
-                return self._process(dps, stock_id)
-        raise ConcurrentUpdateError(
-            f"More than 10 iterations ingesting alert {dps[0]['id']}"
-        )
-
-    # NB: this 1-liner is a separate method to provide a patch point for race condition testing
-    def _get_dps(self, stock_id: None | StockId) -> list[DataPoint]:
-        return list(self._photo_col.find({"stock": stock_id}, self.projection))
-
-    def _process(
-        self, dps: list[DataPoint], stock_id: None | StockId = None
-    ) -> tuple[None | list[DataPoint], None | list[DataPoint]]:
-        """
-        :param dps: datapoints from alert
-        :param stock_id: stock id from alert
-        Attempt to determine which pps/uls should be inserted into the t0 collection,
-        and which one should be marked as superseded.
         """
 
         # Part 1: gather info from DB and alert
@@ -115,12 +80,6 @@ class ZiMongoMuxer(AbsT0Muxer):
 
         # New pps/uls lists for db loaded datapoints
         dps_db = self._get_dps(stock_id)
-
-        ops: list[UpdateOne] = []
-        if self.check_reprocessing:
-            add_update = ops.append
-        else:
-            add_update = self.updates_buffer.add_t0_update
 
         # Create set with datapoint ids from alert
         ids_dps_alert = {el["id"] for el in dps}
@@ -132,8 +91,6 @@ class ZiMongoMuxer(AbsT0Muxer):
         # choose the one with the larger id
         # (jd, rcid) -> ids
         unique_dps_ids: dict[tuple[float, int], list[DataPointId]] = {}
-        # id -> superseding ids
-        ids_dps_superseded: dict[DataPointId, list[DataPointId]] = {}
         # id -> final datapoint
         unique_dps: dict[DataPointId, DataPoint] = {}
 
@@ -152,11 +109,6 @@ class ZiMongoMuxer(AbsT0Muxer):
             else:
                 unique_dps_ids[key] = [dp["id"]]
 
-        # build set of supersessions
-        for simultaneous_dps in unique_dps_ids.values():
-            for i in range(len(simultaneous_dps) - 1):
-                ids_dps_superseded[simultaneous_dps[i]] = simultaneous_dps[i + 1 :]
-
         # build final set of datapoints, preferring entries loaded from the db
         final_dps_set = {v[-1] for v in unique_dps_ids.values()}
         for dp in dps_db + dps:
@@ -168,120 +120,6 @@ class ZiMongoMuxer(AbsT0Muxer):
 
         # Difference between candids from the alert and candids present in DB
         ids_dps_to_insert = ids_dps_alert - ids_dps_db
-
-        for dp in dps:
-            # If alerts were received out of order, this point may already be superseded.
-            # Update it in place so that it can be inserted with the correct tags.
-            if (
-                self.check_reprocessing
-                and dp["id"] in ids_dps_to_insert
-                and dp["id"] in ids_dps_superseded
-            ):
-                self.logger.info(
-                    f"Marking datapoint {dp['id']} "
-                    f"as superseded by {ids_dps_superseded[dp['id']]}"
-                )
-
-                # point is newly superseded
-                if "SUPERSEDED" not in dp["tag"]:
-                    # mutate a copy, as the default tag list may be shared between all datapoints
-                    dp["tag"] = list(dp["tag"])
-                    dp["tag"].append("SUPERSEDED")  # type: ignore[attr-defined]
-
-                # point may be superseded by more than one new datapoint
-                meta: list[MetaRecord] = list(dp.get("meta", []))
-                for newId in ids_dps_superseded[dp["id"]]:
-                    if not any(
-                        m.get("extra", {}).get("newId") == newId
-                        for m in meta
-                        if m.get("tag") == "SUPERSEDED"
-                    ):
-                        meta.append(
-                            {
-                                "run": self._run_id,
-                                "traceid": {"muxer": self._trace_id},
-                                "tag": "SUPERSEDED",
-                                "extra": {"newId": newId},
-                            }
-                        )
-                dp["meta"] = meta
-
-        # Part 3: Update old data points that are superseded
-        ####################################################
-
-        if self.check_reprocessing:
-            for dp in dps_db or []:
-                if dp["id"] in ids_dps_superseded:
-                    self.logger.info(
-                        f"Marking datapoint {dp['id']} "
-                        f"as superseded by {ids_dps_superseded[dp['id']]}"
-                    )
-
-                    # point is newly superseded
-                    if "SUPERSEDED" not in dp["tag"]:
-                        dp["tag"].append("SUPERSEDED")  # type: ignore[attr-defined]
-                        add_update(
-                            UpdateOne(
-                                {
-                                    "id": dp["id"],
-                                },
-                                {"$addToSet": {"tag": "SUPERSEDED"}},
-                            )
-                        )
-
-                    # point may be superseded by more than one new datapoint
-                    meta = list(dp.get("meta", []))
-                    for newId in ids_dps_superseded[dp["id"]]:
-                        if not any(
-                            m.get("extra", {}).get("newId") == newId
-                            for m in meta
-                            if m.get("tag") == "SUPERSEDED"
-                        ):
-                            entry: MetaRecord = {
-                                "run": self._run_id,
-                                "traceid": {"muxer": self._trace_id},
-                                "tag": "SUPERSEDED",
-                                "extra": {"newId": newId},
-                            }
-                            meta.append(entry)
-                            # issue idempotent update
-                            add_update(
-                                UpdateOne(
-                                    {
-                                        "id": dp["id"],
-                                        "meta": {
-                                            "$not": {
-                                                "$elemMatch": {
-                                                    "tag": "SUPERSEDED",
-                                                    "extra.newId": newId,
-                                                }
-                                            }
-                                        },
-                                    },
-                                    {"$push": {"meta": entry}},
-                                )
-                            )
-                    dp["meta"] = meta
-
-        # Part 4: commit ops and check for conflicts
-        ############################################
-        if self.check_reprocessing:
-            # Commit ops, retrying on upsert races
-            if ops:
-                self.updates_buffer.call_bulk_write("t0", ops)
-            # If another query returns docs not present in the first query, the
-            # set of superseded photopoints may be incomplete.
-            if concurrent_updates := (
-                {
-                    doc["id"]
-                    for doc in self._photo_col.find({"stock": stock_id}, {"id": 1})
-                }
-                - (ids_dps_db | ids_dps_alert)
-            ):
-                raise ConcurrentUpdateError(
-                    f"T0 collection contains {len(concurrent_updates)} "
-                    f"extra photopoints: {concurrent_updates}"
-                )
 
         # The union of the datapoints drawn from the db and
         # from the alert will be part of the t1 document

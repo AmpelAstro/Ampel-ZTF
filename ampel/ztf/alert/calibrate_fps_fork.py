@@ -1,5 +1,6 @@
 import gc
 import importlib.resources
+from typing import no_type_check
 
 import astropy.units as u
 import matplotlib.pyplot as plt
@@ -342,6 +343,7 @@ def search_peak(
     return sumdict
 
 
+@no_type_check
 def get_baseline(
     fps_file,
     window="14D",

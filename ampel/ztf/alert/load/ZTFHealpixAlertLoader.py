@@ -83,7 +83,7 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
         # Reset iter
         self._it = None
 
-    def __iter__(self) -> Iterator[dict[str, Any]]:  # type: ignore[override]
+    def __iter__(self) -> Iterator[dict[str, Any]]:
         return self._get_alerts()
 
     def __next__(self) -> dict[str, Any]:

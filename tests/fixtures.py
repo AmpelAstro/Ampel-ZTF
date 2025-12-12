@@ -1,86 +1,10 @@
-import json
-import subprocess
 from functools import partial
-from os import environ
 from pathlib import Path
-from time import time
 
-import mongomock
 import pytest
 import yaml
 
 from ampel.alert.load.TarAlertLoader import TarAlertLoader
-from ampel.dev.DevAmpelContext import DevAmpelContext
-from ampel.secret.AmpelVault import AmpelVault
-from ampel.secret.PotemkinSecretProvider import PotemkinSecretProvider
-
-
-@pytest.fixture
-def _patch_mongo(monkeypatch):
-    monkeypatch.setattr("ampel.core.AmpelDB.MongoClient", mongomock.MongoClient)
-
-
-@pytest.fixture(scope="session")
-def mongod(pytestconfig):
-    if "MONGO_PORT" in environ:
-        yield "mongodb://localhost:{}".format(environ["MONGO_PORT"])
-        return
-
-    if not pytestconfig.getoption("--integration"):
-        raise pytest.skip("integration tests require --integration flag")
-    try:
-        container = (
-            subprocess.check_output(["docker", "run", "--rm", "-d", "-P", "mongo:4.4"])
-            .strip()
-            .decode()
-        )
-    except FileNotFoundError:
-        pytest.skip("integration tests require docker")
-    for _ in range(10):
-        try:
-            subprocess.check_call(
-                [
-                    "docker",
-                    "exec",
-                    container,
-                    "sh",
-                    "-c",
-                    "echo 'db.runCommand({serverStatus:1}).ok' | mongo admin --quiet | grep 1",
-                ]
-            )
-            break
-        except subprocess.SubprocessError:
-            time.sleep(1)
-    else:
-        raise subprocess.SubprocessError("mongo failed to start")
-    try:
-        port = json.loads(subprocess.check_output(["docker", "inspect", container]))[0][
-            "NetworkSettings"
-        ]["Ports"]["27017/tcp"][0]["HostPort"]
-        yield f"mongodb://localhost:{port}"
-    finally:
-        subprocess.check_call(["docker", "stop", container])
-
-
-@pytest.fixture
-def dev_context(mongod):
-    ctx = DevAmpelContext.load(
-        config=Path(__file__).parent / "test-data" / "testing-config.yaml",
-        purge_db=True,
-        custom_conf={"resource.mongo": mongod},
-        vault=AmpelVault([PotemkinSecretProvider()]),
-    )
-    yield ctx
-    ctx.db.close()
-
-
-@pytest.fixture
-def mock_context(_patch_mongo):
-    return DevAmpelContext.load(
-        config=Path(__file__).parent / "test-data" / "testing-config.yaml",
-        purge_db=True,
-        vault=AmpelVault([PotemkinSecretProvider()]),
-    )
 
 
 @pytest.fixture

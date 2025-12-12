@@ -7,6 +7,7 @@
 # Last Modified By:    Simeon Reusch <simeon.reusch@desy.de>
 
 import logging
+from collections.abc import Generator
 from typing import Any
 
 import backoff
@@ -47,9 +48,9 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._it = None
+        self._it: None | Generator[dict[str, Any], None, None] = None
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[dict[str, Any], None, None]:
         return self.get_alerts()
 
     def __next__(self):
@@ -57,7 +58,7 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
             self._it = iter(self)
         return next(self._it)
 
-    def get_alerts(self):
+    def get_alerts(self) -> Generator[dict[str, Any], None, None]:
         if self.stream is None:
             raise ValueError()
         with requests.Session() as session:

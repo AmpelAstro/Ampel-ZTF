@@ -1,8 +1,5 @@
 unit:
 
-# Controller units
-- ampel.ztf.t0.ZTFAlertStreamController
-
 # Context units
 #- ampel.ztf.ingest.ZiT1ArchivalCompoundIngester
 - ampel.ztf.alert.ZTFGeneralActiveAlertRegister
