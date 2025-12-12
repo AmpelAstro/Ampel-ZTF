@@ -1,0 +1,15 @@
+# serializer version: 1
+# name: test_features
+  dict({
+    'inter_percentile_range_25_ztfg': np.float64(0.22809982299804688),
+    'inter_percentile_range_25_ztfr': np.float64(0.3420686721801758),
+    'linear_fit_reduced_chi2_ztfg': np.float64(0.5703233266574897),
+    'linear_fit_reduced_chi2_ztfr': np.float64(1.7966371359612274),
+    'linear_fit_slope_sigma_ztfg': np.float64(0.006341532845749651),
+    'linear_fit_slope_sigma_ztfr': np.float64(0.004172685832332052),
+    'linear_fit_slope_ztfg': np.float64(0.014464723357133946),
+    'linear_fit_slope_ztfr': np.float64(0.019921525996894982),
+    'stetson_K_ztfg': np.float64(0.8507126983296481),
+    'stetson_K_ztfr': np.float64(0.7662084232922197),
+  })
+# ---

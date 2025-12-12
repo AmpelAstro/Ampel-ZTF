@@ -63,7 +63,7 @@ class ZTFT2Tabulator(AbsT2Tabulator):
             final_dps_set = {v[-1] for v in unique_dps_ids.values()}
         else:
             final_dps_set = set(dp_ids.keys())
-        return [dp_ids[dp_id] for dp_id in final_dps_set]
+        return [dp for dp in dps if dp["id"] in final_dps_set]
 
     def get_flux_table(
         self,
