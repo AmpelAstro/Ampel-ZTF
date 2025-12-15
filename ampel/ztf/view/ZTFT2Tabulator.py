@@ -42,7 +42,9 @@ class ZTFT2Tabulator(AbsT2Tabulator):
     # Check for reprocessed datapoints
     check_reprocessing: bool = True
 
-    def filter_detections(self, dps: Iterable[DataPoint]) -> Iterable[DataPoint]:
+    def filter_detections(
+        self, dps: Iterable[DataPoint], cut_ulim: bool = False
+    ) -> Iterable[DataPoint]:
         dp_ids = {dp["id"]: dp for dp in dps if "tag" in dp and "ZTF" in dp["tag"]}
         if self.check_reprocessing:
             # uniquify photopoints by jd, rcid. For duplicate points, choose the
@@ -63,6 +65,8 @@ class ZTFT2Tabulator(AbsT2Tabulator):
             final_dps_set = {v[-1] for v in unique_dps_ids.values()}
         else:
             final_dps_set = set(dp_ids.keys())
+        if cut_ulim:
+            return [dp for dp in dps if dp["id"] > 0 in final_dps_set]
         return [dp for dp in dps if dp["id"] in final_dps_set]
 
     def get_flux_table(
@@ -70,7 +74,8 @@ class ZTFT2Tabulator(AbsT2Tabulator):
         dps: Iterable[DataPoint],
     ) -> Table:
         magpsf, sigmapsf, jd, fids = self.get_values(
-            self.filter_detections(dps), ["magpsf", "sigmapsf", "jd", "fid"]
+            self.filter_detections(dps, cut_ulim=True),
+            ["magpsf", "sigmapsf", "jd", "fid"],
         )
         filter_names = [ZTF_BANDPASSES[fid]["name"] for fid in fids]
         # signs = [signdict[el] for el in isdiffpos]
@@ -97,7 +102,7 @@ class ZTFT2Tabulator(AbsT2Tabulator):
     def get_positions(
         self, dps: Iterable[DataPoint]
     ) -> Sequence[tuple[float, float, float]]:
-        det_dps = self.filter_detections(dps)
+        det_dps = self.filter_detections(dps, cut_ulim=True)
         return tuple(
             zip(
                 self.get_jd(det_dps),
