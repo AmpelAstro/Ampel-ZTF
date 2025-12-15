@@ -66,7 +66,7 @@ class ZTFT2Tabulator(AbsT2Tabulator):
         else:
             final_dps_set = set(dp_ids.keys())
         if cut_ulim:
-            return [dp for dp in dps if dp["id"] > 0 in final_dps_set]
+            return [dp for dp in dps if dp.get("magpsf", -1) > 0 in final_dps_set]
         return [dp for dp in dps if dp["id"] in final_dps_set]
 
     def get_flux_table(
