@@ -1,7 +1,11 @@
 .venv/
 *.egg-info
 __pycache__
+/build/
+/dist/
 .pytest_cache
 .mypy_cache
 .vscode
-dist
+*.swp
+*.swo
+.DS_Store
