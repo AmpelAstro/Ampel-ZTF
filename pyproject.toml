@@ -1,6 +1,6 @@
 [project]
 name = "ampel-ztf"
-version = "0.10.3a7"
+version = "0.10.3a8"
 description = "Zwicky Transient Facility support for the Ampel system"
 requires-python = ">=3.11, <4"
 authors = [
