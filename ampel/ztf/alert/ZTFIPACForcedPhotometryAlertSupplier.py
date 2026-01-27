@@ -18,9 +18,6 @@ from bson import encode
 
 from ampel.alert.AmpelAlert import AmpelAlert
 from ampel.alert.BaseAlertSupplier import BaseAlertSupplier
-from ampel.model.PlotProperties import FormatModel, PlotProperties
-
-# from ampel.plot.create import create_plot_record
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.view.ReadOnlyDict import ReadOnlyDict
 from ampel.ztf.alert.calibrate_fps_fork import get_baseline
@@ -140,12 +137,6 @@ class ZTFIPACForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
     # Store the baseline corrected files
     save_file_dir: str | None
-
-    plot_props: PlotProperties = PlotProperties(
-        tags=["IFP", "BASELINE"],
-        file_name=FormatModel(format_str="ifp_raw_%s.svg", arg_keys=["sn_name"]),
-        title=FormatModel(format_str="IFP - %s", arg_keys=["sn_name"]),
-    )
 
     def __init__(self, **kwargs) -> None:
         # Not run...
