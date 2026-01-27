@@ -1,6 +1,6 @@
 [project]
 name = "ampel-ztf"
-version = "0.10.3a8"
+version = "0.10.3a9"
 description = "Zwicky Transient Facility support for the Ampel system"
 requires-python = ">=3.11, <4"
 authors = [
@@ -44,9 +44,8 @@ archive = ["ampel-ztf-archive (>=0.7.1,<0.8.0)"]
 healpix = ["healpy (>=1.19.0,<2.0.0)"]
 light-curve = ["light-curve (>=0.10.5,<0.11.0)"]
 kafka = ["confluent-kafka (>=2.12.2,<3.0.0)"]
-plot = ["ampel-plot (>=0.9.1,<0.10.0)"]
 fp = ["pandas (>=2.3.3,<3.0.0)", "planobs (>=0.7.3,<0.8.0)"]
-bayes = ["pandas (>=2.3.3,<3.0.0)", "planobs (>=0.7.3,<0.8.0)", "ampel-plot (>=0.9.1,<0.10.0)"]
+bayes = ["pandas (>=2.3.3,<3.0.0)", "planobs (>=0.7.3,<0.8.0)"]
 [dependency-groups]
 dev = [
     "pytest-ampel-core (>=0.10.0a5,<0.11)",
