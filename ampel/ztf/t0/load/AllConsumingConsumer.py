@@ -11,7 +11,6 @@ import json
 import sys
 import time
 import uuid
-from collections.abc import Collection
 
 import confluent_kafka
 
@@ -159,7 +158,7 @@ class AllConsumingConsumer:
 
     def store_offsets(
         self,
-        offsets: Collection[confluent_kafka.TopicPartition],
+        offsets: list[confluent_kafka.TopicPartition],
     ):
         if self._logger:
             self._logger.debug(f"Storing offsets: {offsets}")
@@ -171,7 +170,7 @@ class AllConsumingConsumer:
             # while a batch of messages is in flight. see also:
             # https://github.com/confluentinc/confluent-kafka-dotnet/issues/1861
             err = exc.args[0]
-            if err.code() == confluent_kafka.KafkaError._STATE:  # noqa: SLF001
+            if err.name() == "_STATE":
                 ...
             else:
                 raise KafkaError(err) from exc
@@ -221,12 +220,12 @@ class AllConsumingConsumer:
             message = self._consumer.poll(self._poll_interval)
             if message is not None:
                 if err := message.error():
-                    if err.code() == confluent_kafka.KafkaError.UNKNOWN_TOPIC_OR_PART:
+                    if err.name() == "UNKNOWN_TOPIC_OR_PART":
                         # ignore unknown topic messages
                         continue
-                    if err.code() in (
-                        confluent_kafka.KafkaError._TIMED_OUT,  # noqa: SLF001
-                        confluent_kafka.KafkaError._MAX_POLL_EXCEEDED,  # noqa: SLF001
+                    if err.name() in (
+                        "_TIMED_OUT",
+                        "_MAX_POLL_EXCEEDED",
                     ):
                         # bail on timeouts
                         if self._logger:
@@ -238,6 +237,14 @@ class AllConsumingConsumer:
             return message
         if message.error():
             raise KafkaError(message.error())
-        self._offsets[(message.topic(), message.partition())] = message.offset()
+        topic, partition, offset = (
+            message.topic(),
+            message.partition(),
+            message.offset(),
+        )
+        assert isinstance(topic, str)
+        assert isinstance(partition, int)
+        assert isinstance(offset, int)
+        self._offsets[(topic, partition)] = offset
         self._metrics.on_consume(message)
         return message
