@@ -17,22 +17,22 @@ ampel-core = ">=0.10.6a12,<0.11"
 
 [[package]]
 name = "ampel-catalogmatch"
-version = "0.10.0a2"
+version = "0.10.0a4"
 description = "Astronomical catalog matching for Ampel"
 optional = false
 python-versions = "<4,>=3.11"
 groups = ["main"]
 files = [
-    {file = "ampel_catalogmatch-0.10.0a2-py3-none-any.whl", hash = "sha256:6187a01c2e2a44def0849d773ab1bcb24c3255fd904cd980b9491ab8391684e7"},
-    {file = "ampel_catalogmatch-0.10.0a2.tar.gz", hash = "sha256:22da4ebbd920682f96b01d4b33afbbe0780e1c99a79fbb5d55e49ec1d28115be"},
+    {file = "ampel_catalogmatch-0.10.0a4-py3-none-any.whl", hash = "sha256:3f56499bd132e5ad574447fe3690eaf47d9c61738e537cb3972944d48f23362c"},
+    {file = "ampel_catalogmatch-0.10.0a4.tar.gz", hash = "sha256:a1157b3ac11c8a963df81507569d51fc62299ab570462017bcf1836b27f50198"},
 ]
 
 [package.dependencies]
 ampel-alerts = ">=0.10.3,<0.11.0"
 ampel-interface = ">=0.10.4.post2,<0.11"
-backoff = ">=2.2.1,<3.0.0"
 requests = ">=2.32.5,<3.0.0"
 requests-toolbelt = ">=1.0.0,<2.0.0"
+tenacity = ">=9.1.2,<10.0.0"
 
 [[package]]
 name = "ampel-core"
@@ -3310,6 +3310,22 @@ files = [
 
 [package.dependencies]
 pytest = ">=8.0.0"
+
+[[package]]
+name = "tenacity"
+version = "9.1.4"
+description = "Retry code until it succeeds"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "tenacity-9.1.4-py3-none-any.whl", hash = "sha256:6095a360c919085f28c6527de529e76a06ad89b23659fa881ae0649b867a9d55"},
+    {file = "tenacity-9.1.4.tar.gz", hash = "sha256:adb31d4c263f2bd041081ab33b498309a57c77f9acf2db65aadf0898179cf93a"},
+]
+
+[package.extras]
+doc = ["reno", "sphinx"]
+test = ["pytest", "tornado (>=4.5)", "typeguard"]
 
 [[package]]
 name = "toolz"
