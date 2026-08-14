@@ -40,9 +40,11 @@ class GROWTHMarshalReport(CatalogMatchContextUnit, AbsBufferComplement):
     @backoff.on_exception(
         backoff.expo,
         requests.HTTPError,
-        giveup=lambda e: not isinstance(e, requests.HTTPError)
-        or e.response is None
-        or e.response.status_code not in {502, 503, 429},
+        giveup=lambda e: (
+            not isinstance(e, requests.HTTPError)
+            or e.response is None
+            or e.response.status_code not in {502, 503, 429}
+        ),
         max_time=60,
     )
     def _lookup(self, name) -> None | dict[str, Any]:
