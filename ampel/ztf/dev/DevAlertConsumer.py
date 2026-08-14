@@ -108,7 +108,7 @@ class DevAlertConsumer:
         # Return number of processed alerts
         return iter_count - iter_offset
 
-    def _unpack(self, tar_info) -> None | AmpelAlert:
+    def _unpack(self, tar_info) -> AmpelAlert | None:
         # Reach end of archive
         if tar_info is None:
             self._logger.info("Reached end of tar files")

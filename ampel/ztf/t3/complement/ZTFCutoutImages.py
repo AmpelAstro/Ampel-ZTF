@@ -51,7 +51,7 @@ class ZTFCutoutImages(AbsBufferComplement):
         ),
         max_time=60,
     )
-    def get_cutout(self, candid: int) -> None | dict[str, bytes]:
+    def get_cutout(self, candid: int) -> dict[str, bytes] | None:
         response = self.session.get(f"alert/{candid}/cutouts")
         if response.status_code == 404:
             return None

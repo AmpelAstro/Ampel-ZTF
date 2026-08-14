@@ -32,7 +32,7 @@ class ZiTaggedAlertSupplier(BaseAlertSupplier):
     """
 
     # Override default
-    deserialize: None | Literal["avro", "json"] = "avro"
+    deserialize: Literal["avro", "json"] | None = "avro"
     binary_mode: bool = True
 
     def __init__(self, **kwargs) -> None:

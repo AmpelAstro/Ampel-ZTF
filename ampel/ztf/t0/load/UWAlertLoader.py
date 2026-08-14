@@ -54,7 +54,7 @@ class UWAlertLoader(AbsAlertLoader[io.IOBase]):
         )
         self._it: Iterator[io.BytesIO] | None = None
 
-    def alerts(self, limit: None | int = None) -> Iterator[io.BytesIO]:
+    def alerts(self, limit: int | None = None) -> Iterator[io.BytesIO]:
         """
         Generate alerts until timeout is reached
         :returns: dict instance of the alert content

@@ -59,10 +59,10 @@ class BTSForcedPhotometryAlertSupplier(BaseAlertSupplier):
     baseline_flag_cut: int = (
         512  # This will allow also cases with underestimated scaled unc
     )
-    days_prepeak: None | float = (
+    days_prepeak: float | None = (
         None  # Cut epochs earlier than this relative to peak. Assumes this can be found!
     )
-    days_postpeak: None | float = (
+    days_postpeak: float | None = (
         None  # Cut epochs later than this relative to peak. Assumes this can be found!
     )
     allow_iband_peak: bool = (
@@ -122,7 +122,7 @@ class BTSForcedPhotometryAlertSupplier(BaseAlertSupplier):
             self.name_values = df[self.file_keys["id"]]
 
         # Assuming that filenames follow the BTS convention
-        ztfname = fpath.split("/")[-1].split("_")[0]
+        ztfname = fpath.rsplit("/", maxsplit=1)[-1].split("_", maxsplit=1)[0]
 
         # Find coordinates - if name file exists
         ra, dec = None, None  # Allowing events with no coordinate info

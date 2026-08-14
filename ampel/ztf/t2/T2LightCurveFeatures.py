@@ -27,7 +27,7 @@ class T2LightCurveFeatures(AbsStateT2Unit, AbsTabulatedT2Unit):
 
     #: Features to extract from the light curve.
     #: See: https://docs.rs/light-curve-feature/0.2.2/light_curve_feature/features/index.html
-    features: dict[str, None | dict[str, Any]] = {
+    features: dict[str, dict[str, Any] | None] = {
         "InterPercentileRange": {"quantile": 0.25},
         "LinearFit": None,
         "StetsonK": None,

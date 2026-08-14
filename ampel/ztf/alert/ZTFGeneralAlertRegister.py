@@ -43,7 +43,7 @@ class ZTFGeneralAlertRegister(BaseAlertRegister):
         f: BinaryIO | str,
         alert_id: int | list[int],
         **kwargs,
-    ) -> None | list[tuple[int, ...]]:
+    ) -> list[tuple[int, ...]] | None:
         if ret := super().find_alert(f, alert_id=alert_id, **kwargs):
             return [(el[0], -el[1], int.from_bytes(el[2], "little")) for el in ret]  # type: ignore[arg-type]
         return None
@@ -54,7 +54,7 @@ class ZTFGeneralAlertRegister(BaseAlertRegister):
         f: BinaryIO | str,
         stock_id: int | list[int],
         **kwargs,
-    ) -> None | list[tuple[int, ...]]:
+    ) -> list[tuple[int, ...]] | None:
         if ret := super().find_stock(
             f, stock_id=stock_id, stock_offset=9, stock_bytes_len=5, **kwargs
         ):

@@ -80,7 +80,7 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
         f: BinaryIO | str,
         stock_id: int | list[int],
         **kwargs,
-    ) -> None | list[tuple[int, ...]]:
+    ) -> list[tuple[int, ...]] | None:
         return super().find_stock(
             f, stock_id, header_hint_callback=cls._match_ztf_years, **kwargs
         )
@@ -89,8 +89,8 @@ class ZTFGeneralActiveAlertRegister(ZTFGeneralAlertRegister):
     def _match_ztf_years(
         header: dict[str, Any],
         stock_id: int | list[int],
-        logger: None | AmpelLogger = None,
-    ) -> None | int | list[int]:
+        logger: AmpelLogger | None = None,
+    ) -> int | list[int] | None:
         if "ztf_years" in header:
             zy = header["ztf_years"]
         else:

@@ -118,8 +118,8 @@ class ZiArchiveMuxer(AbsT0Muxer, ArchiveUnit):
         return response.json()
 
     def process(
-        self, dps: list[DataPoint], stock_id: None | StockId = None
-    ) -> tuple[None | list[DataPoint], None | list[DataPoint]]:
+        self, dps: list[DataPoint], stock_id: StockId | None = None
+    ) -> tuple[list[DataPoint] | None, list[DataPoint] | None]:
         """
         :param dps: datapoints from alert
         :param stock_id: stock id from alert

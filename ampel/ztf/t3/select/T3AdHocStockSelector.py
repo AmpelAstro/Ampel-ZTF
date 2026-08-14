@@ -30,7 +30,7 @@ class T3AdHocStockSelector(AbsT3Selector):
         super().__init__(**kwargs)
 
     # Override/Implement
-    def fetch(self) -> None | Cursor:
+    def fetch(self) -> Cursor | None:
         """The returned Iterator is a pymongo Cursor"""
 
         return (

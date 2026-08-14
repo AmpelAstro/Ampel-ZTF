@@ -250,7 +250,7 @@ class DecentFilter(CatalogMatchUnit, AbsAlertFilter):
         return False
 
     # Override
-    def process(self, alert: AmpelAlertProtocol) -> None | bool | int:
+    def process(self, alert: AmpelAlertProtocol) -> bool | int | None:
         """
         Mandatory implementation.
         To exclude the alert, return *None*

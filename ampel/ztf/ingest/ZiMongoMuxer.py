@@ -64,12 +64,12 @@ class ZiMongoMuxer(AbsT0Muxer):
         self._projection_spec = unflatten_dict(self.projection)
 
     # NB: this 1-liner is a separate method to provide a patch point for race condition testing
-    def _get_dps(self, stock_id: None | StockId) -> list[DataPoint]:
+    def _get_dps(self, stock_id: StockId | None) -> list[DataPoint]:
         return list(self._photo_col.find({"stock": stock_id}, self.projection))
 
     def process(
-        self, dps: list[DataPoint], stock_id: None | StockId = None
-    ) -> tuple[None | list[DataPoint], None | list[DataPoint]]:
+        self, dps: list[DataPoint], stock_id: StockId | None = None
+    ) -> tuple[list[DataPoint] | None, list[DataPoint] | None]:
         """
         :param dps: datapoints from alert
         :param stock_id: stock id from alert

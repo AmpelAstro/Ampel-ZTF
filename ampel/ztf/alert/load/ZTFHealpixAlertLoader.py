@@ -46,9 +46,9 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
     archive: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3/"
 
     #: A stream identifier, created via POST /api/ztf/archive/streams/
-    stream: None | str = None
+    stream: str | None = None
     #: A HealpixSource object to query
-    source: None | HealpixSource = None
+    source: HealpixSource | None = None
     # If not set at init, needs to be set by alert proceessor
 
     archive_token: NamedSecret[str] = NamedSecret[str](label="ztf/archive/token")
@@ -65,7 +65,7 @@ class ZTFHealpixAlertLoader(AbsAlertLoader[dict[str, Any]]):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._it: None | Iterator[dict[str, Any]] = None
+        self._it: Iterator[dict[str, Any]] | None = None
 
     def set_source(
         self,

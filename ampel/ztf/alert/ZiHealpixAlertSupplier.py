@@ -22,8 +22,8 @@ class ZiHealpixAlertSupplier(BaseAlertSupplier):
     """
 
     # Override default
-    deserialize: None | Literal["avro", "json"] = None
-    source: None | HealpixSource = None
+    deserialize: Literal["avro", "json"] | None = None
+    source: HealpixSource | None = None
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)

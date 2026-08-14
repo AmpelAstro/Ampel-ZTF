@@ -21,9 +21,9 @@ log = logging.getLogger(__name__)
 
 class ZTFSource(AmpelBaseModel):
     ztf_name: str
-    programid: None | int = None
-    jd_start: None | float = None
-    jd_end: None | float = None
+    programid: int | None = None
+    jd_start: float | None = None
+    jd_end: float | None = None
     with_history: bool = True
     archive_token: str
 
@@ -42,13 +42,13 @@ class ZTFArchiveAlertLoader(AbsAlertLoader):
     archive: str = "https://ampel.zeuthen.desy.de/api/ztf/archive/v3"
 
     #: A stream identifier, created via POST /api/ztf/archive/streams/, or a query
-    stream: None | str | ZTFSource = "%%ztf_stream_token"
+    stream: str | ZTFSource | None = "%%ztf_stream_token"
 
     with_history: bool = True
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._it: None | Generator[dict[str, Any], None, None] = None
+        self._it: Generator[dict[str, Any], None, None] | None = None
 
     def __iter__(self) -> Generator[dict[str, Any], None, None]:
         return self.get_alerts()

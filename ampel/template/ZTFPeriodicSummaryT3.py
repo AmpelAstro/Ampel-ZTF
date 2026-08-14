@@ -17,4 +17,4 @@ class ZTFPeriodicSummaryT3(PeriodicSummaryT3):
     """
 
     tag: dict = {"with": "ZTF", "without": "HAS_ERROR"}
-    load: None | Sequence[str | LoaderDirective] = ["TRANSIENT", "T2RECORD"]
+    load: Sequence[str | LoaderDirective] | None = ["TRANSIENT", "T2RECORD"]

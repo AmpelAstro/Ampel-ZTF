@@ -30,14 +30,14 @@ class T4ZTFArchiveTokenGenerator(AbsT4Unit):
     max_dist_ps1_src: float = 0.5
     min_detections: int = 3
 
-    date_str: None | str = None  # Start from a particular date
+    date_str: str | None = None  # Start from a particular date
     date_format: str = "%Y-%m-%d"
     delta_t: float = 1.0  # Length of time window from start date (days)
 
-    days_ago: None | float = None
+    days_ago: float | None = None
 
     #: overrides max_dist_ps1_src & min_detections
-    candidate: None | dict[str, Any] = None
+    candidate: dict[str, Any] | None = None
 
     #: seconds to wait for query to complete
     timeout: float = 60

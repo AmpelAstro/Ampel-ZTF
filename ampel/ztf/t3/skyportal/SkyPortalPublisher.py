@@ -27,7 +27,7 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
     #: Save as candidates for these filters. If None, save for filters
     # "AMPEL.{channel}". If a list, save for these filters. If an empty list,
     # post no candidates.
-    filters: None | list[str] = None
+    filters: list[str] | None = None
     #: Post T2 results as annotations instead of comments
     annotate: bool = False
     #: Explicitly post photometry for each stock. If False, rely on some backend
@@ -35,12 +35,12 @@ class SkyPortalPublisher(BaseSkyPortalPublisher, AbsPhotoT3Unit):
     include_photometry: Literal[False] = False
     cutouts: Literal[None] = None
 
-    process_name: None | str = None
+    process_name: str | None = None
 
     def process(
         self,
         tviews: Generator["TransientView", JournalAttributes, None],
-        t3s: "None | T3Store" = None,
+        t3s: "T3Store | None" = None,
     ) -> None:
         """Pass each view to :meth:`post_candidate`."""
         for view in tviews:
