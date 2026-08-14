@@ -532,7 +532,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 continue
             # find associated annotation
             for annotation in previous_annotations:
-                if ":".rsplit(annotation["origin"], maxsplit=1)[-1] == t2.unit:
+                if annotation["origin"].rsplit(":", maxsplit=1)[-1] == t2.unit:
                     break
             else:
                 # post new annotation

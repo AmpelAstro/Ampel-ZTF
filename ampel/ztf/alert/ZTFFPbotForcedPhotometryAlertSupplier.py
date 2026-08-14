@@ -423,7 +423,7 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 break
             key = line.split(",", 2)[0].split("=", maxsplit=1)[0].lstrip("#")
             headerkeys.append(key)
-            val = line.split(",", 2)[0].split("=")[1].rstrip("\n")
+            val = line.split(",", 2)[0].split("=", maxsplit=1)[1].rstrip("\n")
             headervals.append(val)
 
         headerdict = {}
