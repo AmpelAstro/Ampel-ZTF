@@ -1,12 +1,10 @@
 # Changes here will be overwritten by Copier
-_commit: v0.0.12
+_commit: v0.0.15
 _src_path: https://github.com/AmpelAstro/copier-ampel.git
-author_email: jakob.van.santen@desy.de
-author_name: Jakob van Santen
 plugin_description: Zwicky Transient Facility support for the Ampel system
 plugin_name: ZTF
 plugin_org: AmpelAstro
 plugin_version: 0.10.3a7
+user_email: jakob.van.santen@desy.de
+user_name: Jakob van Santen
 version_cap: <0.11
-
-#copier updated
