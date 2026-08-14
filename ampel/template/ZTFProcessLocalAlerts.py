@@ -31,7 +31,7 @@ class ZTFProcessLocalAlerts(JobTaskModel, AbsConfigMorpher):
     #: 'deserialize' and 'loader' will be overriden
     supplier: str | UnitModel = "ZiAlertSupplier"
     loader: str = "DirAlertLoader"
-    binary_mode: None | bool = True
+    binary_mode: bool | None = True
 
     #: T2 units to trigger when transient is updated. Dependencies of tied
     #: units will be added automatically.

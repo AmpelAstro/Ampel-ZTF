@@ -40,7 +40,7 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
     #: include all previously ingested photopoints in emitted states
     live_history: bool = True
     #: include X days of archival datapoints in emitted states
-    archive_history: None | int = None
+    archive_history: int | None = None
 
     # Mandatory implementation
     def get_channel(self, logger: AmpelLogger) -> dict[str, Any]:
@@ -75,7 +75,7 @@ class ZTFLegacyChannelTemplate(AbsEasyChannelTemplate):
             else None
         )
         if mongo_muxer and archive_muxer:
-            muxer: None | dict[str, Any] = {
+            muxer: dict[str, Any] | None = {
                 "unit": "ChainedT0Muxer",
                 "config": {"muxers": [mongo_muxer, archive_muxer]},
             }

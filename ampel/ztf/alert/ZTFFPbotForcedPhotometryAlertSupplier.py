@@ -96,7 +96,7 @@ def get_fpbot_baseline(
     primary_grid_only: bool = False,
     min_det_per_field_band: int = 10,
     zp_max_deviation_from_median: float = 0.5,
-    reference_days_before_peak: None | float = 50.0,
+    reference_days_before_peak: float | None = 50.0,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     """
     For each unique baseline combination, estimate and store baseline.
@@ -391,12 +391,12 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
 
     zp_max_deviation_from_median: float = 0.5
 
-    reference_days_before_peak: None | float = 50.0
+    reference_days_before_peak: float | None = 50.0
 
-    plot_suffix: None | str = None
-    plot_dir: None | str = None
+    plot_suffix: str | None = None
+    plot_dir: str | None = None
 
-    save_dir: None | str = None
+    save_dir: str | None = None
 
     def __init__(self, **kwargs) -> None:
         kwargs["deserialize"] = None
@@ -421,9 +421,9 @@ class ZTFFPbotForcedPhotometryAlertSupplier(BaseAlertSupplier):
                 break
             if ",ampl_corr" in line:
                 break
-            key = line.split(",", 2)[0].split("=")[0].lstrip("#")
+            key = line.split(",", 2)[0].split("=", maxsplit=1)[0].lstrip("#")
             headerkeys.append(key)
-            val = line.split(",", 2)[0].split("=")[1].rstrip("\n")
+            val = line.split(",", 2)[0].split("=", maxsplit=1)[1].rstrip("\n")
             headervals.append(val)
 
         headerdict = {}

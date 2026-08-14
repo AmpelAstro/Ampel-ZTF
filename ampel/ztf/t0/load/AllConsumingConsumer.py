@@ -108,7 +108,7 @@ class AllConsumingConsumer:
         timeout=None,
         topics=("^ztf_.*",),
         auto_commit=True,
-        logger: None | LoggerProtocol = None,
+        logger: LoggerProtocol | None = None,
         **consumer_config,
     ):
         """
@@ -197,7 +197,7 @@ class AllConsumingConsumer:
                     else:
                         del self._offsets[(toppar.topic, toppar.partition)]
 
-    def consume(self) -> None | confluent_kafka.Message:
+    def consume(self) -> confluent_kafka.Message | None:
         """
         Block until one message has arrived, and return it.
 

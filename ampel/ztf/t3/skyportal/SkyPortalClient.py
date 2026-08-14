@@ -193,9 +193,9 @@ class SkyPortalClient(AmpelUnit):
         endpoint: str,
         *,
         raise_exc: bool = True,
-        headers: None | dict[str, str] = None,
-        params: None | dict[str, Any] = None,
-        json: None | dict[str, Any] = None,
+        headers: dict[str, str] | None = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         _decode_json: None,
     ) -> requests.Response: ...
 
@@ -206,9 +206,9 @@ class SkyPortalClient(AmpelUnit):
         endpoint: str,
         *,
         raise_exc: bool = True,
-        headers: None | dict[str, str] = None,
-        params: None | dict[str, Any] = None,
-        json: None | dict[str, Any] = None,
+        headers: dict[str, str] | None = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         _decode_json: bool = True,
     ) -> dict[str, Any]: ...
 
@@ -228,16 +228,16 @@ class SkyPortalClient(AmpelUnit):
         endpoint: str,
         *,
         raise_exc: bool = True,
-        headers: None | dict[str, str] = None,
-        params: None | dict[str, Any] = None,
-        json: None | dict[str, Any] = None,
-        _decode_json: None | bool = True,
+        headers: dict[str, str] | None = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
+        _decode_json: bool | None = True,
     ) -> requests.Response | dict[str, Any]:
         if endpoint.startswith("/"):
             url = self.base_url + endpoint
         else:
             url = self.base_url + "/api/" + endpoint
-        labels = (verb, endpoint.split("/")[0])
+        labels = (verb, endpoint.split("/", maxsplit=1)[0])
         with (
             stat_http_time.labels(*labels).time(),
             stat_http_errors.labels(*labels).count_exceptions(
@@ -277,7 +277,7 @@ class SkyPortalClient(AmpelUnit):
         self,
         endpoint: str,
         params: dict[str, Any],
-        default: None | dict[str, Any] = None,
+        default: dict[str, Any] | None = None,
     ) -> int:
         """Query for an object by id, inserting it if not found"""
         if not (response := self.get(endpoint, params=params, raise_exc=False))["data"]:
@@ -308,7 +308,7 @@ class SkyPortalClient(AmpelUnit):
         self,
         endpoint: str,
         *,
-        params: None | dict[str, Any] = None,
+        params: dict[str, Any] | None = None,
         raise_exc: bool = True,
     ) -> dict[str, Any]:
         return self.request("GET", endpoint, params=params, raise_exc=raise_exc)
@@ -317,8 +317,8 @@ class SkyPortalClient(AmpelUnit):
         self,
         endpoint: str,
         *,
-        params: None | dict[str, Any] = None,
-        json: None | dict[str, Any] = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         raise_exc: bool = True,
     ) -> dict[str, Any]:
         return self.request(
@@ -329,8 +329,8 @@ class SkyPortalClient(AmpelUnit):
         self,
         endpoint: str,
         *,
-        params: None | dict[str, Any] = None,
-        json: None | dict[str, Any] = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         raise_exc: bool = True,
     ) -> dict[str, Any]:
         return self.request(
@@ -370,7 +370,7 @@ class FilterGroupProvisioner(SkyPortalClient):
         return self.get_by_name("filters", name)
 
     def create_filters(
-        self, config: "AmpelConfig", group: str, stream: None | str = None
+        self, config: "AmpelConfig", group: str, stream: str | None = None
     ) -> None:
         """
         Create a dummy SkyPortal filter for each Ampel filter
@@ -459,9 +459,9 @@ def provision_seed_data(client: SkyPortalClient):
 class PostReport(TypedDict):
     new: bool  #: is this a new source?
     candidates: list[int]  #: new candidates created
-    save_error: None | str  #: error raised while saving source
+    save_error: str | None  #: error raised while saving source
     photometry_count: int  #: size of posted photometry
-    photometry_error: None | str  #: error raised while posting photometry
+    photometry_error: str | None  #: error raised while posting photometry
     thumbnail_count: int  #: number of thumbnails posted
     comments: int  #: number of comments posted
     comment_errors: list[str]  #: errors raised while posting comments
@@ -522,7 +522,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         self,
         name: str,
         t2_views: Iterable["T2DocView"],
-        object_record: None | dict[str, Any],
+        object_record: dict[str, Any] | None,
         ret: PostReport,
     ):
         previous_annotations = object_record["annotations"] if object_record else []
@@ -532,7 +532,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
                 continue
             # find associated annotation
             for annotation in previous_annotations:
-                if ":".split(annotation["origin"])[-1] == t2.unit:
+                if annotation["origin"].rsplit(":", maxsplit=1)[-1] == t2.unit:
                     break
             else:
                 # post new annotation
@@ -572,7 +572,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         self,
         name: str,
         t2_views: Iterable["T2DocView"],
-        object_record: None | dict[str, Any],
+        object_record: dict[str, Any] | None,
         ret: PostReport,
     ):
         previous_comments = object_record["comments"] if object_record else []
@@ -640,7 +640,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         self,
         view: "TransientView",
         passed_filters: Sequence[int],
-        filters: None | Sequence[str] = None,
+        filters: Sequence[str] | None = None,
     ) -> Generator[tuple[int, datetime, list[int]], None, None]:
         """
         Generates updates for filters based on journal entries in a given view.
@@ -695,7 +695,7 @@ class BaseSkyPortalPublisher(SkyPortalClient):
         self,
         view: "TransientView",
         *,
-        filters: None | list[str] = None,
+        filters: list[str] | None = None,
     ):
         """Post candidate for this object. post_source() must be called first."""
         name = self.get_source_name(view)

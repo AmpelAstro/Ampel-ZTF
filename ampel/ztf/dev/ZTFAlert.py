@@ -48,7 +48,7 @@ class ZTFAlert:
 
     @classmethod
     def to_lightcurve(
-        cls, file_path: None | str = None, pal: None | AmpelAlert = None
+        cls, file_path: str | None = None, pal: AmpelAlert | None = None
     ) -> LightCurve:
         """
         Creates and returns an instance of ampel.view.LightCurve using a ZTF IPAC alert.
@@ -76,10 +76,10 @@ class ZTFAlert:
     @classmethod
     def to_transientview(
         cls,
-        file_path: None | str = None,
-        alert: None | AmpelAlert = None,
-        content: None | dict = None,
-        t2_docs: None | Sequence[T2Document] = None,
+        file_path: str | None = None,
+        alert: AmpelAlert | None = None,
+        content: dict | None = None,
+        t2_docs: Sequence[T2Document] | None = None,
     ) -> TransientView:
         """
         Note: incomplete/meaningless//quick'n'dirty method, to improve if need be.
@@ -106,13 +106,13 @@ class ZTFAlert:
         )
 
     @classmethod
-    def _load_alert(cls, file_path: str) -> None | dict:
+    def _load_alert(cls, file_path: str) -> dict | None:
         """ """
         with open(file_path, "rb") as f:
             return cls._deserialize(f)
 
     @staticmethod
-    def _deserialize(f) -> None | dict:
+    def _deserialize(f) -> dict | None:
         """ """
         reader = fastavro.reader(f)
         alert = next(reader, None)

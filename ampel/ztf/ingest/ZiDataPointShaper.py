@@ -147,6 +147,6 @@ class ZiDataPointShaperBase(AmpelUnit):
 
 
 class ZiDataPointShaper(ZiDataPointShaperBase, AbsT0Unit):
-    def process(self, arg: Any, stock: None | StockId = None) -> list[DataPoint]:
+    def process(self, arg: Any, stock: StockId | None = None) -> list[DataPoint]:
         assert stock is not None
         return super().process(arg, stock)

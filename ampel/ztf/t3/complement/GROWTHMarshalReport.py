@@ -47,14 +47,14 @@ class GROWTHMarshalReport(CatalogMatchContextUnit, AbsBufferComplement):
         ),
         max_time=60,
     )
-    def _lookup(self, name) -> None | dict[str, Any]:
+    def _lookup(self, name) -> dict[str, Any] | None:
         response = self.session.get(f"catalogs/GROWTHMarshal/{name}")
         if response.status_code == 404:
             return None
         response.raise_for_status()
         return response.json()
 
-    def get_catalog_item(self, names: Sequence[StockId]) -> None | dict[str, Any]:
+    def get_catalog_item(self, names: Sequence[StockId]) -> dict[str, Any] | None:
         """Get catalog entry associated with the stock name"""
         for name in names:
             if (

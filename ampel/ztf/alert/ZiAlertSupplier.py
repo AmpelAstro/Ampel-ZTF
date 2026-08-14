@@ -21,7 +21,7 @@ class ZiAlertSupplier(BaseAlertSupplier):
     """
 
     # Override default
-    deserialize: None | Literal["avro", "json"] = "avro"
+    deserialize: Literal["avro", "json"] | None = "avro"
 
     def __next__(self) -> AmpelAlert:
         """
@@ -34,7 +34,7 @@ class ZiAlertSupplier(BaseAlertSupplier):
 
     @staticmethod
     def shape_alert_dict(
-        d: dict[str, Any], tag: None | Tag | list[Tag] = None
+        d: dict[str, Any], tag: Tag | list[Tag] | None = None
     ) -> AmpelAlert:
         if d["prv_candidates"]:
             dps: list[ReadOnlyDict] = [ReadOnlyDict(d["candidate"])]
