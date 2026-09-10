@@ -20,6 +20,8 @@ on:
 jobs:
   ci:
     uses: AmpelProject/Ampel-interface/.github/workflows/ci.yml@c855e93ae95c955ba292f88413455462398a8c9a # ci-py12-v10
+    permissions:
+      contents: write
     with:
       mongo: true
       format: true
