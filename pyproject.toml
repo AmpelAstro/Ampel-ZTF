@@ -45,7 +45,7 @@ healpix = ["healpy (>=1.19.0,<2.0.0)"]
 light-curve = ["light-curve (>=0.13.1,<0.14.0)"]
 kafka = ["confluent-kafka (>=2.12.2,<3.0.0)"]
 fp = ["pandas (>=3.0.0,<3.1.0)", "planobs (>=0.7.3,<0.8.0)"]
-bayes = ["pandas (>=3.0.0,<3.1.0)", "planobs (>=0.7.3,<0.8.0)"]
+bayes = ["pandas (>=3.1.1,<3.2.0)", "planobs (>=0.7.3,<0.8.0)"]
 [dependency-groups]
 dev = [
     "pytest-ampel-core (>=0.10.0a5,<0.11)",
@@ -54,7 +54,7 @@ dev = [
     "pytest-asyncio (>=1.3.0,<2.0.0)",
     "before-after (>=1.0.1,<2.0.0)",
     "types-requests (>=2.32.4.20250913,<3.0.0.0)",
-    "types-pytz (>=2026.5.0.20261006,<2026.6.0.0)",
+    "types-pytz (>=2026.6.0.20261031,<2026.7.0.0)",
     "syrupy (>=5.0.0,<6.0.0)",
 ]
 
